@@ -1,9 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import Chatbot from '../components/Chatbot';
 import '../styles/createaccount.css';
 
 const CreateAccount = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -41,8 +45,9 @@ const CreateAccount = () => {
     if (!formData.password) newErrors.password = 'Mot de passe requis';
     else if (formData.password.length < 8) newErrors.password = 'Au moins 8 caractères';
     if (!formData.confirmPassword) newErrors.confirmPassword = 'Veuillez confirmer';
-    else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
-    if (!formData.agreeTerms) newErrors.agreeTerms = 'Vous devez accepter les conditions';
+    else if (formData.password !== formData.confirmPassword)
+      newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
+    if (!formData.agreeTerms) newErrors.agreeTerms = "Vous devez accepter les conditions";
     return newErrors;
   };
 
@@ -71,6 +76,7 @@ const CreateAccount = () => {
   const strengthColors = ['', '#ef4444', '#f97316', '#22c55e', '#0f4c5c'];
   const strength = getPasswordStrength();
 
+  // ── Success Screen ────────────────────────────────────────
   if (submitted) {
     return (
       <>
@@ -86,10 +92,19 @@ const CreateAccount = () => {
               <i className="fas fa-check-circle" />
             </div>
             <h2>Compte créé avec succès !</h2>
-            <p>Bienvenue chez Tictac Voyages. Votre compte a été créé. Vous pouvez maintenant vous connecter.</p>
-            <a href="/pages/signin" className="auth-btn auth-btn-primary" style={{ display: 'inline-flex', marginTop: '12px' }}>
-              <i className="fas fa-sign-in-alt" /> Se connecter
-            </a>
+            <p>
+              Bienvenue chez Tictac Voyages. Votre compte a été créé.
+              Vous pouvez maintenant vous connecter.
+            </p>
+            <button
+              type="button"
+              className="auth-btn auth-btn-primary"
+              style={{ marginTop: '20px' }}
+              onClick={() => navigate('/SignIn')}
+            >
+              <i className="fas fa-sign-in-alt" />
+              Se connecter
+            </button>
           </div>
         </main>
         <Footer />
@@ -97,11 +112,11 @@ const CreateAccount = () => {
     );
   }
 
+  // ── Main Form ─────────────────────────────────────────────
   return (
     <>
       <Navbar />
       <main className="auth-page">
-        {/* Background decorative shapes */}
         <div className="auth-bg-shapes">
           <div className="auth-shape auth-shape-1" />
           <div className="auth-shape auth-shape-2" />
@@ -109,44 +124,65 @@ const CreateAccount = () => {
         </div>
 
         <div className="auth-container auth-container--wide">
-          {/* Left Panel */}
+
+          {/* ── Left Panel ── */}
           <div className="auth-panel auth-panel--left">
             <div className="auth-panel-content">
-              <a href="/" className="auth-logo">
+
+              <button
+                type="button"
+                className="auth-logo"
+                onClick={() => navigate('/')}
+              >
                 <span className="auth-logo-name">TICTAC VOYAGES</span>
                 <span className="auth-logo-sub">Agence de Voyage</span>
-              </a>
+              </button>
+
               <div className="auth-panel-headline">
-                <h1>Rejoignez notre<br /><em>univers de voyage</em></h1>
-                <p>Créez votre compte et accédez à des offres exclusives, gérez vos réservations et bien plus encore.</p>
+                <h1>
+                  Rejoignez notre<br />
+                  <em>univers de voyage</em>
+                </h1>
+                <p>
+                  Créez votre compte et accédez à des offres exclusives,
+                  gérez vos réservations et bien plus encore.
+                </p>
               </div>
+
               <ul className="auth-benefits">
                 <li><i className="fas fa-check-circle" /><span>Offres exclusives membres</span></li>
                 <li><i className="fas fa-check-circle" /><span>Gestion de réservations en ligne</span></li>
                 <li><i className="fas fa-check-circle" /><span>Support dédié 7j/7</span></li>
                 <li><i className="fas fa-check-circle" /><span>Programme de fidélité</span></li>
               </ul>
+
               <div className="auth-panel-deco">
                 <i className="fas fa-plane-departure" />
               </div>
             </div>
           </div>
 
-          {/* Right Panel - Form */}
+          {/* ── Right Panel ── */}
           <div className="auth-panel auth-panel--right">
             <div className="auth-form-wrapper">
+
               <div className="auth-form-header">
                 <h2>Créer un compte</h2>
                 <p>
                   Déjà client ?{' '}
-                  <a href="/pages/signin" className="auth-link">
+                  <button
+                    type="button"
+                    className="auth-link-btn"
+                    onClick={() => navigate('/SignIn')}
+                  >
                     Se connecter <i className="fas fa-arrow-right" />
-                  </a>
+                  </button>
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} noValidate className="auth-form">
-                {/* Name Row */}
+
+                {/* Name row */}
                 <div className="auth-row">
                   <div className={`auth-field ${focused === 'firstName' ? 'auth-field--focused' : ''} ${errors.firstName ? 'auth-field--error' : ''}`}>
                     <label htmlFor="firstName">Prénom</label>
@@ -247,7 +283,7 @@ const CreateAccount = () => {
                       type="button"
                       className="auth-toggle-pw"
                       onClick={() => setShowPassword((p) => !p)}
-                      aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                      aria-label={showPassword ? 'Masquer' : 'Afficher'}
                     >
                       <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
                     </button>
@@ -311,12 +347,14 @@ const CreateAccount = () => {
                     <span className="auth-checkmark" />
                     <span>
                       J'accepte les{' '}
-                      <a href="#" className="auth-link">conditions d'utilisation</a>
+                      <button type="button" className="auth-link-btn">conditions d'utilisation</button>
                       {' '}et la{' '}
-                      <a href="#" className="auth-link">politique de confidentialité</a>
+                      <button type="button" className="auth-link-btn">politique de confidentialité</button>
                     </span>
                   </label>
-                  {errors.agreeTerms && <span className="auth-error" style={{ marginLeft: '28px' }}>{errors.agreeTerms}</span>}
+                  {errors.agreeTerms && (
+                    <span className="auth-error" style={{ marginLeft: '28px' }}>{errors.agreeTerms}</span>
+                  )}
                 </div>
 
                 <button type="submit" className="auth-btn auth-btn-primary">
@@ -325,12 +363,10 @@ const CreateAccount = () => {
                 </button>
               </form>
 
-              {/* Divider */}
               <div className="auth-divider">
                 <span>ou continuez avec</span>
               </div>
 
-              {/* Social */}
               <div className="auth-social">
                 <button type="button" className="auth-social-btn">
                   <i className="fab fa-google" />
@@ -341,10 +377,14 @@ const CreateAccount = () => {
                   Facebook
                 </button>
               </div>
+
             </div>
           </div>
         </div>
       </main>
+
+      {/* CHATBOT */}
+      <Chatbot />
       <Footer />
     </>
   );

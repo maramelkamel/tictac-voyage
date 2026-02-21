@@ -4,6 +4,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import OmraCard from '../../components/OmraCard';  
 import OmraSearchBar from '../../components/OmraSearchBar';
+import Chatbot from '../../components/Chatbot';
 import '../../styles/omrastyle.css';
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -349,6 +350,9 @@ const OmraPage = () => {
           </div>
         </div>
       </section>
+
+      {/* CHATBOT */}
+      <Chatbot />
 
       <Footer />
     </>
