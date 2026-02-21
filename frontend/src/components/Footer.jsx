@@ -12,7 +12,7 @@ const Footer = () => {
   const services = [
     { icon: 'fas fa-chevron-right', label: 'Réservation hôtels', href: '#' },
     { icon: 'fas fa-chevron-right', label: 'Voyages organisés', href: '#' },
-    { icon: 'fas fa-chevron-right', label: 'Omra', path: '/Omra'},
+    { icon: 'fas fa-chevron-right', label: 'Omra', path: '/Omra/Omra'},
     { icon: 'fas fa-chevron-right', label: 'Location voitures', href: '#' },
     { icon: 'fas fa-chevron-right', label: 'Billetterie', href: '#' },
   ];

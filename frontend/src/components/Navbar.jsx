@@ -10,7 +10,7 @@ const navLinks = [
     submenu: [
       { icon: 'fas fa-bus', title: 'Location de Bus', desc: 'Transport groupe' },
       { icon: 'fas fa-car', title: 'Location de Voitures', desc: 'Toutes catégories' },
-      { icon: 'fas fa-kaaba', title: 'Omra', desc: 'Pèlerinage organisé'},
+      { icon: 'fas fa-kaaba', title: 'Omra', desc: 'Pèlerinage organisé' },
       { icon: 'fas fa-plane', title: 'Billetterie', desc: 'Vols & Trains' },
       { icon: 'fas fa-globe', title: 'Voyages Organisés', desc: 'Circuits tout compris' },
       { icon: 'fas fa-star', title: 'Voyages Sur Mesure', desc: '100% personnalisé' },
@@ -26,8 +26,8 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [activeLang, setActiveLang] = useState('FR');
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
 
-  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -36,7 +36,6 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Handle body overflow when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -48,16 +47,27 @@ const Navbar = () => {
     };
   }, [isMobileMenuOpen]);
 
-  // Close dropdown on escape key
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         setActiveDropdown(null);
         setIsMobileMenuOpen(false);
+        setIsAccountMenuOpen(false);
       }
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
+
+  // Close account menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.user-account-wrapper')) {
+        setIsAccountMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const toggleDropdown = useCallback((id) => {
@@ -168,7 +178,9 @@ const Navbar = () => {
                 <button
                   type="button"
                   aria-haspopup="true"
+                  aria-expanded={isAccountMenuOpen}
                   aria-label="Menu du compte utilisateur"
+                  onClick={() => setIsAccountMenuOpen((prev) => !prev)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -199,8 +211,149 @@ const Navbar = () => {
                     <i className="fas fa-user" />
                   </span>
                   Mon compte
-                  <i className="fas fa-chevron-down" style={{ fontSize: '10px', opacity: 0.7 }} />
+                  <i
+                    className="fas fa-chevron-down"
+                    style={{
+                      fontSize: '10px',
+                      opacity: 0.7,
+                      transition: 'transform var(--duration) var(--ease)',
+                      transform: isAccountMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    }}
+                  />
                 </button>
+
+                {/* Account Dropdown */}
+                <ul
+                  role="menu"
+                  aria-label="Options du compte"
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 10px)',
+                    right: 0,
+                    minWidth: '220px',
+                    background: 'var(--white)',
+                    borderRadius: 'var(--radius-lg)',
+                    boxShadow: 'var(--shadow-xl)',
+                    border: '1px solid var(--gray-100)',
+                    padding: '8px 0',
+                    opacity: isAccountMenuOpen ? 1 : 0,
+                    visibility: isAccountMenuOpen ? 'visible' : 'hidden',
+                    transform: isAccountMenuOpen ? 'translateY(0)' : 'translateY(10px)',
+                    transition: 'all var(--duration) var(--ease)',
+                    zIndex: 200,
+                    listStyle: 'none',
+                    margin: 0,
+                  }}
+                >
+                  <li role="none">
+                    <a
+                      href="/pages/CreateAccount"
+                      role="menuitem"
+                      onClick={() => setIsAccountMenuOpen(false)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '14px',
+                        padding: '14px 20px',
+                        fontSize: '14px',
+                        color: 'var(--gray-600)',
+                        textDecoration: 'none',
+                        transition: 'all var(--duration) var(--ease)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#f8fafc';
+                        e.currentTarget.querySelector('.account-icon').style.transform = 'scale(1.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.querySelector('.account-icon').style.transform = 'scale(1)';
+                      }}
+                    >
+                      <div
+                        className="account-icon"
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          background: 'linear-gradient(135deg, var(--secondary), var(--primary))',
+                          borderRadius: 'var(--radius-sm)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'var(--white)',
+                          fontSize: '14px',
+                          transition: 'transform var(--duration) var(--ease)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <i className="fas fa-user-plus" />
+                      </div>
+                      <div>
+                        <span style={{ display: 'block', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '2px' }}>
+                          Créer un compte
+                        </span>
+                        <small style={{ fontSize: '12px', color: 'var(--gray-400)' }}>Nouveau client</small>
+                      </div>
+                    </a>
+                  </li>
+
+                  <li
+                    role="none"
+                    style={{
+                      borderTop: '1px solid var(--gray-100)',
+                      marginTop: '4px',
+                      paddingTop: '4px',
+                    }}
+                  >
+                    <a
+                      href="/pages/SignIn"
+                      role="menuitem"
+                      onClick={() => setIsAccountMenuOpen(false)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '14px',
+                        padding: '14px 20px',
+                        fontSize: '14px',
+                        color: 'var(--gray-600)',
+                        textDecoration: 'none',
+                        transition: 'all var(--duration) var(--ease)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#f8fafc';
+                        e.currentTarget.querySelector('.account-icon').style.transform = 'scale(1.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.querySelector('.account-icon').style.transform = 'scale(1)';
+                      }}
+                    >
+                      <div
+                        className="account-icon"
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          background: 'linear-gradient(135deg, var(--gold), var(--secondary))',
+                          borderRadius: 'var(--radius-sm)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'var(--white)',
+                          fontSize: '14px',
+                          transition: 'transform var(--duration) var(--ease)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <i className="fas fa-sign-in-alt" />
+                      </div>
+                      <div>
+                        <span style={{ display: 'block', fontWeight: 600, color: 'var(--gray-700)', marginBottom: '2px' }}>
+                          Se connecter
+                        </span>
+                        <small style={{ fontSize: '12px', color: 'var(--gray-400)' }}>Déjà client</small>
+                      </div>
+                    </a>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
@@ -464,6 +617,45 @@ const Navbar = () => {
             {link.label}
           </a>
         ))}
+
+        {/* Mobile account links */}
+        <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+          <a
+            href="/pages/createaccount"
+            onClick={closeMobileMenu}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '14px 0',
+              borderBottom: '1px solid rgba(255,255,255,0.1)',
+              color: 'rgba(255,255,255,0.85)',
+              fontSize: '15px',
+              fontWeight: 500,
+              textDecoration: 'none',
+            }}
+          >
+            <i className="fas fa-user-plus" style={{ color: 'var(--secondary)', width: '18px' }} />
+            Créer un compte
+          </a>
+          <a
+            href="/pages/signin"
+            onClick={closeMobileMenu}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '14px 0',
+              color: 'rgba(255,255,255,0.85)',
+              fontSize: '15px',
+              fontWeight: 500,
+              textDecoration: 'none',
+            }}
+          >
+            <i className="fas fa-sign-in-alt" style={{ color: 'var(--gold)', width: '18px' }} />
+            Se connecter
+          </a>
+        </div>
       </nav>
 
       <style>{`
@@ -471,6 +663,7 @@ const Navbar = () => {
           .nav-desktop { display: none !important; }
           .header-cta { display: none !important; }
           .hamburger { display: flex !important; }
+          .header-top .contact-info { display: none !important; }
         }
       `}</style>
     </>
