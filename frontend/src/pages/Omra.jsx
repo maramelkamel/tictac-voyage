@@ -1,8 +1,9 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import OmraCard from '../components/OmraCard';
-import OmraSearchBar from '../components/OmraSearchBar';
+import OmraCard from '../components/Omracard ';
+import OmraSearchBar from '../components/OmraSearchBar ';
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 

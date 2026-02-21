@@ -18,7 +18,7 @@ import { useState } from 'react';
  * }
  */
 
-const OmraCard = ({ pkg, onDetails, onReserve }) => {
+const OmraCard  = ({ pkg, onDetails, onReserve }) => {
   const [hovered, setHovered] = useState(false);
   const [favorite, setFavorite] = useState(false);
 
@@ -364,4 +364,4 @@ const OmraCard = ({ pkg, onDetails, onReserve }) => {
   );
 };
 
-export default OmraCard;
+export default OmraCard ;
