@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const navLinks = [
-  { id: 1, label: 'Accueil', href: '#' },
+  { id: 1, label: 'Accueil', href: '/' },
   { id: 2, label: 'Hôtels', href: '#hotels' },
   {
     id: 3,
@@ -22,6 +23,8 @@ const navLinks = [
 ];
 
 const Navbar = () => {
+  const navigate = useNavigate();
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -29,22 +32,14 @@ const Navbar = () => {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
+    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
@@ -59,7 +54,6 @@ const Navbar = () => {
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
-  // Close account menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest('.user-account-wrapper')) {
@@ -74,23 +68,30 @@ const Navbar = () => {
     setActiveDropdown((prev) => (prev === id ? null : id));
   }, []);
 
-  const closeMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen(false);
-  }, []);
+  const closeMobileMenu = useCallback(() => setIsMobileMenuOpen(false), []);
 
-  const handleOverlayClick = useCallback(() => {
-    closeMobileMenu();
+  const handleOverlayClick = useCallback(() => closeMobileMenu(), [closeMobileMenu]);
+
+  const handleOverlayKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      closeMobileMenu();
+    }
   }, [closeMobileMenu]);
 
-  const handleOverlayKeyDown = useCallback(
-    (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        closeMobileMenu();
-      }
-    },
-    [closeMobileMenu]
-  );
+  // Handles nav link clicks: hash anchors scroll normally, routes use navigate()
+  const handleNavClick = useCallback((e, href) => {
+    if (href.startsWith('#')) return; // let default anchor behavior work
+    e.preventDefault();
+    navigate(href);
+  }, [navigate]);
+
+  // Navigate programmatically and close all menus
+  const goTo = useCallback((path) => {
+    setIsAccountMenuOpen(false);
+    setIsMobileMenuOpen(false);
+    navigate(path);
+  }, [navigate]);
 
   return (
     <>
@@ -107,7 +108,7 @@ const Navbar = () => {
           transition: 'all var(--duration) var(--ease)',
         }}
       >
-        {/* Header Top */}
+        {/* ── Header Top ── */}
         <div
           className="header-top"
           style={{
@@ -117,28 +118,31 @@ const Navbar = () => {
           }}
         >
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+            {/* Contact Info */}
             <div className="contact-info" style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
               <a
                 href="tel:+21636149885"
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500 }}
               >
-                <i className="fas fa-phone-alt" style={{ fontSize: '12px', color: 'var(--secondary)' }} /> +216 36 149 885
+                <i className="fas fa-phone-alt" style={{ fontSize: '12px', color: 'var(--secondary)' }} />
+                +216 36 149 885
               </a>
               <a
                 href="mailto:tictacvoyages@gmail.com"
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500 }}
               >
-                <i className="fas fa-envelope" style={{ fontSize: '12px', color: 'var(--secondary)' }} /> tictacvoyages@gmail.com
+                <i className="fas fa-envelope" style={{ fontSize: '12px', color: 'var(--secondary)' }} />
+                tictacvoyages@gmail.com
               </a>
-              <a
-                href="#"
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500 }}
-              >
-                <i className="fas fa-clock" style={{ fontSize: '12px', color: 'var(--secondary)' }} /> Lun - Sam: 09h - 18h
-              </a>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500 }}>
+                <i className="fas fa-clock" style={{ fontSize: '12px', color: 'var(--secondary)' }} />
+                Lun - Sam: 09h - 18h
+              </span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+
               {/* Language Switch */}
               <div
                 role="group"
@@ -173,7 +177,7 @@ const Navbar = () => {
                 ))}
               </div>
 
-              {/* User Account */}
+              {/* ── User Account Dropdown ── */}
               <div style={{ position: 'relative' }} className="user-account-wrapper">
                 <button
                   type="button"
@@ -222,7 +226,7 @@ const Navbar = () => {
                   />
                 </button>
 
-                {/* Account Dropdown */}
+                {/* Dropdown */}
                 <ul
                   role="menu"
                   aria-label="Options du compte"
@@ -245,11 +249,12 @@ const Navbar = () => {
                     margin: 0,
                   }}
                 >
+                  {/* Créer un compte */}
                   <li role="none">
-                    <a
-                      href="/pages/CreateAccount"
+                    <button
+                      type="button"
                       role="menuitem"
-                      onClick={() => setIsAccountMenuOpen(false)}
+                      onClick={() => goTo('/pages/CreateAccount')}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -257,8 +262,13 @@ const Navbar = () => {
                         padding: '14px 20px',
                         fontSize: '14px',
                         color: 'var(--gray-600)',
-                        textDecoration: 'none',
                         transition: 'all var(--duration) var(--ease)',
+                        background: 'none',
+                        border: 'none',
+                        width: '100%',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        fontFamily: 'inherit',
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background = '#f8fafc';
@@ -293,21 +303,18 @@ const Navbar = () => {
                         </span>
                         <small style={{ fontSize: '12px', color: 'var(--gray-400)' }}>Nouveau client</small>
                       </div>
-                    </a>
+                    </button>
                   </li>
 
+                  {/* Se connecter */}
                   <li
                     role="none"
-                    style={{
-                      borderTop: '1px solid var(--gray-100)',
-                      marginTop: '4px',
-                      paddingTop: '4px',
-                    }}
+                    style={{ borderTop: '1px solid var(--gray-100)', marginTop: '4px', paddingTop: '4px' }}
                   >
-                    <a
-                      href="/pages/SignIn"
+                    <button
+                      type="button"
                       role="menuitem"
-                      onClick={() => setIsAccountMenuOpen(false)}
+                      onClick={() => goTo('/pages/SignIn')}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -315,8 +322,13 @@ const Navbar = () => {
                         padding: '14px 20px',
                         fontSize: '14px',
                         color: 'var(--gray-600)',
-                        textDecoration: 'none',
                         transition: 'all var(--duration) var(--ease)',
+                        background: 'none',
+                        border: 'none',
+                        width: '100%',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        fontFamily: 'inherit',
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background = '#f8fafc';
@@ -351,7 +363,7 @@ const Navbar = () => {
                         </span>
                         <small style={{ fontSize: '12px', color: 'var(--gray-400)' }}>Déjà client</small>
                       </div>
-                    </a>
+                    </button>
                   </li>
                 </ul>
               </div>
@@ -359,11 +371,27 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Header Main */}
+        {/* ── Header Main ── */}
         <div style={{ padding: '18px 0' }}>
-          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '48px' }}>
-            {/* Logo */}
-            <a href="#" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexShrink: 0 }}>
+          <div
+            className="container"
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '48px' }}
+          >
+            {/* Logo → navigate('/') */}
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '14px',
+                flexShrink: 0,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
               <div
                 style={{
                   fontSize: '20px',
@@ -388,10 +416,14 @@ const Navbar = () => {
               >
                 Agence de Voyage
               </span>
-            </a>
+            </button>
 
             {/* Desktop Nav */}
-            <nav className="nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: '6px' }} aria-label="Navigation principale">
+            <nav
+              className="nav-desktop"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              aria-label="Navigation principale"
+            >
               {navLinks.map((link) => (
                 <div key={link.id} style={{ position: 'relative' }}>
                   <a
@@ -400,6 +432,8 @@ const Navbar = () => {
                       if (link.submenu) {
                         e.preventDefault();
                         toggleDropdown(link.id);
+                      } else {
+                        handleNavClick(e, link.href);
                       }
                     }}
                     onKeyDown={(e) => {
@@ -420,6 +454,7 @@ const Navbar = () => {
                       color: 'rgba(255,255,255,0.85)',
                       borderRadius: 'var(--radius-md)',
                       transition: 'all var(--duration) var(--ease)',
+                      textDecoration: 'none',
                     }}
                   >
                     {link.label}
@@ -435,7 +470,7 @@ const Navbar = () => {
                     )}
                   </a>
 
-                  {/* Dropdown */}
+                  {/* Services Dropdown */}
                   {link.submenu && (
                     <ul
                       role="menu"
@@ -472,6 +507,7 @@ const Navbar = () => {
                               fontSize: '14px',
                               color: 'var(--gray-600)',
                               transition: 'all var(--duration) var(--ease)',
+                              textDecoration: 'none',
                             }}
                           >
                             <div
@@ -529,42 +565,15 @@ const Navbar = () => {
                 cursor: 'pointer',
               }}
             >
-              <span
-                style={{
-                  width: '24px',
-                  height: '2px',
-                  background: 'var(--white)',
-                  borderRadius: '2px',
-                  transition: 'all var(--duration) var(--ease)',
-                  transform: isMobileMenuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none',
-                }}
-              />
-              <span
-                style={{
-                  width: '24px',
-                  height: '2px',
-                  background: 'var(--white)',
-                  borderRadius: '2px',
-                  transition: 'all var(--duration) var(--ease)',
-                  opacity: isMobileMenuOpen ? 0 : 1,
-                }}
-              />
-              <span
-                style={{
-                  width: '24px',
-                  height: '2px',
-                  background: 'var(--white)',
-                  borderRadius: '2px',
-                  transition: 'all var(--duration) var(--ease)',
-                  transform: isMobileMenuOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none',
-                }}
-              />
+              <span style={{ width: '24px', height: '2px', background: 'var(--white)', borderRadius: '2px', transition: 'all var(--duration) var(--ease)', transform: isMobileMenuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none' }} />
+              <span style={{ width: '24px', height: '2px', background: 'var(--white)', borderRadius: '2px', transition: 'all var(--duration) var(--ease)', opacity: isMobileMenuOpen ? 0 : 1 }} />
+              <span style={{ width: '24px', height: '2px', background: 'var(--white)', borderRadius: '2px', transition: 'all var(--duration) var(--ease)', transform: isMobileMenuOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none' }} />
             </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
+      {/* ── Mobile Overlay ── */}
       {isMobileMenuOpen && (
         <div
           role="button"
@@ -582,7 +591,7 @@ const Navbar = () => {
         />
       )}
 
-      {/* Mobile Menu */}
+      {/* ── Mobile Menu ── */}
       <nav
         id="mobile-menu"
         aria-label="Menu mobile"
@@ -604,7 +613,13 @@ const Navbar = () => {
           <a
             key={link.id}
             href={link.href}
-            onClick={closeMobileMenu}
+            onClick={(e) => {
+              if (!link.href.startsWith('#')) {
+                e.preventDefault();
+                navigate(link.href);
+              }
+              closeMobileMenu();
+            }}
             style={{
               display: 'block',
               padding: '16px 0',
@@ -612,6 +627,7 @@ const Navbar = () => {
               color: 'var(--white)',
               fontSize: '16px',
               fontWeight: 500,
+              textDecoration: 'none',
             }}
           >
             {link.label}
@@ -620,9 +636,9 @@ const Navbar = () => {
 
         {/* Mobile account links */}
         <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
-          <a
-            href="/pages/createaccount"
-            onClick={closeMobileMenu}
+          <button
+            type="button"
+            onClick={() => goTo('/pages/CreateAccount')}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -632,15 +648,20 @@ const Navbar = () => {
               color: 'rgba(255,255,255,0.85)',
               fontSize: '15px',
               fontWeight: 500,
-              textDecoration: 'none',
+              background: 'none',
+              border: 'none',
+              width: '100%',
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontFamily: 'inherit',
             }}
           >
             <i className="fas fa-user-plus" style={{ color: 'var(--secondary)', width: '18px' }} />
             Créer un compte
-          </a>
-          <a
-            href="/pages/signin"
-            onClick={closeMobileMenu}
+          </button>
+          <button
+            type="button"
+            onClick={() => goTo('/pages/SignIn')}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -649,12 +670,17 @@ const Navbar = () => {
               color: 'rgba(255,255,255,0.85)',
               fontSize: '15px',
               fontWeight: 500,
-              textDecoration: 'none',
+              background: 'none',
+              border: 'none',
+              width: '100%',
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontFamily: 'inherit',
             }}
           >
             <i className="fas fa-sign-in-alt" style={{ color: 'var(--gold)', width: '18px' }} />
             Se connecter
-          </a>
+          </button>
         </div>
       </nav>
 
