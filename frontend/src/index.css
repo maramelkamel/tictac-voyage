@@ -1,5 +1,6 @@
-@import "tailwindcss";
-
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 /* ============================================
    VARIABLES & PALETTE
 ============================================ */
@@ -12,7 +13,6 @@
   --accent: rgba(233,47,100,1);
   --accent-alpha: rgba(233,47,100,0.4);
   --accent-dark: rgba(233,47,100,0.8);
-  --accent-light: rgba(233,47,100,0.6);
   --gold: rgba(233,47,100,1);
   --gold-light: rgba(233,47,100,0.6);
   --gold-alpha: rgba(233,47,100,0.4);

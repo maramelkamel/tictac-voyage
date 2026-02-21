@@ -1,4 +1,6 @@
+import { useNavigate } from 'react-router-dom';
 const Footer = () => {
+  const navigate = useNavigate();
   const quickLinks = [
     { icon: 'fas fa-chevron-right', label: 'Accueil', href: '#' },
     { icon: 'fas fa-chevron-right', label: 'Nos hôtels', href: '#hotels' },
@@ -10,7 +12,7 @@ const Footer = () => {
   const services = [
     { icon: 'fas fa-chevron-right', label: 'Réservation hôtels', href: '#' },
     { icon: 'fas fa-chevron-right', label: 'Voyages organisés', href: '#' },
-    { icon: 'fas fa-chevron-right', label: 'Omra', href: '#' },
+    { icon: 'fas fa-chevron-right', label: 'Omra', path: '/Omra'},
     { icon: 'fas fa-chevron-right', label: 'Location voitures', href: '#' },
     { icon: 'fas fa-chevron-right', label: 'Billetterie', href: '#' },
   ];
@@ -146,6 +148,7 @@ const Footer = () => {
                 <li key={idx}>
                   <a
                     href={service.href}
+                    onClick={service.path ? (e) => { e.preventDefault(); navigate(service.path); } : undefined}
                     style={{
                       fontSize: '14px',
                       color: 'rgba(255,255,255,0.7)',

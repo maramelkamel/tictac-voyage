@@ -10,7 +10,7 @@ const navLinks = [
     submenu: [
       { icon: 'fas fa-bus', title: 'Location de Bus', desc: 'Transport groupe' },
       { icon: 'fas fa-car', title: 'Location de Voitures', desc: 'Toutes catégories' },
-      { icon: 'fas fa-kaaba', title: 'Omra', desc: 'Pèlerinage organisé' },
+      { icon: 'fas fa-kaaba', title: 'Omra', desc: 'Pèlerinage organisé'},
       { icon: 'fas fa-plane', title: 'Billetterie', desc: 'Vols & Trains' },
       { icon: 'fas fa-globe', title: 'Voyages Organisés', desc: 'Circuits tout compris' },
       { icon: 'fas fa-star', title: 'Voyages Sur Mesure', desc: '100% personnalisé' },

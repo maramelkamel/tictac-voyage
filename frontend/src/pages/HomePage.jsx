@@ -4,6 +4,8 @@ import Footer from '../components/Footer';
 import CardStyle from '../components/CardStyle';
 import SearchSection from '../components/SearchSection';
 import Chatbot from '../components/Chatbot';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Hotel data
 const hotelsData = [
