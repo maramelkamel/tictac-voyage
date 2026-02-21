@@ -254,7 +254,7 @@ const Navbar = () => {
                     <button
                       type="button"
                       role="menuitem"
-                      onClick={() => goTo('/pages/CreateAccount')}
+                      onClick={() => goTo('/CreateAccount')}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -314,7 +314,7 @@ const Navbar = () => {
                     <button
                       type="button"
                       role="menuitem"
-                      onClick={() => goTo('/pages/SignIn')}
+                      onClick={() => goTo('/SignIn')}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -661,7 +661,7 @@ const Navbar = () => {
           </button>
           <button
             type="button"
-            onClick={() => goTo('/pages/SignIn')}
+            onClick={() => goTo('/SignIn')}
             style={{
               display: 'flex',
               alignItems: 'center',
