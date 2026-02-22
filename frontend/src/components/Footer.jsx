@@ -1,20 +1,16 @@
-import { useNavigate } from 'react-router-dom';
+
+
 const Footer = () => {
-  const navigate = useNavigate();
-  const quickLinks = [
-    { icon: 'fas fa-chevron-right', label: 'Accueil', href: '#' },
-    { icon: 'fas fa-chevron-right', label: 'Nos hôtels', href: '#hotels' },
-    { icon: 'fas fa-chevron-right', label: 'Destinations', href: '#destinations' },
-    { icon: 'fas fa-chevron-right', label: 'Promotions', href: '#' },
-    { icon: 'fas fa-chevron-right', label: 'À propos', href: '#advantages' },
-  ];
+
 
   const services = [
-    { icon: 'fas fa-chevron-right', label: 'Réservation hôtels', href: '#' },
-    { icon: 'fas fa-chevron-right', label: 'Voyages organisés', href: '#' },
-    { icon: 'fas fa-chevron-right', label: 'Omra', path: '/Omra/Omra'},
-    { icon: 'fas fa-chevron-right', label: 'Location voitures', href: '#' },
-    { icon: 'fas fa-chevron-right', label: 'Billetterie', href: '#' },
+    { id: 1, label: 'Location de Bus', href: "/transport" },
+    { id: 2, label: 'Hôtels', href: '#hotels' },
+    { id: 3, label: 'Location de voiture', href: "/transport" },
+    { id: 4, label: 'Omra', href: "/Omra/Omra" },
+    { id: 5, label: 'Voyages Organisés', href: '#voyageorg' },
+    { id: 6, label: 'Voyages Sur Mesure', href: '#voyagesurmes' },
+    { id: 7, label: 'Billetterie', href: '#billetterie' },
   ];
 
   const contact = [
@@ -30,9 +26,10 @@ const Footer = () => {
     { icon: 'fab fa-youtube', href: '#' },
   ];
 
-  const handleNewsletterSubmit = (e) => {
+  const handleContactSubmit = (e) => {
     e.preventDefault();
-    console.log('Newsletter subscription');
+    console.log('Contact form submitted');
+    alert('Votre message a été envoyé !');
   };
 
   return (
@@ -48,7 +45,7 @@ const Footer = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1.5fr 1fr 1fr 1.2fr',
+            gridTemplateColumns: '1.5fr 1fr 1.5fr',
             gap: '48px',
             paddingBottom: '48px',
             borderBottom: '1px solid rgba(255,255,255,0.1)',
@@ -92,6 +89,7 @@ const Footer = () => {
                   key={idx}
                   href={social.href}
                   aria-label="Social link"
+                  className="social-link"
                   style={{
                     width: '42px',
                     height: '42px',
@@ -102,7 +100,8 @@ const Footer = () => {
                     justifyContent: 'center',
                     color: 'var(--white)',
                     fontSize: '16px',
-                    transition: 'all var(--duration) var(--ease)',
+                    transition: 'all 0.3s ease',
+                    textDecoration: 'none',
                   }}
                 >
                   <i className={social.icon} />
@@ -111,54 +110,28 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '24px' }}>
-              Liens Rapides
-            </h4>
-            <ul style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {quickLinks.map((link, idx) => (
-                <li key={idx}>
-                  <a
-                    href={link.href}
-                    style={{
-                      fontSize: '14px',
-                      color: 'rgba(255,255,255,0.7)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      transition: 'all var(--duration) var(--ease)',
-                    }}
-                  >
-                    <i className={link.icon} style={{ fontSize: '10px', color: 'var(--secondary)' }} />
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
           {/* Services */}
           <div>
             <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '24px' }}>
               Nos Services
             </h4>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {services.map((service, idx) => (
-                <li key={idx}>
+              {services.map((service) => (
+                <li key={service.id}>
                   <a
                     href={service.href}
-                    onClick={service.path ? (e) => { e.preventDefault(); navigate(service.path); } : undefined}
+                    className="footer-link"
                     style={{
                       fontSize: '14px',
                       color: 'rgba(255,255,255,0.7)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '10px',
-                      transition: 'all var(--duration) var(--ease)',
+                      transition: 'all 0.3s ease',
+                      textDecoration: 'none',
                     }}
                   >
-                    <i className={service.icon} style={{ fontSize: '10px', color: 'var(--secondary)' }} />
+                    <i className="fas fa-chevron-right" style={{ fontSize: '10px', color: 'var(--secondary)' }} />
                     {service.label}
                   </a>
                 </li>
@@ -166,11 +139,13 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact & Newsletter */}
+          {/* Contact Form */}
           <div>
             <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '24px' }}>
-              Contact
+              Contactez-nous
             </h4>
+            
+            {/* Contact Info */}
             <ul style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
               {contact.map((item, idx) => (
                 <li
@@ -189,23 +164,38 @@ const Footer = () => {
               ))}
             </ul>
 
-            <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>
-              Newsletter
-            </h4>
-            <form onSubmit={handleNewsletterSubmit} style={{ display: 'flex', gap: '8px' }}>
+            {/* Form */}
+            <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <input
                 type="email"
                 placeholder="Votre email"
                 required
                 style={{
-                  flex: 1,
+                  width: '100%',
                   padding: '14px 18px',
                   background: 'rgba(255,255,255,0.08)',
                   borderRadius: 'var(--radius-md)',
                   color: 'var(--white)',
                   fontSize: '14px',
-                  border: 'none',
+                  border: '1px solid rgba(255,255,255,0.1)',
                   outline: 'none',
+                }}
+              />
+              <textarea
+                placeholder="Votre message"
+                rows="3"
+                required
+                style={{
+                  width: '100%',
+                  padding: '14px 18px',
+                  background: 'rgba(255,255,255,0.08)',
+                  borderRadius: 'var(--radius-md)',
+                  color: 'var(--white)',
+                  fontSize: '14px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  outline: 'none',
+                  resize: 'none',
+                  fontFamily: 'inherit',
                 }}
               />
               <button
@@ -217,12 +207,13 @@ const Footer = () => {
                   borderRadius: 'var(--radius-md)',
                   fontWeight: 600,
                   fontSize: '14px',
-                  transition: 'all var(--duration) var(--ease)',
+                  transition: 'all 0.3s ease',
                   border: 'none',
                   cursor: 'pointer',
+                  alignSelf: 'flex-start',
                 }}
               >
-                OK
+                Envoyer
               </button>
             </form>
           </div>
@@ -232,11 +223,11 @@ const Footer = () => {
         <div style={{ padding: '24px 0', textAlign: 'center' }}>
           <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
             © 2025 TICTAC VOYAGES. Tous droits réservés. |{' '}
-            <a href="#" style={{ color: 'var(--secondary)' }}>
+            <a href="#" className="hover-text-pink" style={{ color: 'var(--secondary)', textDecoration: 'none', transition: 'all 0.3s ease' }}>
               Mentions légales
             </a>{' '}
             |{' '}
-            <a href="#" style={{ color: 'var(--secondary)' }}>
+            <a href="#" className="hover-text-pink" style={{ color: 'var(--secondary)', textDecoration: 'none', transition: 'all 0.3s ease' }}>
               Confidentialité
             </a>
           </p>
@@ -244,6 +235,32 @@ const Footer = () => {
       </div>
 
       <style>{`
+        /* Hover effects */
+        .social-link:hover {
+          background: #D81B60 !important;
+          transform: translateY(-3px);
+        }
+
+        .footer-link:hover {
+          color: #D81B60 !important;
+          transform: translateX(5px);
+        }
+        
+        .footer-link:hover i {
+          color: #D81B60 !important;
+        }
+
+        .hover-text-pink:hover {
+          color: #D81B60 !important;
+        }
+
+        /* Form focus effects */
+        input:focus, textarea:focus {
+          background: rgba(255,255,255,0.15) !important;
+          border-color: rgba(255,255,255,0.3) !important;
+        }
+
+        /* Responsive */
         @media (max-width: 1024px) {
           .footer-grid { grid-template-columns: 1fr 1fr !important; }
         }

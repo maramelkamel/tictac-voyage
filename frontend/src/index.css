@@ -1,6 +1,9 @@
+@import "tailwindcss";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 /* ============================================
    VARIABLES & PALETTE
 ============================================ */
@@ -10,9 +13,13 @@
   --primary-light: #1a6b80;
   --secondary: #1ECAD3;
   --secondary-light: #4dd9e0;
-  --accent: rgba(233,47,100,1);
+  
+  /* Original Accent: rgba(233,47,100,1) -> #E92F64 */
+  --accent: #E92F64;
   --accent-alpha: rgba(233,47,100,0.4);
-  --accent-dark: rgba(233,47,100,0.8);
+  --accent-dark: #C21C4A; /* Darker pink for "rose foncée" */
+  --accent-hover: #A01238; /* Even darker for hover */
+  
   --gold: rgba(233,47,100,1);
   --gold-light: rgba(233,47,100,0.6);
   --gold-alpha: rgba(233,47,100,0.4);
@@ -94,16 +101,18 @@ input, select { font-family: inherit; border: none; outline: none; }
   letter-spacing: 0.02em;
 }
 
+/* Modified btn-primary as requested: non-transparent, rose foncée */
 .btn-primary {
-  background: var(--accent-alpha);
+  background: var(--accent-dark); /* Dark pink, solid */
   color: var(--white);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--accent-dark);
   box-shadow: 0 4px 16px rgba(233, 47, 100, 0.35);
-  backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); Removed since it's solid now */
 }
 
 .btn-primary:hover {
-  background: var(--accent-light);
+  background: var(--accent-hover); /* Even darker on hover */
+  border-color: var(--accent-hover);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(233, 47, 100, 0.4);
 }
@@ -200,7 +209,7 @@ input, select { font-family: inherit; border: none; outline: none; }
   height: 75vh;
   min-height: 550px;
   max-height: 700px;
-  margin-top: 118px;
+  margin-top: 0; /* Reset margin since we might not have a fixed header yet */
   overflow: hidden;
 }
 
@@ -406,7 +415,8 @@ input, select { font-family: inherit; border: none; outline: none; }
 }
 
 .search-tab.active {
-  background: var(--accent-alpha);
+  background: var(--accent-dark); /* Use dark pink for active tab too? Original was accent-alpha. Let's stick to accent-alpha or accent solid. Original: accent-alpha. I'll use accent-solid for better contrast if I changed buttons. Let's keep accent-alpha here as it might look better as a tab. Or use accent solid. Let's use accent solid for consistency with the request "rose foncée". */
+  background: var(--accent-dark);
   color: var(--white);
   box-shadow: 0 4px 12px rgba(233, 47, 100, 0.3);
 }
@@ -623,3 +633,6 @@ input, select { font-family: inherit; border: none; outline: none; }
   .hero-buttons { flex-direction: column; width: 100%; max-width: 280px; margin: 0 auto; }
   .hero-buttons .btn { width: 100%; }
 }
+
+
+
