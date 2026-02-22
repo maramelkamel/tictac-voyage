@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState, useEffect, useCallback } from 'react';
 import logo from "../assets/logo.png";
 
@@ -693,3 +694,5 @@ const Navbar = () => {
 };
 
 export default Navbar;
+=======
+>>>>>>> 9395dfe5483fc9ff314498ee6f56861c159b4af4
