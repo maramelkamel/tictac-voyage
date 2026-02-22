@@ -1,13 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import '../../styles/VoyagesOrganise.css';
+import { useNavigate } from 'react-router-dom';
+import '../../styles/omrastyle.css';
 
-// ── Sub-components (adjust paths to match your project structure)
 import VoyageSearchBar from '../../components/VoyageSearchBar';
-import VoyageCard     from '../../components/VoyageCard';
-
-// ── Shared layout components (replace with your actual Navbar/Footer)
- import Navbar from '../../components/Navbar';
- import Footer from '../../components/Footer';
+import VoyageCard      from '../../components/VoyageCard';
+import Navbar          from '../../components/Navbar';
+import Footer          from '../../components/Footer';
 
 /* ══════════════════════════════════════════════
    MOCK DATA  –  replace with your API call
@@ -15,7 +13,7 @@ import VoyageCard     from '../../components/VoyageCard';
 const ALL_VOYAGES = [
   {
     id: 1,
-    titre: 'Cappadoce & Istanbul — L\'Orient Enchanté',
+    titre: "Cappadoce & Istanbul — L'Orient Enchanté",
     destination: 'Istanbul · Cappadoce',
     pays: 'Turquie',
     image: 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=700&q=80',
@@ -26,11 +24,12 @@ const ALL_VOYAGES = [
     badge: 'Best-seller',
     depart: 'Tunis',
     places: 6,
-    description: 'Explorez les paysages lunaires de Cappadoce en montgolfière, puis plongez dans l\'effervescence cosmopolite d\'Istanbul entre bazars et mosquées ottomanes.',
+    description:
+      "Explorez les paysages lunaires de Cappadoce en montgolfière, puis plongez dans l'effervescence cosmopolite d'Istanbul entre bazars et mosquées ottomanes.",
     programme: [
       'Vol Tunis – Istanbul, arrivée & installation, visite du Grand Bazar',
       'Visite de Sainte-Sophie, Mosquée Bleue, Palais de Topkapi',
-      'Croisière sur le Bosphore, dîner au bord de l\'eau',
+      "Croisière sur le Bosphore, dîner au bord de l'eau",
       'Vol Istanbul – Nevşehir, arrivée en Cappadoce',
       'Lever en montgolfière au-dessus des cheminées de fées',
       'Vallée de Göreme, musée en plein air, grottes troglodytes',
@@ -54,7 +53,8 @@ const ALL_VOYAGES = [
     badge: 'Coup de cœur',
     depart: 'Tunis',
     places: 12,
-    description: 'Des ruelles colorées de la médina de Marrakech aux dunes dorées du Sahara — une immersion totale dans la magie marocaine.',
+    description:
+      'Des ruelles colorées de la médina de Marrakech aux dunes dorées du Sahara — une immersion totale dans la magie marocaine.',
     programme: [
       'Arrivée Marrakech, Djemaa el-Fna, dîner aux souks',
       'Palais Bahia, Jardin Majorelle, hammam traditionnel',
@@ -80,7 +80,8 @@ const ALL_VOYAGES = [
     badge: 'Premium',
     depart: 'Tunis',
     places: 8,
-    description: 'Burj Khalifa, désert en 4×4, plages privées et shopping en or — vivez l\'excès futuriste des Émirats dans toute sa splendeur.',
+    description:
+      "Burj Khalifa, désert en 4×4, plages privées et shopping en or — vivez l'excès futuriste des Émirats dans toute sa splendeur.",
     programme: [
       'Arrivée Dubaï, check-in hôtel 5★ avec vue skyline',
       'Burj Khalifa, Dubai Mall, fontaines nocturnes',
@@ -105,7 +106,8 @@ const ALL_VOYAGES = [
     badge: 'Romantique',
     depart: 'Tunis',
     places: 4,
-    description: 'Dômes bleus perchés sur la caldeira, couchers de soleil à Oia, eaux cristallines et tavernes grecques — la Grèce dans toute sa poésie.',
+    description:
+      'Dômes bleus perchés sur la caldeira, couchers de soleil à Oia, eaux cristallines et tavernes grecques — la Grèce dans toute sa poésie.',
     programme: [
       'Vol Tunis – Athènes, correspondance pour Santorin',
       'Oia, coucher de soleil magique, dîner avec vue caldeira',
@@ -132,10 +134,11 @@ const ALL_VOYAGES = [
     badge: 'Historique',
     depart: 'Tunis',
     places: 15,
-    description: 'Remontez le temps sur les bords du Nil, entre temples pharaoniques, croisière fluviale et le mystère intemporel des sphinx et obélisques.',
+    description:
+      'Remontez le temps sur les bords du Nil, entre temples pharaoniques, croisière fluviale et le mystère intemporel des sphinx et obélisques.',
     programme: [
       'Vol Tunis – Louxor, visite Karnak by night',
-      'Vallée des Rois, Temple d\'Hatchepsout, colosses de Memnon',
+      "Vallée des Rois, Temple d'Hatchepsout, colosses de Memnon",
       'Embarquement croisière Nil, Louxor – Esna',
       'Temple de Kom Ombo & Edfu, navigation',
       'Arrivée Assouan, Temple de Philae, barrage',
@@ -159,10 +162,11 @@ const ALL_VOYAGES = [
     badge: 'Luxe absolu',
     depart: 'Tunis',
     places: 3,
-    description: 'Bungalows sur pilotis, lagon turquoise, plongée avec les raies mantas — les Maldives sont le summum du voyage de rêve accessible depuis la Tunisie.',
+    description:
+      'Bungalows sur pilotis, lagon turquoise, plongée avec les raies mantas — les Maldives sont le summum du voyage de rêve accessible depuis la Tunisie.',
     programme: [
       'Vol Tunis – Dubaï – Malé, transfert en hydravion vers le resort',
-      'Snorkeling, massage spa sur l\'eau',
+      "Snorkeling, massage spa sur l'eau",
       'Plongée avec les raies mantas et les tortues',
       'Pique-nique sur île déserte & pêche traditionnelle',
       'Journée découverte village local maldivien',
@@ -179,12 +183,10 @@ const FILTERS = ['Tous', 'Mer', 'Culture', 'Désert', 'Luxe', 'Famille'];
 /* ══════════════════════════════════════════════ */
 
 const VoyagesOrganise = () => {
+  const navigate = useNavigate();
   const [search, setSearch]       = useState({ destination: '', date: '', personnes: '2' });
   const [activeFilter, setFilter] = useState('Tous');
-  const [detailsVoyage, setDetailsVoyage] = useState(null);
-  const [reserverVoyage, setReserverVoyage] = useState(null);
 
-  /* Filter logic */
   const displayed = useMemo(() => {
     return ALL_VOYAGES.filter(v => {
       if (search.destination && !v.pays.toLowerCase().includes(search.destination)) return false;
@@ -192,81 +194,115 @@ const VoyagesOrganise = () => {
     });
   }, [search]);
 
+  const handleDetails  = (voyage) => navigate(`/voyages/details/${voyage.id}`,  { state: { voyage } });
+  const handleReserver = (voyage) => navigate(`/voyages/reserver/${voyage.id}`, { state: { voyage } });
+
   return (
-    <div className="voyages-page">
+    <div>
+      <Navbar />
 
-      {/* ── Navbar ── */}
-      { <Navbar /> }
+      {/* ── Hero ── */}
+      <section className="omra-hero">
+        <div
+          className="omra-hero__bg"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1600&q=80')" }}
+        />
+        <div className="omra-hero__pattern" />
+        <div className="omra-hero__overlay" />
 
-      {/* ── Hero + Search ── */}
-      <section className="voyages-hero">
-        <span className="voyages-hero-label">Agence de voyages organisés</span>
-        <h1>Découvrez le monde,<br /><em>sans contraintes</em></h1>
-        <p>Des séjours clé en main conçus par nos experts pour vous offrir l'expérience parfaite.</p>
+        <div className="omra-hero__content">
+          <span className="omra-hero__tag">
+            ✈️ Agence de voyages organisés
+          </span>
+          <h1 className="omra-hero__title">
+            Découvrez le monde,<br />
+            <span>sans contraintes</span>
+          </h1>
+          <p className="omra-hero__subtitle">
+            Des séjours clé en main conçus par nos experts pour vous offrir l'expérience parfaite.
+          </p>
 
-        <VoyageSearchBar onSearch={setSearch} />
+          <div className="omra-hero__search-wrapper">
+            <VoyageSearchBar onSearch={setSearch} />
+          </div>
+        </div>
       </section>
 
-      {/* ── Filters bar ── */}
-      <div className="voyages-filters">
-        <div className="filters-left">
-          {FILTERS.map(f => (
-            <button
-              key={f}
-              className={`filter-chip ${activeFilter === f ? 'active' : ''}`}
-              onClick={() => setFilter(f)}
-            >
-              {f}
-            </button>
-          ))}
+      {/* ── Stats strip ── */}
+      <div className="omra-stats">
+        <div className="container">
+          <div className="omra-stats__grid">
+            {[
+              { icon: '✈️', value: '50+',   label: 'Destinations' },
+              { icon: '👥', value: '12 000+', label: 'Voyageurs satisfaits' },
+              { icon: '⭐', value: '4.9/5',  label: 'Note moyenne' },
+              { icon: '🏆', value: '15 ans', label: "D'expertise" },
+            ].map((s, i) => (
+              <div className="omra-stats__item" key={i}>
+                <div className="omra-stats__icon">{s.icon}</div>
+                <div>
+                  <div className="omra-stats__value">{s.value}</div>
+                  <div className="omra-stats__label">{s.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        <p className="voyages-count">
-          <strong>{displayed.length}</strong> voyages disponibles
-        </p>
       </div>
 
-      {/* ── Grid ── */}
-      <section className="voyages-grid-section">
-        <div className="voyages-grid">
-          {displayed.map(v => (
-            <VoyageCard
-              key={v.id}
-              voyage={v}
-              onDetails={setDetailsVoyage}
-              onReserver={setReserverVoyage}
-            />
-          ))}
-        </div>
-
-        {displayed.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '80px 20px', color: '#8a8aaa' }}>
-            <div style={{ fontSize: '3rem', marginBottom: 16 }}>🔍</div>
-            <p style={{ fontSize: '1.1rem', fontFamily: 'Cormorant Garamond, serif' }}>
-              Aucun voyage ne correspond à votre recherche.
+      {/* ── Voyages section ── */}
+      <section className="omra-section omra-section--gray">
+        <div className="container">
+          <div className="omra-section__header">
+            <span className="omra-section__tag">Nos voyages</span>
+            <h2 className="omra-section__title">Explorez nos séjours organisés</h2>
+            <p className="omra-section__desc">
+              Chaque voyage est soigneusement préparé pour vous garantir confort, découverte et sérénité.
             </p>
           </div>
-        )}
+
+          {/* Filters */}
+          <div className="omra-filters-bar">
+            <div className="omra-filters">
+              {FILTERS.map(f => (
+                <button
+                  key={f}
+                  className={`omra-filter-btn ${activeFilter === f ? 'omra-filter-btn--active' : ''}`}
+                  onClick={() => setFilter(f)}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            <p className="omra-filters-count">
+              <strong>{displayed.length}</strong> voyages disponibles
+            </p>
+          </div>
+
+          {/* Grid */}
+          <div className="omra-cards-grid">
+            {displayed.map(v => (
+              <VoyageCard
+                key={v.id}
+                voyage={v}
+                onDetails={handleDetails}
+                onReserver={handleReserver}
+              />
+            ))}
+          </div>
+
+          {displayed.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--gray-400)' }}>
+              <div style={{ fontSize: '3rem', marginBottom: 16 }}>🔍</div>
+              <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--gray-600)' }}>
+                Aucun voyage ne correspond à votre recherche.
+              </p>
+            </div>
+          )}
+        </div>
       </section>
 
-      {/* ── Footer ── */}
-      { <Footer /> }
-
-      {/* ── Modals ── */}
-      {detailsVoyage && (
-        <Details
-          voyage={detailsVoyage}
-          onClose={() => setDetailsVoyage(null)}
-          onReserver={v => { setDetailsVoyage(null); setReserverVoyage(v); }}
-        />
-      )}
-
-      {reserverVoyage && (
-        <Reserver
-          voyage={reserverVoyage}
-          onClose={() => setReserverVoyage(null)}
-        />
-      )}
-
+      <Footer />
     </div>
   );
 };

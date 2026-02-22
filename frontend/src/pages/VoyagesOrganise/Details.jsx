@@ -1,136 +1,205 @@
 import React from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
+import '../../styles/omrastyle.css';
 
-const Details = ({ voyage, onClose, onReserver }) => {
-  if (!voyage) return null;
+const Details = () => {
+  const { state } = useLocation();
+  const navigate  = useNavigate();
+  const { id }    = useParams();
+
+  /* Fallback if user refreshes directly on this URL */
+  if (!state?.voyage) {
+    return (
+      <div>
+        <Navbar />
+        <div style={{ textAlign: 'center', padding: '160px 24px', color: 'var(--gray-400)' }}>
+          <div style={{ fontSize: '3rem', marginBottom: 16 }}>😕</div>
+          <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--gray-800)', marginBottom: 16 }}>
+            Voyage introuvable.
+          </p>
+          <button className="omra-details__reserve-btn" style={{ width: 'auto', padding: '14px 28px' }}
+            onClick={() => navigate('/voyages')}>
+            ← Retour aux voyages
+          </button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const {
-    titre,
-    destination,
-    pays,
-    image,
-    prix,
-    duree,
-    rating,
-    avis,
-    description,
-    depart,
-    programme = [],
-    inclus = [],
-    nonInclus = [],
-  } = voyage;
+    titre, destination, pays, image, prix, duree,
+    rating, avis, description, depart, programme = [],
+    inclus = [], nonInclus = [], places, badge,
+  } = state.voyage;
+
+  const handleReserver = () => {
+    navigate(`/voyages/reserver/${id}`, { state: { voyage: state.voyage } });
+  };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" onClick={e => e.stopPropagation()}>
+    <div className="omra-details">
+      <Navbar />
 
-        {/* ── Header image ── */}
-        <div className="modal-header">
-          <img src={image} alt={titre} />
-          <div className="modal-header-overlay" />
-          <div className="modal-header-content">
-            <p style={{ fontSize: '0.75rem', letterSpacing: '0.15em', color: '#e0c070', marginBottom: 6, textTransform: 'uppercase' }}>
-              {pays} · {destination}
+      {/* ── Hero banner ── */}
+      <div className="omra-details__hero">
+        <img src={image} alt={titre} />
+        <div className="omra-details__hero-overlay" />
+
+        <div className="omra-details__hero-content">
+          <div className="container">
+            {/* Breadcrumb */}
+            <div className="omra-page-breadcrumb">
+              <button onClick={() => navigate('/voyages')}>← Voyages organisés</button>
+              <span>/</span>
+              <span>{pays}</span>
+            </div>
+
+            {badge && <span className="omra-details__badge">{badge}</span>}
+            <h1 className="omra-details__title">{titre}</h1>
+            <p className="omra-details__subtitle">
+              ⭐ {rating} ({avis} avis)&nbsp;&nbsp;·&nbsp;&nbsp;
+              🕐 {duree}&nbsp;&nbsp;·&nbsp;&nbsp;
+              ✈️ Départ depuis {depart}&nbsp;&nbsp;·&nbsp;&nbsp;
+              👥 {places} places restantes
             </p>
-            <h2>{titre}</h2>
-            <div style={{ display: 'flex', gap: 12, marginTop: 8, color: 'rgba(255,255,255,0.75)', fontSize: '0.85rem' }}>
-              <span>⭐ {rating} ({avis} avis)</span>
-              <span>·</span>
-              <span>🕐 {duree}</span>
-              <span>·</span>
-              <span>✈️ {depart}</span>
-            </div>
-          </div>
-          <button className="modal-close" onClick={onClose} aria-label="Fermer">✕</button>
-        </div>
-
-        {/* ── Body ── */}
-        <div className="modal-body">
-
-          {/* Highlights */}
-          <div className="details-highlights">
-            <div className="highlight-box">
-              <div className="hb-icon">🏖️</div>
-              <span className="hb-label">Destination</span>
-              <div className="hb-val">{pays}</div>
-            </div>
-            <div className="highlight-box">
-              <div className="hb-icon">📅</div>
-              <span className="hb-label">Durée</span>
-              <div className="hb-val">{duree}</div>
-            </div>
-            <div className="highlight-box">
-              <div className="hb-icon">✈️</div>
-              <span className="hb-label">Départ</span>
-              <div className="hb-val" style={{ fontSize: '1rem' }}>{depart}</div>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="details-section">
-            <h3>À propos</h3>
-            <p>{description}</p>
-          </div>
-
-          {/* Programme */}
-          {programme.length > 0 && (
-            <div className="details-section">
-              <h3>Programme</h3>
-              <ul className="programme-list">
-                {programme.map((item, i) => (
-                  <li key={i}>
-                    <span className="programme-day">Jour {i + 1}</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Inclus */}
-          {inclus.length > 0 && (
-            <div className="details-section">
-              <h3>Inclus</h3>
-              <div className="inclus-list">
-                {inclus.map((item, i) => (
-                  <span key={i} className="inclus-tag">✓ {item}</span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Non inclus */}
-          {nonInclus.length > 0 && (
-            <div className="details-section">
-              <h3>Non inclus</h3>
-              <div className="inclus-list">
-                {nonInclus.map((item, i) => (
-                  <span key={i} className="inclus-tag" style={{ background: '#f9ece8', color: '#8a3020' }}>
-                    ✕ {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-        </div>
-
-        {/* ── Footer ── */}
-        <div className="modal-footer">
-          <div>
-            <div style={{ fontSize: '0.75rem', color: '#8a8aaa', marginBottom: 2 }}>Prix par personne</div>
-            <div className="modal-price">
-              {prix.toLocaleString('fr-FR')} TND <span>/ pers.</span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn-details" onClick={onClose}>Fermer</button>
-            <button className="btn-reserver" onClick={() => { onClose(); onReserver(voyage); }}>
-              Réserver maintenant
-            </button>
           </div>
         </div>
-
       </div>
+
+      {/* ── Body ── */}
+      <div className="omra-details__body">
+        <div className="container">
+          <div className="omra-details__layout">
+
+            {/* ── Left: main content ── */}
+            <div>
+
+              {/* Highlights */}
+              <div className="omra-details__card">
+                <div className={`omra-details__meta-grid omra-details__meta-grid--4`}>
+                  {[
+                    { icon: '🌍', label: 'Destination', value: pays },
+                    { icon: '📅', label: 'Durée',       value: duree },
+                    { icon: '✈️', label: 'Départ',      value: depart },
+                    { icon: '👥', label: 'Places',      value: `${places} restantes` },
+                  ].map((m, i) => (
+                    <div className="omra-details__meta-item" key={i}>
+                      <div className="omra-details__meta-label">
+                        {m.icon} {m.label}
+                      </div>
+                      <div className="omra-details__meta-value">{m.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="omra-details__card">
+                <h3 className="omra-details__card-title">📖 À propos de ce voyage</h3>
+                <p className="omra-details__desc">{description}</p>
+              </div>
+
+              {/* Programme */}
+              {programme.length > 0 && (
+                <div className="omra-details__card">
+                  <h3 className="omra-details__card-title">🗓️ Programme jour par jour</h3>
+                  <div className="omra-details__programme">
+                    {programme.map((item, i) => (
+                      <div className="omra-details__programme-item" key={i}>
+                        <span className="omra-details__day-badge">Jour {i + 1}</span>
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Inclus */}
+              {inclus.length > 0 && (
+                <div className="omra-details__card">
+                  <h3 className="omra-details__card-title">✅ Ce qui est inclus</h3>
+                  <div className="omra-details__includes">
+                    {inclus.map((item, i) => (
+                      <span key={i} className="omra-details__include-tag">✓ {item}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Non inclus */}
+              {nonInclus.length > 0 && (
+                <div className="omra-details__card">
+                  <h3 className="omra-details__card-title">❌ Non inclus</h3>
+                  <div className="omra-details__includes">
+                    {nonInclus.map((item, i) => (
+                      <span key={i} className="omra-details__include-tag omra-details__include-tag--excluded">
+                        ✕ {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ── Right: sticky sidebar ── */}
+            <aside className="omra-details__sidebar">
+              <div className="omra-details__price-card">
+
+                <div className="omra-details__price-row">
+                  <span className="omra-details__price-amount">
+                    {prix.toLocaleString('fr-FR')}
+                  </span>
+                  <span className="omra-details__price-currency">TND</span>
+                </div>
+                <span className="omra-details__price-unit">par personne · taxes incluses</span>
+
+                <div className="omra-details__divider" />
+
+                <div className="omra-details__rating-row">
+                  <div className="omra-details__stars">
+                    {[1, 2, 3, 4, 5].map(s => (
+                      <span key={s} style={{ color: s <= Math.round(rating) ? '#fbbf24' : 'var(--gray-200)', fontSize: 16 }}>★</span>
+                    ))}
+                  </div>
+                  <span style={{ fontSize: 13, color: 'var(--gray-500)', fontWeight: 600 }}>
+                    {rating} ({avis} avis)
+                  </span>
+                </div>
+
+                <ul className="omra-details__sidebar-perks">
+                  <li>✓ Annulation gratuite sous 48h</li>
+                  <li>✓ Guide francophone inclus</li>
+                  <li>✓ Assistance 24h/7j</li>
+                  <li>✓ Transferts aéroport inclus</li>
+                </ul>
+
+                <button className="omra-details__reserve-btn" onClick={handleReserver}>
+                  Réserver ce voyage →
+                </button>
+
+                <button className="omra-details__contact-btn" onClick={() => navigate(-1)}>
+                  ← Retour à la liste
+                </button>
+
+                <p className="omra-details__sidebar-note">
+                  Aucun paiement immédiat. Un conseiller vous contactera sous 24h pour finaliser votre dossier.
+                </p>
+
+                <div className="omra-details__spots">
+                  🔥 Plus que {places} places disponibles !
+                </div>
+
+              </div>
+            </aside>
+
+          </div>
+        </div>
+      </div>
+
+      <Footer />
     </div>
   );
 };
