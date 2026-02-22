@@ -16,7 +16,7 @@ const navLinks = [
         icon: 'fas fa-globe',
         title: 'Voyages Organisés',
         desc: 'Circuits tout compris',
-        href: '/voyagesOrganises',
+        href: '/VoyagesOrganise',
       },
       {
         icon: 'fas fa-star',
