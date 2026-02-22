@@ -2,7 +2,6 @@ import React from 'react';
 
 const VoyageCard = ({ voyage, onDetails, onReserver }) => {
   const {
-    id,
     titre,
     destination,
     pays,
@@ -18,53 +17,57 @@ const VoyageCard = ({ voyage, onDetails, onReserver }) => {
   } = voyage;
 
   return (
-    <article className="voyage-card">
+    <article className="omra-card">
 
       {/* ── Image ── */}
-      <div className="card-img">
+      <div className="omra-card__img">
         <img src={image} alt={titre} loading="lazy" />
 
-        {badge && <span className="card-badge">{badge}</span>}
+        {badge && (
+          <span className="omra-card__badge">{badge}</span>
+        )}
 
-        <div className="card-rating">
+        <div className="omra-card__rating">
           ⭐ {rating}
-          <span style={{ opacity: 0.6, fontSize: '0.7rem' }}>({avis})</span>
+          <span style={{ opacity: 0.65, fontSize: '11px', marginLeft: 2 }}>({avis})</span>
         </div>
 
-        <div className="card-duration">
+        <div className="omra-card__duration">
           🕐 {duree}
         </div>
       </div>
 
       {/* ── Body ── */}
-      <div className="card-body">
-        <p className="card-dest">{pays} · {destination}</p>
-        <h3 className="card-title">{titre}</h3>
-        <p className="card-desc">{description}</p>
+      <div className="omra-card__body">
+        <p className="omra-card__dest">{pays} · {destination}</p>
+        <h3 className="omra-card__title">{titre}</h3>
+        <p className="omra-card__desc">{description}</p>
 
-        <div className="card-meta">
+        <div className="omra-card__meta">
           <span>✈️ {depart}</span>
-          <span>👥 {places} places restantes</span>
+          <span>👥 {places} places</span>
         </div>
 
         {/* ── Footer ── */}
-        <div className="card-footer">
-          <div className="card-price">
-            <span className="card-price-from">À partir de</span>
-            <span className="card-price-value">{prix.toLocaleString('fr-FR')} TND</span>
-            <span className="card-price-per">/ personne</span>
+        <div className="omra-card__footer">
+          <div>
+            <span className="omra-card__price-from">À partir de</span>
+            <div className="omra-card__price-value">
+              {prix.toLocaleString('fr-FR')} TND
+            </div>
+            <span className="omra-card__price-per">/ personne</span>
           </div>
 
-          <div className="card-actions">
+          <div className="omra-card__actions">
             <button
-              className="btn-details"
+              className="omra-card__btn-details"
               onClick={() => onDetails && onDetails(voyage)}
               aria-label={`Voir les détails de ${titre}`}
             >
               Détails
             </button>
             <button
-              className="btn-reserver"
+              className="omra-card__btn-reserve"
               onClick={() => onReserver && onReserver(voyage)}
               aria-label={`Réserver ${titre}`}
             >

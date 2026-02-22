@@ -207,6 +207,238 @@
   gap: 28px;
 }
 
+/* ── Voyage Card ───────────────────────────────────────────── */
+.omra-card {
+  background: var(--white);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.omra-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(15, 76, 92, 0.16);
+}
+
+.omra-card:hover .omra-card__img img {
+  transform: scale(1.06);
+}
+
+.omra-card__img {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.omra-card__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.omra-card__badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--secondary);
+  color: var(--white);
+}
+
+.omra-card__badge--accent {
+  background: #e8306a;
+}
+
+.omra-card__rating {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(10, 40, 50, 0.75);
+  backdrop-filter: blur(8px);
+  color: #fbbf24;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.omra-card__duration {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(10, 40, 50, 0.75);
+  backdrop-filter: blur(8px);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.omra-card__body {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.omra-card__dest {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--secondary);
+  margin-bottom: 6px;
+}
+
+.omra-card__title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--gray-800);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.omra-card__desc {
+  font-size: 13px;
+  color: var(--gray-500);
+  line-height: 1.65;
+  margin-bottom: 14px;
+   display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+
+  display: box;
+  box-orient: vertical;
+  line-clamp: 2;
+
+  overflow: hidden;
+}
+
+.omra-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--gray-400);
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.omra-card__meta span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.omra-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid var(--gray-100);
+  margin-top: auto;
+}
+
+.omra-card__price-from {
+  font-size: 11px;
+  color: var(--gray-400);
+  display: block;
+}
+
+.omra-card__price-value {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.omra-card__price-per {
+  font-size: 11px;
+  color: var(--gray-400);
+}
+
+.omra-card__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.omra-card__btn-details {
+  padding: 9px 15px;
+  background: transparent;
+  border: 2px solid var(--gray-200);
+  color: var(--primary);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.omra-card__btn-details:hover {
+  border-color: var(--primary);
+  background: rgba(15, 76, 92, 0.05);
+}
+
+.omra-card__btn-reserve {
+  padding: 9px 15px;
+  background: var(--secondary);
+  border: none;
+  color: var(--white);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.omra-card__btn-reserve:hover {
+  background: var(--primary);
+}
+
+/* ── Filters bar wrapper ────────────────────────────────────── */
+.omra-filters-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.omra-filters-bar .omra-filters {
+  margin-bottom: 0;
+  justify-content: flex-start;
+}
+
+.omra-filters-count {
+  font-size: 13px;
+  color: var(--gray-400);
+  font-weight: 500;
+}
+
+.omra-filters-count strong {
+  color: var(--gray-800);
+  font-weight: 700;
+}
+
 /* ── Why us ────────────────────────────────────────────────── */
 .omra-why__grid {
   display: grid;
@@ -394,7 +626,7 @@
 }
 
 .omra-cta__btn-primary:hover {
-  background: #e8306a;
+  background: #c9245a;
 }
 
 .omra-cta__btn-secondary {
@@ -476,6 +708,8 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 12px;
+  background: var(--secondary);
+  color: var(--white);
 }
 
 .omra-details__title {
@@ -532,6 +766,11 @@
   margin-bottom: 28px;
 }
 
+/* 4-col variant for details page highlights */
+.omra-details__meta-grid--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
 .omra-details__meta-item {
   background: var(--gray-50);
   border-radius: 14px;
@@ -584,9 +823,43 @@
   font-weight: 600;
 }
 
+.omra-details__include-tag--excluded {
+  background: rgba(232, 48, 106, 0.06);
+  color: #b72754;
+}
+
 .omra-details__include-tag i {
   color: var(--secondary);
   font-size: 13px;
+}
+
+/* Programme list */
+.omra-details__programme {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.omra-details__programme-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  font-size: 14px;
+  color: var(--gray-600);
+  line-height: 1.6;
+}
+
+.omra-details__day-badge {
+  background: var(--primary);
+  color: var(--white);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 3px;
+  letter-spacing: 0.04em;
 }
 
 /* Sticky booking sidebar */
@@ -654,6 +927,23 @@
   gap: 3px;
 }
 
+.omra-details__sidebar-perks {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.omra-details__sidebar-perks li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--gray-600);
+}
+
 .omra-details__reserve-btn {
   width: 100%;
   padding: 17px;
@@ -705,6 +995,14 @@
   font-size: 12px;
   color: var(--accent);
   font-weight: 600;
+}
+
+.omra-details__sidebar-note {
+  font-size: 12px;
+  color: var(--gray-400);
+  text-align: center;
+  margin-top: 14px;
+  line-height: 1.6;
 }
 
 /* ── Reserve Page ──────────────────────────────────────────── */
@@ -885,6 +1183,7 @@
   transition: border-color 0.2s ease;
   box-sizing: border-box;
   font-family: inherit;
+  appearance: none;
 }
 
 .omra-reserve__field input:focus,
@@ -916,6 +1215,11 @@
 
 .omra-reserve__submit:hover {
   background: var(--primary);
+}
+
+.omra-reserve__submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 /* Success state */
@@ -952,6 +1256,13 @@
   margin: 0 auto 28px;
 }
 
+.omra-reserve__success-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 .omra-reserve__success-btn {
   padding: 14px 32px;
   background: var(--secondary);
@@ -966,6 +1277,17 @@
 
 .omra-reserve__success-btn:hover {
   background: var(--primary);
+}
+
+.omra-reserve__success-btn--outline {
+  background: transparent;
+  border: 2px solid var(--gray-200);
+  color: var(--primary);
+}
+
+.omra-reserve__success-btn--outline:hover {
+  border-color: var(--primary);
+  background: rgba(15, 76, 92, 0.04);
 }
 
 /* ── Page header (Details & Reserve shared) ────────────────── */
@@ -995,6 +1317,19 @@
   color: var(--white);
 }
 
+/* Reserve page breadcrumb (on light background) */
+.omra-page-breadcrumb--light button {
+  color: var(--gray-500);
+}
+
+.omra-page-breadcrumb--light button:hover {
+  color: var(--primary);
+}
+
+.omra-page-breadcrumb--light {
+  color: var(--gray-400);
+}
+
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .omra-stats__grid {
@@ -1020,6 +1355,10 @@
   .omra-reserve__layout {
     grid-template-columns: 1fr;
   }
+
+  .omra-details__meta-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
@@ -1035,11 +1374,20 @@
     grid-template-columns: 1fr;
   }
 
+  .omra-details__meta-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .omra-reserve__form-row {
     grid-template-columns: 1fr;
   }
 
   .omra-why__float-card {
     display: none;
+  }
+
+  .omra-filters-bar {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
