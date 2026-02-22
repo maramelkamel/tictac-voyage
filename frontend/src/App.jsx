@@ -6,16 +6,12 @@ import Reserve from './pages/Omra/Reserve';
 import Details from './pages/Omra/Details';
 import CreateAccount from './pages/CreateAccount';
 import SignIn from './pages/SignIn';
-<<<<<<< HEAD
-import VoyagesOrganise from './pages/VoyagesOrganise/VoyagesOrganise';
-=======
 import TransportPage from './pages/Transport/TransportPage';
 import VoyagesOrganise from './pages/VoyagesOrganise/VoyagesOrganise';
 import Detail from './pages/VoyagesOrganise/Detail';
 import Reserver from './pages/VoyagesOrganise/Reserver';
 
 
->>>>>>> bec21f0c16927ee0e730a68690befdbb80beaec9
 
 function App() {
   return (
@@ -27,15 +23,11 @@ function App() {
         <Route path="/Omra/Reserve" element={<Reserve />} />
         <Route path="/CreateAccount" element={<CreateAccount />} />
         <Route path="/SignIn" element={<SignIn />} />
-<<<<<<< HEAD
-        <Route path="/VoyagesOrganise" element={<VoyagesOrganise />} />
-=======
         <Route path="/transport" element={<TransportPage />} />
 
         <Route path="/VoyagesOrganise/VoyagesOrganise" element={<VoyagesOrganise />} />
         <Route path="/VoyagesOrganise/Detail" element={<Detail />} />
         <Route path="/VoyagesOrganise/Reserver" element={<Reserver />} />
->>>>>>> bec21f0c16927ee0e730a68690befdbb80beaec9
       </Routes>
       
     </Router>
