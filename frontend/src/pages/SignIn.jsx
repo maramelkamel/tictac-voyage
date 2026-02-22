@@ -1,9 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import Chatbot from '../components/Chatbot';
 import '../styles/signin.css';
 
 const SignIn = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -29,7 +33,8 @@ const SignIn = () => {
   const validate = () => {
     const newErrors = {};
     if (!formData.email.trim()) newErrors.email = 'Email requis';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Email invalide';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      newErrors.email = 'Email invalide';
     if (!formData.password) newErrors.password = 'Mot de passe requis';
     return newErrors;
   };
@@ -42,15 +47,17 @@ const SignIn = () => {
       return;
     }
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => setIsLoading(false), 2000);
+    // Simulate API call — replace with your real auth logic
+    setTimeout(() => {
+      setIsLoading(false);
+      navigate('/'); // redirect home after successful login
+    }, 2000);
   };
 
   return (
     <>
       <Navbar />
       <main className="auth-page signin-page">
-        {/* Background decorative shapes */}
         <div className="auth-bg-shapes">
           <div className="auth-shape auth-shape-1" />
           <div className="auth-shape auth-shape-2" />
@@ -58,17 +65,31 @@ const SignIn = () => {
         </div>
 
         <div className="auth-container auth-container--centered">
-          {/* Left Panel */}
+
+          {/* ── Left Panel ── */}
           <div className="auth-panel auth-panel--left">
             <div className="auth-panel-content">
-              <a href="/" className="auth-logo">
+
+              <button
+                type="button"
+                className="auth-logo"
+                onClick={() => navigate('/')}
+              >
                 <span className="auth-logo-name">TICTAC VOYAGES</span>
                 <span className="auth-logo-sub">Agence de Voyage</span>
-              </a>
+              </button>
+
               <div className="auth-panel-headline">
-                <h1>Bon retour<br /><em>parmi nous</em></h1>
-                <p>Connectez-vous pour accéder à vos réservations, vos offres personnalisées et votre espace membre.</p>
+                <h1>
+                  Bon retour<br />
+                  <em>parmi nous</em>
+                </h1>
+                <p>
+                  Connectez-vous pour accéder à vos réservations,
+                  vos offres personnalisées et votre espace membre.
+                </p>
               </div>
+
               <div className="signin-stats">
                 <div className="signin-stat">
                   <span className="signin-stat-number">10K+</span>
@@ -85,15 +106,17 @@ const SignIn = () => {
                   <span className="signin-stat-label">Ans d'expérience</span>
                 </div>
               </div>
+
               <div className="auth-panel-deco">
                 <i className="fas fa-compass" />
               </div>
             </div>
           </div>
 
-          {/* Right Panel - Form */}
+          {/* ── Right Panel ── */}
           <div className="auth-panel auth-panel--right">
             <div className="auth-form-wrapper">
+
               <div className="auth-form-header">
                 <div className="signin-welcome-icon">
                   <i className="fas fa-user-circle" />
@@ -101,13 +124,18 @@ const SignIn = () => {
                 <h2>Se connecter</h2>
                 <p>
                   Pas encore de compte ?{' '}
-                  <a href="/pages/createaccount" className="auth-link">
+                  <button
+                    type="button"
+                    className="auth-link-btn"
+                    onClick={() => navigate('/CreateAccount')}
+                  >
                     Créer un compte <i className="fas fa-arrow-right" />
-                  </a>
+                  </button>
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} noValidate className="auth-form">
+
                 {/* Email */}
                 <div className={`auth-field ${focused === 'email' ? 'auth-field--focused' : ''} ${errors.email ? 'auth-field--error' : ''}`}>
                   <label htmlFor="email">Adresse e-mail</label>
@@ -132,7 +160,13 @@ const SignIn = () => {
                 <div className={`auth-field ${focused === 'password' ? 'auth-field--focused' : ''} ${errors.password ? 'auth-field--error' : ''}`}>
                   <div className="auth-field-header">
                     <label htmlFor="password">Mot de passe</label>
-                    <a href="#" className="auth-forgot">Mot de passe oublié ?</a>
+                    <button
+                      type="button"
+                      className="auth-link-btn auth-forgot"
+                      onClick={() => navigate('/pages/ForgotPassword')}
+                    >
+                      Mot de passe oublié ?
+                    </button>
                   </div>
                   <div className="auth-input-wrap">
                     <i className="fas fa-lock auth-input-icon" />
@@ -173,7 +207,11 @@ const SignIn = () => {
                   </label>
                 </div>
 
-                <button type="submit" className={`auth-btn auth-btn-primary ${isLoading ? 'auth-btn--loading' : ''}`} disabled={isLoading}>
+                <button
+                  type="submit"
+                  className={`auth-btn auth-btn-primary ${isLoading ? 'auth-btn--loading' : ''}`}
+                  disabled={isLoading}
+                >
                   {isLoading ? (
                     <>
                       <span className="auth-spinner" />
@@ -188,12 +226,10 @@ const SignIn = () => {
                 </button>
               </form>
 
-              {/* Divider */}
               <div className="auth-divider">
                 <span>ou continuez avec</span>
               </div>
 
-              {/* Social */}
               <div className="auth-social">
                 <button type="button" className="auth-social-btn">
                   <i className="fab fa-google" />
@@ -204,10 +240,14 @@ const SignIn = () => {
                   Facebook
                 </button>
               </div>
+
             </div>
           </div>
         </div>
       </main>
+
+      {/* CHATBOT */}
+      <Chatbot />
       <Footer />
     </>
   );
