@@ -194,8 +194,8 @@ const VoyagesOrganise = () => {
     });
   }, [search]);
 
-  const handleDetails  = (voyage) => navigate(`/voyages/details/${voyage.id}`,  { state: { voyage } });
-  const handleReserver = (voyage) => navigate(`/voyages/reserver/${voyage.id}`, { state: { voyage } });
+  const handleDetails  = (voyage) => navigate(`/VoyagesOrganise/Detail/${voyage.id}`,  { state: { voyage } });
+  const handleReserver = (voyage) => navigate(`/VoyagesOrganise/Reserver/${voyage.id}`, { state: { voyage } });
 
   return (
     <div>

@@ -1,111 +1,257 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
-const destinations = [
-  { value: '', label: 'Toutes destinations' },
-  { value: 'turquie', label: '🇹🇷 Turquie' },
-  { value: 'maroc', label: '🇲🇦 Maroc' },
-  { value: 'egypte', label: '🇪🇬 Égypte' },
-  { value: 'dubai', label: '🇦🇪 Dubaï' },
-  { value: 'grece', label: '🇬🇷 Grèce' },
-  { value: 'espagne', label: '🇪🇸 Espagne' },
-  { value: 'italie', label: '🇮🇹 Italie' },
-  { value: 'france', label: '🇫🇷 France' },
-  { value: 'tunisie', label: '🇹🇳 Tunisie' },
-  { value: 'maldives', label: '🇲🇻 Maldives' },
-];
+/**
+ * VoyageSearchBar — Search bar component for Voyages Organisés
+ *
+ * Props:
+ *  onSearch : fn({ destination, date, personnes, duree, budget }) — called on submit
+ *  style    : object — optional extra styles for the outer wrapper
+ */
 
-const months = [
-  { value: '', label: 'Toutes dates' },
-  { value: '2025-03', label: 'Mars 2025' },
-  { value: '2025-04', label: 'Avril 2025' },
-  { value: '2025-05', label: 'Mai 2025' },
-  { value: '2025-06', label: 'Juin 2025' },
-  { value: '2025-07', label: 'Juillet 2025' },
-  { value: '2025-08', label: 'Août 2025' },
-  { value: '2025-09', label: 'Septembre 2025' },
-  { value: '2025-10', label: 'Octobre 2025' },
-  { value: '2025-12', label: 'Décembre 2025' },
-];
-
-const VoyageSearchBar = ({ onSearch }) => {
-  const [form, setForm] = useState({
+const VoyageSearchBar = ({ onSearch, style = {} }) => {
+  const [search, setSearch] = useState({
     destination: '',
     date: '',
-    personnes: '2',
+    personnes: '',
+    duree: '',
+    budget: '',
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleSubmit = () => {
+    if (onSearch) onSearch(search);
   };
 
-  const handleSubmit = () => {
-    if (onSearch) onSearch(form);
+  const fieldLabelStyle = {
+    display: 'block',
+    fontSize: 11,
+    fontWeight: 700,
+    color: 'var(--gray-500)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+    marginBottom: 8,
   };
+
+  const fieldInputStyle = {
+    width: '100%',
+    padding: '13px 16px',
+    border: '1.5px solid var(--gray-200)',
+    borderRadius: 12,
+    fontSize: 14,
+    color: 'var(--gray-800)',
+    outline: 'none',
+    background: 'var(--gray-50)',
+    boxSizing: 'border-box',
+    transition: 'border-color 0.2s ease',
+    appearance: 'none',
+    cursor: 'pointer',
+  };
+
+  const chevron = (
+    <i
+      className="fas fa-chevron-down"
+      style={{
+        position: 'absolute',
+        right: 14,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        fontSize: 11,
+        color: 'var(--gray-400)',
+        pointerEvents: 'none',
+      }}
+    />
+  );
 
   return (
-    <div className="search-bar-wrapper">
-      <div className="search-bar-card">
+    <div
+      style={{
+        background: 'rgba(255,255,255,0.96)',
+        backdropFilter: 'blur(20px)',
+        borderRadius: 24,
+        padding: '28px 32px',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.3)',
+        ...style,
+      }}
+    >
+      {/* Header label */}
+      <p
+        style={{
+          fontSize: 13,
+          fontWeight: 700,
+          color: 'var(--gray-500)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          marginBottom: 20,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
+      >
+        <i className="fas fa-search" style={{ color: 'var(--secondary)' }} />
+        Rechercher un voyage organisé
+      </p>
+
+      {/* Fields row */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr auto',
+          gap: 14,
+          alignItems: 'end',
+        }}
+        className="voyage-search-grid"
+      >
 
         {/* Destination */}
-        <div className="search-field">
-          <label htmlFor="destination">
-            🌍 Destination
+        <div>
+          <label style={fieldLabelStyle}>
+            <i className="fas fa-map-marker-alt" style={{ color: 'var(--secondary)', marginRight: 6 }} />
+            Destination
           </label>
-          <select
-            id="destination"
-            name="destination"
-            value={form.destination}
-            onChange={handleChange}
-          >
-            {destinations.map(d => (
-              <option key={d.value} value={d.value}>{d.label}</option>
-            ))}
-          </select>
+          <div style={{ position: 'relative' }}>
+            <select
+              value={search.destination}
+              onChange={(e) => setSearch({ ...search, destination: e.target.value })}
+              style={{
+                ...fieldInputStyle,
+                color: search.destination ? 'var(--gray-800)' : 'var(--gray-400)',
+                paddingRight: 36,
+              }}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--secondary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--gray-200)')}
+            >
+              <option value="">Toutes destinations</option>
+              <option value="turquie">🇹🇷 Turquie</option>
+              <option value="maroc">🇲🇦 Maroc</option>
+              <option value="egypte">🇪🇬 Égypte</option>
+              <option value="dubai">🇦🇪 Dubaï</option>
+              <option value="grece">🇬🇷 Grèce</option>
+              <option value="espagne">🇪🇸 Espagne</option>
+              <option value="italie">🇮🇹 Italie</option>
+              <option value="maldives">🇲🇻 Maldives</option>
+              <option value="tunisie">🇹🇳 Tunisie</option>
+            </select>
+            {chevron}
+          </div>
         </div>
 
-        {/* Date */}
-        <div className="search-field">
-          <label htmlFor="date">
-            📅 Période
-          </label>
-          <select
-            id="date"
-            name="date"
-            value={form.date}
-            onChange={handleChange}
-          >
-            {months.map(m => (
-              <option key={m.value} value={m.value}>{m.label}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Personnes */}
-        <div className="search-field">
-          <label htmlFor="personnes">
-            👤 Voyageurs
+        {/* Date de départ */}
+        <div>
+          <label style={fieldLabelStyle}>
+            <i className="fas fa-calendar-alt" style={{ color: 'var(--secondary)', marginRight: 6 }} />
+            Date de départ
           </label>
           <input
-            id="personnes"
-            name="personnes"
-            type="number"
-            min="1"
-            max="20"
-            value={form.personnes}
-            onChange={handleChange}
-            placeholder="2 personnes"
+            type="date"
+            value={search.date}
+            onChange={(e) => setSearch({ ...search, date: e.target.value })}
+            min={new Date().toISOString().split('T')[0]}
+            style={fieldInputStyle}
+            onFocus={(e) => (e.target.style.borderColor = 'var(--secondary)')}
+            onBlur={(e) => (e.target.style.borderColor = 'var(--gray-200)')}
           />
         </div>
 
-        {/* Button */}
-        <button className="search-btn" onClick={handleSubmit}>
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-          Rechercher
+        {/* Nombre de personnes */}
+        <div>
+          <label style={fieldLabelStyle}>
+            <i className="fas fa-users" style={{ color: 'var(--secondary)', marginRight: 6 }} />
+            Voyageurs
+          </label>
+          <div style={{ position: 'relative' }}>
+            <select
+              value={search.personnes}
+              onChange={(e) => setSearch({ ...search, personnes: e.target.value })}
+              style={{
+                ...fieldInputStyle,
+                color: search.personnes ? 'var(--gray-800)' : 'var(--gray-400)',
+                paddingRight: 36,
+              }}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--secondary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--gray-200)')}
+            >
+              <option value="">Nb. de personnes</option>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                <option key={n} value={n}>
+                  {n} personne{n > 1 ? 's' : ''}
+                </option>
+              ))}
+              <option value="10+">10+ personnes</option>
+            </select>
+            {chevron}
+          </div>
+        </div>
+
+        {/* Durée */}
+        <div>
+          <label style={fieldLabelStyle}>
+            <i className="fas fa-clock" style={{ color: 'var(--secondary)', marginRight: 6 }} />
+            Durée
+          </label>
+          <div style={{ position: 'relative' }}>
+            <select
+              value={search.duree}
+              onChange={(e) => setSearch({ ...search, duree: e.target.value })}
+              style={{
+                ...fieldInputStyle,
+                color: search.duree ? 'var(--gray-800)' : 'var(--gray-400)',
+                paddingRight: 36,
+              }}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--secondary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--gray-200)')}
+            >
+              <option value="">durées</option>
+              <option value="3-5">one week</option>
+              <option value="6-8">txo weeks</option>
+              <option value="9-12">9 à 12 jours</option>
+              
+            </select>
+            {chevron}
+          </div>
+        </div>
+
+
+        {/* Search button */}
+        <button
+          onClick={handleSubmit}
+          style={{
+            padding: '13px 24px',
+            background: 'var(--secondary)',
+            color: 'var(--white)',
+            border: 'none',
+            borderRadius: 12,
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            whiteSpace: 'nowrap',
+            transition: 'background 0.2s ease',
+            height: '100%',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--secondary)')}
+        >
+          <i className="fas fa-search" /> Rechercher
         </button>
 
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .voyage-search-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 1200px) {
+          .voyage-search-grid {
+            grid-template-columns: 1fr 1fr !important;
+          }
+          .voyage-search-grid > button {
+            grid-column: 1 / -1;
+          }
+        }
+      `}</style>
     </div>
   );
 };
