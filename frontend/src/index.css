@@ -1,4 +1,3 @@
-@import "tailwindcss";
 
 @tailwind base;
 @tailwind components;
@@ -633,6 +632,12 @@ input, select { font-family: inherit; border: none; outline: none; }
   .hero-buttons { flex-direction: column; width: 100%; max-width: 280px; margin: 0 auto; }
   .hero-buttons .btn { width: 100%; }
 }
+
+
+
+
+
+
 
 
 

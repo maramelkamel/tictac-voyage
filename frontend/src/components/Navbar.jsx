@@ -608,7 +608,6 @@ const Navbar = () => {
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
                 color: 'var(--white)', fontSize: '16px', fontWeight: 500,
                 background: 'none', border: 'none',
-                borderBottom: '1px solid rgba(255,255,255,0.1)',
                 cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
               }}
             >

@@ -22,7 +22,7 @@ const durationOptions = [
 export function DispositionForm() {
   const [formData, setFormData] = useState({
     duration: 'fullDay',
-    multiDaysCount: 1,
+    multiDaysCount: 2,
     startDate: '',
     startTime: '',
     pickupLocation: '',
@@ -62,23 +62,28 @@ export function DispositionForm() {
 
   if (submitted) {
     return (
-      <div className="bg-white rounded-xl p-8 text-center animate-fade-in">
+      <div className="bg-white rounded-xl p-8 text-center animate-fade-in shadow-lg">
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h3 className="text-xl font-semibold text-[#1E293B] mb-2 font-['Poppins']">Demande envoyée avec succès !</h3>
-        <p className="text-[#64748B]">Notre équipe vous contactera sous 24h pour confirmer votre réservation.</p>
+        <h3 className="text-xl font-semibold text-[#1E293B] mb-2 font-['Poppins']">
+          Demande envoyée avec succès !
+        </h3>
+        <p className="text-[#64748B]">
+          Notre équipe vous contactera sous 24h pour confirmer votre réservation.
+        </p>
       </div>
     );
   }
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 md:p-8 shadow-lg animate-fade-in">
-      {/* Type de prestation */}
+      
+      {/* Durée */}
       <div className="mb-6">
-        <label className="block text-[#1E293B] font-semibold mb-3">Durée de mise à disposition</label>
+        <label className="block text-[#1E293B] font-semibold mb-3">⏱️ Durée de mise à disposition</label>
         <select
           name="duration"
           value={formData.duration}
@@ -112,7 +117,7 @@ export function DispositionForm() {
 
       {/* Date & Lieu */}
       <div className="mb-6">
-        <label className="block text-[#1E293B] font-semibold mb-3">Date & Lieu de prise en charge</label>
+        <label className="block text-[#1E293B] font-semibold mb-3">📅 Date & Lieu de prise en charge</label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block text-sm text-[#64748B] mb-1">Date de début *</label>
@@ -170,7 +175,7 @@ export function DispositionForm() {
 
       {/* Itinéraire */}
       <div className="mb-6">
-        <label className="block text-[#1E293B] font-semibold mb-3">Itinéraire</label>
+        <label className="block text-[#1E293B] font-semibold mb-3">🗺️ Itinéraire</label>
         <textarea
           name="itinerary"
           value={formData.itinerary}
@@ -183,8 +188,8 @@ export function DispositionForm() {
 
       {/* Passagers & Véhicule */}
       <div className="mb-6">
-        <label className="block text-[#1E293B] font-semibold mb-3">Passagers & Véhicule</label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <label className="block text-[#1E293B] font-semibold mb-3">👥 Passagers & Véhicule</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-[#64748B] mb-1">Nombre de passagers *</label>
             <input
@@ -219,7 +224,7 @@ export function DispositionForm() {
 
       {/* Coordonnées */}
       <div className="mb-6">
-        <label className="block text-[#1E293B] font-semibold mb-3">Vos coordonnées</label>
+        <label className="block text-[#1E293B] font-semibold mb-3">📧 Vos coordonnées</label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block text-sm text-[#64748B] mb-1">Nom complet *</label>
@@ -273,16 +278,16 @@ export function DispositionForm() {
 
       {/* Résumé */}
       <div className="bg-[#F8FAFB] rounded-lg p-4 mb-6">
-        <h4 className="font-semibold text-[#1E293B] mb-2">Résumé de la mise à disposition</h4>
+        <h4 className="font-semibold text-[#1E293B] mb-2">📋 Résumé de la mise à disposition</h4>
         <div className="text-sm text-[#64748B] space-y-1">
           <p><span className="font-medium">Durée :</span> {getDurationLabel()}</p>
-          <p><span className="font-medium">Date :</span> {formData.startDate} à {formData.startTime}</p>
-          <p><span className="font-medium">Lieu :</span> {formData.pickupLocation}, {formData.mainCity}</p>
+          <p><span className="font-medium">Date :</span> {formData.startDate || '—'} à {formData.startTime || '—'}</p>
+          <p><span className="font-medium">Lieu :</span> {formData.pickupLocation || '—'}, {formData.mainCity || '—'}</p>
           <p><span className="font-medium">Passagers :</span> {formData.passengers}</p>
         </div>
       </div>
 
-      <button type="submit" className="btn-primary w-full text-center">
+      <button type="submit" className="btn-primary">
         Demander un devis gratuit
       </button>
     </form>
