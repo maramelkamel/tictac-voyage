@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import Chatbot from '../components/Chatbot';
 import '../styles/createaccount.css';
 
 const CreateAccount = () => {
@@ -15,6 +14,9 @@ const CreateAccount = () => {
     phone: '',
     password: '',
     confirmPassword: '',
+    maritalStatus: '',
+    numberOfChildren: '',
+    city: '',
     agreeTerms: false,
   });
 
@@ -30,9 +32,7 @@ const CreateAccount = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const validate = () => {
@@ -47,7 +47,7 @@ const CreateAccount = () => {
     if (!formData.confirmPassword) newErrors.confirmPassword = 'Veuillez confirmer';
     else if (formData.password !== formData.confirmPassword)
       newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
-    if (!formData.agreeTerms) newErrors.agreeTerms = "Vous devez accepter les conditions";
+    if (!formData.agreeTerms) newErrors.agreeTerms = 'Vous devez accepter les conditions';
     return newErrors;
   };
 
@@ -76,7 +76,6 @@ const CreateAccount = () => {
   const strengthColors = ['', '#ef4444', '#f97316', '#22c55e', '#0f4c5c'];
   const strength = getPasswordStrength();
 
-  // ── Success Screen ────────────────────────────────────────
   if (submitted) {
     return (
       <>
@@ -92,18 +91,14 @@ const CreateAccount = () => {
               <i className="fas fa-check-circle" />
             </div>
             <h2>Compte créé avec succès !</h2>
-            <p>
-              Bienvenue chez Tictac Voyages. Votre compte a été créé.
-              Vous pouvez maintenant vous connecter.
-            </p>
+            <p>Bienvenue chez Tictac Voyages. Vous pouvez maintenant vous connecter.</p>
             <button
               type="button"
               className="auth-btn auth-btn-primary"
               style={{ marginTop: '20px' }}
               onClick={() => navigate('/SignIn')}
             >
-              <i className="fas fa-sign-in-alt" />
-              Se connecter
+              <i className="fas fa-sign-in-alt" /> Se connecter
             </button>
           </div>
         </main>
@@ -112,7 +107,6 @@ const CreateAccount = () => {
     );
   }
 
-  // ── Main Form ─────────────────────────────────────────────
   return (
     <>
       <Navbar />
@@ -128,25 +122,14 @@ const CreateAccount = () => {
           {/* ── Left Panel ── */}
           <div className="auth-panel auth-panel--left">
             <div className="auth-panel-content">
-
-              <button
-                type="button"
-                className="auth-logo"
-                onClick={() => navigate('/')}
-              >
+              <button type="button" className="auth-logo" onClick={() => navigate('/')}>
                 <span className="auth-logo-name">TICTAC VOYAGES</span>
                 <span className="auth-logo-sub">Agence de Voyage</span>
               </button>
 
               <div className="auth-panel-headline">
-                <h1>
-                  Rejoignez notre<br />
-                  <em>univers de voyage</em>
-                </h1>
-                <p>
-                  Créez votre compte et accédez à des offres exclusives,
-                  gérez vos réservations et bien plus encore.
-                </p>
+                <h1>Rejoignez notre<br /><em>univers de voyage</em></h1>
+                <p>Créez votre compte et accédez à des offres exclusives, gérez vos réservations et bien plus encore.</p>
               </div>
 
               <ul className="auth-benefits">
@@ -170,11 +153,7 @@ const CreateAccount = () => {
                 <h2>Créer un compte</h2>
                 <p>
                   Déjà client ?{' '}
-                  <button
-                    type="button"
-                    className="auth-link-btn"
-                    onClick={() => navigate('/SignIn')}
-                  >
+                  <button type="button" className="auth-link-btn" onClick={() => navigate('/SignIn')}>
                     Se connecter <i className="fas fa-arrow-right" />
                   </button>
                 </p>
@@ -182,22 +161,17 @@ const CreateAccount = () => {
 
               <form onSubmit={handleSubmit} noValidate className="auth-form">
 
-                {/* Name row */}
+                {/* Prénom / Nom */}
                 <div className="auth-row">
                   <div className={`auth-field ${focused === 'firstName' ? 'auth-field--focused' : ''} ${errors.firstName ? 'auth-field--error' : ''}`}>
                     <label htmlFor="firstName">Prénom</label>
                     <div className="auth-input-wrap">
                       <i className="fas fa-user auth-input-icon" />
                       <input
-                        id="firstName"
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        onFocus={() => setFocused('firstName')}
-                        onBlur={() => setFocused('')}
-                        placeholder="Votre prénom"
-                        autoComplete="given-name"
+                        id="firstName" type="text" name="firstName"
+                        value={formData.firstName} onChange={handleChange}
+                        onFocus={() => setFocused('firstName')} onBlur={() => setFocused('')}
+                        placeholder="Votre prénom" autoComplete="given-name"
                       />
                     </div>
                     {errors.firstName && <span className="auth-error">{errors.firstName}</span>}
@@ -208,15 +182,10 @@ const CreateAccount = () => {
                     <div className="auth-input-wrap">
                       <i className="fas fa-user auth-input-icon" />
                       <input
-                        id="lastName"
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        onFocus={() => setFocused('lastName')}
-                        onBlur={() => setFocused('')}
-                        placeholder="Votre nom"
-                        autoComplete="family-name"
+                        id="lastName" type="text" name="lastName"
+                        value={formData.lastName} onChange={handleChange}
+                        onFocus={() => setFocused('lastName')} onBlur={() => setFocused('')}
+                        placeholder="Votre nom" autoComplete="family-name"
                       />
                     </div>
                     {errors.lastName && <span className="auth-error">{errors.lastName}</span>}
@@ -229,62 +198,101 @@ const CreateAccount = () => {
                   <div className="auth-input-wrap">
                     <i className="fas fa-envelope auth-input-icon" />
                     <input
-                      id="email"
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      onFocus={() => setFocused('email')}
-                      onBlur={() => setFocused('')}
-                      placeholder="votre@email.com"
-                      autoComplete="email"
+                      id="email" type="email" name="email"
+                      value={formData.email} onChange={handleChange}
+                      onFocus={() => setFocused('email')} onBlur={() => setFocused('')}
+                      placeholder="votre@email.com" autoComplete="email"
                     />
                   </div>
                   {errors.email && <span className="auth-error">{errors.email}</span>}
                 </div>
 
-                {/* Phone */}
+                {/* Téléphone */}
                 <div className={`auth-field ${focused === 'phone' ? 'auth-field--focused' : ''} ${errors.phone ? 'auth-field--error' : ''}`}>
                   <label htmlFor="phone">Numéro de téléphone</label>
                   <div className="auth-input-wrap">
                     <i className="fas fa-phone auth-input-icon" />
                     <input
-                      id="phone"
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      onFocus={() => setFocused('phone')}
-                      onBlur={() => setFocused('')}
-                      placeholder="+216 XX XXX XXX"
-                      autoComplete="tel"
+                      id="phone" type="tel" name="phone"
+                      value={formData.phone} onChange={handleChange}
+                      onFocus={() => setFocused('phone')} onBlur={() => setFocused('')}
+                      placeholder="+216 XX XXX XXX" autoComplete="tel"
                     />
                   </div>
                   {errors.phone && <span className="auth-error">{errors.phone}</span>}
                 </div>
 
-                {/* Password */}
+                {/* Situation matrimoniale */}
+                <div className={`auth-field ${focused === 'maritalStatus' ? 'auth-field--focused' : ''}`}>
+                  <label htmlFor="maritalStatus">
+                    Situation matrimoniale
+                    <span className="auth-optional-tag">Optionnel</span>
+                  </label>
+                  <div className="auth-input-wrap">
+                    <i className="fas fa-heart auth-input-icon" />
+                    <select
+                      id="maritalStatus" name="maritalStatus"
+                      value={formData.maritalStatus} onChange={handleChange}
+                      onFocus={() => setFocused('maritalStatus')} onBlur={() => setFocused('')}
+                      className="auth-select"
+                    >
+                      <option value="">Sélectionnez...</option>
+                      <option value="celibataire">Célibataire</option>
+                      <option value="marie">Marié(e)</option>
+                      <option value="divorce">Divorcé(e)</option>
+                      <option value="veuf">Veuf / Veuve</option>
+                    </select>
+                    <i className="fas fa-chevron-down auth-select-arrow" />
+                  </div>
+                </div>
+
+                {/* Nombre d'enfants / Ville */}
+                <div className="auth-row">
+                  <div className={`auth-field ${focused === 'numberOfChildren' ? 'auth-field--focused' : ''}`}>
+                    <label htmlFor="numberOfChildren">
+                      Nombre d'enfants
+                      <span className="auth-optional-tag">Optionnel</span>
+                    </label>
+                    <div className="auth-input-wrap">
+                      <i className="fas fa-child auth-input-icon" />
+                      <input
+                        id="numberOfChildren" type="number" name="numberOfChildren"
+                        value={formData.numberOfChildren} onChange={handleChange}
+                        onFocus={() => setFocused('numberOfChildren')} onBlur={() => setFocused('')}
+                        placeholder="0" min="0" max="20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className={`auth-field ${focused === 'city' ? 'auth-field--focused' : ''}`}>
+                    <label htmlFor="city">
+                      Ville de résidence
+                      <span className="auth-optional-tag">Optionnel</span>
+                    </label>
+                    <div className="auth-input-wrap">
+                      <i className="fas fa-map-marker-alt auth-input-icon" />
+                      <input
+                        id="city" type="text" name="city"
+                        value={formData.city} onChange={handleChange}
+                        onFocus={() => setFocused('city')} onBlur={() => setFocused('')}
+                        placeholder="Ex: Tunis, Sousse..." autoComplete="address-level2"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mot de passe */}
                 <div className={`auth-field ${focused === 'password' ? 'auth-field--focused' : ''} ${errors.password ? 'auth-field--error' : ''}`}>
                   <label htmlFor="password">Mot de passe</label>
                   <div className="auth-input-wrap">
                     <i className="fas fa-lock auth-input-icon" />
                     <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      onFocus={() => setFocused('password')}
-                      onBlur={() => setFocused('')}
-                      placeholder="Minimum 8 caractères"
-                      autoComplete="new-password"
+                      id="password" type={showPassword ? 'text' : 'password'} name="password"
+                      value={formData.password} onChange={handleChange}
+                      onFocus={() => setFocused('password')} onBlur={() => setFocused('')}
+                      placeholder="Minimum 8 caractères" autoComplete="new-password"
                     />
-                    <button
-                      type="button"
-                      className="auth-toggle-pw"
-                      onClick={() => setShowPassword((p) => !p)}
-                      aria-label={showPassword ? 'Masquer' : 'Afficher'}
-                    >
+                    <button type="button" className="auth-toggle-pw" onClick={() => setShowPassword((p) => !p)}>
                       <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
                     </button>
                   </div>
@@ -292,9 +300,7 @@ const CreateAccount = () => {
                     <div className="auth-strength">
                       <div className="auth-strength-bars">
                         {[1, 2, 3, 4].map((i) => (
-                          <div
-                            key={i}
-                            className="auth-strength-bar"
+                          <div key={i} className="auth-strength-bar"
                             style={{ background: i <= strength ? strengthColors[strength] : '#e5e7eb' }}
                           />
                         ))}
@@ -307,28 +313,18 @@ const CreateAccount = () => {
                   {errors.password && <span className="auth-error">{errors.password}</span>}
                 </div>
 
-                {/* Confirm Password */}
+                {/* Confirmer mot de passe */}
                 <div className={`auth-field ${focused === 'confirmPassword' ? 'auth-field--focused' : ''} ${errors.confirmPassword ? 'auth-field--error' : ''}`}>
                   <label htmlFor="confirmPassword">Confirmer le mot de passe</label>
                   <div className="auth-input-wrap">
                     <i className="fas fa-lock auth-input-icon" />
                     <input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      onFocus={() => setFocused('confirmPassword')}
-                      onBlur={() => setFocused('')}
-                      placeholder="Répétez votre mot de passe"
-                      autoComplete="new-password"
+                      id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword"
+                      value={formData.confirmPassword} onChange={handleChange}
+                      onFocus={() => setFocused('confirmPassword')} onBlur={() => setFocused('')}
+                      placeholder="Répétez votre mot de passe" autoComplete="new-password"
                     />
-                    <button
-                      type="button"
-                      className="auth-toggle-pw"
-                      onClick={() => setShowConfirmPassword((p) => !p)}
-                      aria-label={showConfirmPassword ? 'Masquer' : 'Afficher'}
-                    >
+                    <button type="button" className="auth-toggle-pw" onClick={() => setShowConfirmPassword((p) => !p)}>
                       <i className={`fas ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
                     </button>
                   </div>
@@ -338,18 +334,16 @@ const CreateAccount = () => {
                 {/* Terms */}
                 <div className={`auth-checkbox-field ${errors.agreeTerms ? 'auth-field--error' : ''}`}>
                   <label className="auth-checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="agreeTerms"
-                      checked={formData.agreeTerms}
-                      onChange={handleChange}
-                    />
+                    <input type="checkbox" name="agreeTerms" checked={formData.agreeTerms} onChange={handleChange} />
                     <span className="auth-checkmark" />
                     <span>
                       J'accepte les{' '}
-                      <button type="button" className="auth-link-btn">conditions d'utilisation</button>
-                      {' '}et la{' '}
-                      <button type="button" className="auth-link-btn">politique de confidentialité</button>
+                      <button type="button" className="auth-link-btn" onClick={() => navigate('/terms')}>
+                        conditions d'utilisation
+                      </button>{' '}et la{' '}
+                      <button type="button" className="auth-link-btn" onClick={() => navigate('/privacy')}>
+                        politique de confidentialité
+                      </button>
                     </span>
                   </label>
                   {errors.agreeTerms && (
@@ -358,23 +352,18 @@ const CreateAccount = () => {
                 </div>
 
                 <button type="submit" className="auth-btn auth-btn-primary">
-                  <i className="fas fa-user-plus" />
-                  Créer mon compte
+                  <i className="fas fa-user-plus" /> Créer mon compte
                 </button>
               </form>
 
-              <div className="auth-divider">
-                <span>ou continuez avec</span>
-              </div>
+              <div className="auth-divider"><span>ou continuez avec</span></div>
 
               <div className="auth-social">
                 <button type="button" className="auth-social-btn">
-                  <i className="fab fa-google" />
-                  Google
+                  <i className="fab fa-google" /> Google
                 </button>
                 <button type="button" className="auth-social-btn">
-                  <i className="fab fa-facebook-f" />
-                  Facebook
+                  <i className="fab fa-facebook-f" /> Facebook
                 </button>
               </div>
 
@@ -382,9 +371,6 @@ const CreateAccount = () => {
           </div>
         </div>
       </main>
-
-      {/* CHATBOT */}
-      <Chatbot />
       <Footer />
     </>
   );
