@@ -199,7 +199,7 @@ const OmraPage = () => {
 
         <div className="container omra-hero__content">
           <div className="omra-hero__tag">
-            <i className="fas fa-kaaba" style={{ color: '#D4A017' }} />
+            <i className="fas fa-kaaba" style={{ color: '#e8306a' }} />
             Pèlerinage & Spiritualité
           </div>
 
