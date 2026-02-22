@@ -8,7 +8,8 @@ import CreateAccount from './pages/CreateAccount';
 import SignIn from './pages/SignIn';
 import TransportPage from './pages/Transport/TransportPage';
 import VoyagesOrganise from './pages/VoyagesOrganise/VoyagesOrganise';
-
+import Detail from './pages/VoyagesOrganise/Detail';
+import Reserver from './pages/VoyagesOrganise/Reserver';
 
 
 
@@ -24,7 +25,9 @@ function App() {
         <Route path="/SignIn" element={<SignIn />} />
         <Route path="/transport" element={<TransportPage />} />
 
-        <Route path="/VoyagesOrganise" element={<VoyagesOrganise />} />
+        <Route path="/VoyagesOrganise/VoyagesOrganise" element={<VoyagesOrganise />} />
+        <Route path="/VoyagesOrganise/Detail" element={<Detail />} />
+        <Route path="/VoyagesOrganise/Reserver" element={<Reserver />} />
       </Routes>
     </Router>
   );
