@@ -414,7 +414,7 @@ input, select { font-family: inherit; border: none; outline: none; }
 }
 
 .search-tab.active {
-  background: var(--accent-dark); /* Use dark pink for active tab too? Original was accent-alpha. Let's stick to accent-alpha or accent solid. Original: accent-alpha. I'll use accent-solid for better contrast if I changed buttons. Let's keep accent-alpha here as it might look better as a tab. Or use accent solid. Let's use accent solid for consistency with the request "rose foncée". */
+  
   background: var(--accent-dark);
   color: var(--white);
   box-shadow: 0 4px 12px rgba(233, 47, 100, 0.3);
