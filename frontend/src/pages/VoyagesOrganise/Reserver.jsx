@@ -34,7 +34,7 @@ const Reserver = () => {
             Voyage introuvable.
           </p>
           <button className="omra-reserve__submit" style={{ width: 'auto', padding: '14px 28px' }}
-            onClick={() => navigate('/voyages')}>
+            onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')}>
             ← Retour aux voyages
           </button>
         </div>
@@ -72,12 +72,12 @@ const Reserver = () => {
                   Un conseiller vous contactera sous 24h à <strong>{form.email}</strong>.
                 </p>
                 <div className="omra-reserve__success-actions">
-                  <button className="omra-reserve__success-btn" onClick={() => navigate('/voyages')}>
+                  <button className="omra-reserve__success-btn" onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')}>
                     ← Voir d'autres voyages
                   </button>
                   <button
                     className="omra-reserve__success-btn omra-reserve__success-btn--outline"
-                    onClick={() => navigate(`/voyages/details/${id}`, { state })}
+                    onClick={() => navigate(`/VoyagesOrganise/VoyagesOrganise/${id}`, { state })}
                   >
                     Retour aux détails
                   </button>
@@ -101,7 +101,7 @@ const Reserver = () => {
 
           {/* Breadcrumb */}
           <div className="omra-page-breadcrumb omra-page-breadcrumb--light" style={{ paddingTop: 8 }}>
-            <button onClick={() => navigate('/voyages')}>← Voyages</button>
+            <button onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')}>← Voyages</button>
             <span>/</span>
             <button onClick={() => navigate(-1)}>{pays}</button>
             <span>/</span>

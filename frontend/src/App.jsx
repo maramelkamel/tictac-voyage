@@ -27,8 +27,8 @@ function App() {
         <Route path="/transport" element={<TransportPage />} />
 
         <Route path="/VoyagesOrganise/VoyagesOrganise" element={<VoyagesOrganise />} />
-        <Route path="/VoyagesOrganise/Detail" element={<Detail />} />
-        <Route path="/VoyagesOrganise/Reserver" element={<Reserver />} />
+        <Route path="/VoyagesOrganise/Detail/:id" element={<Detail />} />
+        <Route path="/VoyagesOrganise/Reserver/:id" element={<Reserver />} />
          <Route path="/hotels/:id" element={<HotelDetails />} />
       </Routes>
       

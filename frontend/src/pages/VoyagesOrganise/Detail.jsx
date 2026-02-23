@@ -36,7 +36,7 @@ const Details = () => {
   } = state.voyage;
 
   const handleReserver = () => {
-    navigate(`/voyages/reserver/${id}`, { state: { voyage: state.voyage } });
+    navigate(`/VoyagesOrganise/Reserver/${id}`, { state: { voyage: state.voyage } });
   };
 
   return (
@@ -52,7 +52,7 @@ const Details = () => {
           <div className="container">
             {/* Breadcrumb */}
             <div className="omra-page-breadcrumb">
-              <button onClick={() => navigate('/voyages')}>← Voyages organisés</button>
+              <button onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')}>← Voyages organisés</button>
               <span>/</span>
               <span>{pays}</span>
             </div>
