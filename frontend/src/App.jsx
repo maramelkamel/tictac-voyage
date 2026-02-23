@@ -11,6 +11,7 @@ import VoyagesOrganise from './pages/VoyagesOrganise/VoyagesOrganise';
 import Detail from './pages/VoyagesOrganise/Detail';
 import Reserver from './pages/VoyagesOrganise/Reserver';
 import HotelDetails from './pages/HotelDetails';
+import Contact from './pages/Contact';
 
 
 
@@ -30,6 +31,7 @@ function App() {
         <Route path="/VoyagesOrganise/Detail/:id" element={<Detail />} />
         <Route path="/VoyagesOrganise/Reserver/:id" element={<Reserver />} />
          <Route path="/hotels/:id" element={<HotelDetails />} />
+         <Route path="/Contact" element={<Contact/>} />
       </Routes>
       
     </Router>
