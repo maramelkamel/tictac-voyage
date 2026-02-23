@@ -1,54 +1,31 @@
 import { useState } from 'react';
+import { vehiclesData, tunisianCities } from './transportData';
 
-const airportsData = [
-  { code: "TUN", name: "Tunis-Carthage", city: "Tunis" },
-  { code: "MIR", name: "Monastir Habib Bourguiba", city: "Monastir" },
-  { code: "DJE", name: "Djerba-Zarzis", city: "Djerba" },
-  { code: "NBE", name: "Enfidha-Hammamet", city: "Enfidha" }
-];
-
-const tunisianCities = [
-  "Tunis", "Sousse", "Hammamet", "Monastir", "Djerba", 
-  "Tozeur", "Kairouan", "Sfax", "Bizerte", "Tabarka",
-  "Nabeul", "Mahdia", "Gabès", "Tataouine", "Douz"
-];
-
-const vehiclesData = [
-  { id: 'berline', name: "Berline Confort", capacity: "1-3 passagers", icon: "🚗" },
-  { id: 'van', name: "Van Premium", capacity: "4-7 passagers", icon: "🚐" },
-  { id: 'minibus', name: "Minibus", capacity: "8-15 passagers", icon: "🚌" },
-  { id: 'bus', name: "Bus Grand Tourisme", capacity: "16-50 passagers", icon: "🚍" }
-];
-
-export function TransferForm() {
+const TransferForm = () => {
   const [formData, setFormData] = useState({
-    tripType: 'oneWay',
-    departureType: 'airport',
-    departureAirport: '',
-    departureHotel: '',
-    departureCity: '',
+    tripType: 'oneway',
     departureAddress: '',
-    arrivalType: 'hotel',
-    arrivalAirport: '',
-    arrivalHotel: '',
-    arrivalCity: '',
+    departureCity: '',
     arrivalAddress: '',
+    arrivalCity: '',
     departureDate: '',
     departureTime: '',
     returnDate: '',
     returnTime: '',
     passengers: 1,
-    bags: 0,
+    luggage: 0,
     babySeat: false,
-    vehicleType: 'berline',
+    vehicleType: '',
     fullName: '',
     phone: '',
     email: '',
     remarks: ''
   });
-  const [submitted, setSubmitted] = useState(false);
 
-  const handleInputChange = (e) => {
+  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -56,453 +33,376 @@ export function TransferForm() {
     }));
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.departureAddress.trim()) newErrors.departureAddress = 'Adresse de départ requise';
+    if (!formData.arrivalAddress.trim()) newErrors.arrivalAddress = 'Adresse d\'arrivée requise';
+    if (!formData.departureDate) newErrors.departureDate = 'Date requise';
+    if (!formData.departureTime) newErrors.departureTime = 'Heure requise';
+    if (!formData.vehicleType) newErrors.vehicleType = 'Véhicule requis';
+    if (!formData.fullName.trim()) newErrors.fullName = 'Nom requis';
+    if (!formData.phone.trim()) newErrors.phone = 'Téléphone requis';
+    if (!formData.email.trim()) newErrors.email = 'Email requis';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email invalide';
+    
+    if (formData.tripType === 'roundtrip' && !formData.returnDate) {
+      newErrors.returnDate = 'Date de retour requise';
+    }
+
+    // Vérifier la capacité du véhicule
+    const selectedVehicle = vehiclesData.find(v => v.id === formData.vehicleType);
+    if (selectedVehicle && formData.passengers > selectedVehicle.capacity.max) {
+      newErrors.passengers = `Ce véhicule ne peut accueillir que ${selectedVehicle.capacity.max} passagers maximum`;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Transfert Form Data:', formData);
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
-  };
-
-  const getDepartureDisplay = () => {
-    if (formData.departureType === 'airport') {
-      const airport = airportsData.find(a => a.code === formData.departureAirport);
-      return airport ? `${airport.name} (${airport.city})` : 'Non sélectionné';
-    } else if (formData.departureType === 'hotel') {
-      return formData.departureHotel ? `${formData.departureHotel}, ${formData.departureCity}` : 'Non renseigné';
+    
+    if (validateForm()) {
+      console.log('Données du formulaire Transfert:', formData);
+      setSubmitted(true);
+      // Reset après 5 secondes
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({
+          tripType: 'oneway',
+          departureAddress: '',
+          departureCity: '',
+          arrivalAddress: '',
+          arrivalCity: '',
+          departureDate: '',
+          departureTime: '',
+          returnDate: '',
+          returnTime: '',
+          passengers: 1,
+          luggage: 0,
+          babySeat: false,
+          vehicleType: '',
+          fullName: '',
+          phone: '',
+          email: '',
+          remarks: ''
+        });
+      }, 5000);
     }
-    return formData.departureAddress || 'Non renseigné';
-  };
-
-  const getArrivalDisplay = () => {
-    if (formData.arrivalType === 'airport') {
-      const airport = airportsData.find(a => a.code === formData.arrivalAirport);
-      return airport ? `${airport.name} (${airport.city})` : 'Non sélectionné';
-    } else if (formData.arrivalType === 'hotel') {
-      return formData.arrivalHotel ? `${formData.arrivalHotel}, ${formData.arrivalCity}` : 'Non renseigné';
-    }
-    return formData.arrivalAddress || 'Non renseigné';
   };
 
   if (submitted) {
     return (
-      <div className="bg-white rounded-xl p-8 text-center animate-fade-in shadow-lg">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h3 className="text-xl font-semibold text-[#1E293B] mb-2 font-['Poppins']">
-          Demande envoyée avec succès !
-        </h3>
-        <p className="text-[#64748B]">
-          Notre équipe vous contactera sous 24h pour confirmer votre réservation.
+      <div className="bg-gradient-to-br from-[#0F4C5C] to-[#1ECAD3] rounded-2xl p-8 text-center text-white">
+        <div className="text-6xl mb-4">✅</div>
+        <h3 className="text-2xl font-bold mb-3">Demande envoyée !</h3>
+        <p className="text-lg opacity-90">
+          Merci ! Votre demande de devis a été envoyée.<br />
+          Notre équipe vous contactera sous 24h pour vous proposer le meilleur tarif.
         </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 md:p-8 shadow-lg animate-fade-in">
-      
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* Type de trajet */}
-      <div className="mb-6">
-        <label className="block text-[#1E293B] font-semibold mb-3">Type de transfert</label>
-        <div className="flex flex-wrap gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-[#0F4C5C] mb-4 flex items-center gap-2">
+          <span className="text-2xl">🛣️</span> Type de trajet
+        </h3>
+        <div className="flex gap-6">
+          <label className="flex items-center gap-3 cursor-pointer group">
             <input
               type="radio"
               name="tripType"
-              value="oneWay"
-              checked={formData.tripType === 'oneWay'}
-              onChange={handleInputChange}
-              className="w-4 h-4 accent-[#0F4C5C]"
+              value="oneway"
+              checked={formData.tripType === 'oneway'}
+              onChange={handleChange}
+              className="w-5 h-5 text-[#E92F64] focus:ring-[#E92F64]"
             />
-            <span className="text-[#1E293B]">Aller simple</span>
+            <span className="text-[#1E293B] font-medium group-hover:text-[#E92F64] transition-colors">Aller simple</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer group">
             <input
               type="radio"
               name="tripType"
-              value="roundTrip"
-              checked={formData.tripType === 'roundTrip'}
-              onChange={handleInputChange}
-              className="w-4 h-4 accent-[#0F4C5C]"
+              value="roundtrip"
+              checked={formData.tripType === 'roundtrip'}
+              onChange={handleChange}
+              className="w-5 h-5 text-[#E92F64] focus:ring-[#E92F64]"
             />
-            <span className="text-[#1E293B]">Aller-retour</span>
+            <span className="text-[#1E293B] font-medium group-hover:text-[#E92F64] transition-colors">Aller-retour</span>
           </label>
         </div>
       </div>
 
-      {/* Point de départ */}
-      <div className="mb-6">
-        <label className="block text-[#1E293B] font-semibold mb-3">Point de départ</label>
-        <div className="flex flex-wrap gap-4 mb-3">
-          {['airport', 'hotel', 'address'].map(type => (
-            <label key={type} className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="departureType"
-                value={type}
-                checked={formData.departureType === type}
-                onChange={handleInputChange}
-                className="w-4 h-4 accent-[#0F4C5C]"
-              />
-              <span className="text-[#1E293B]">
-                {type === 'airport' ? '✈️ Aéroport' : type === 'hotel' ? '🏨 Hôtel' : '📍 Adresse'}
-              </span>
-            </label>
-          ))}
-        </div>
-        
-        {formData.departureType === 'airport' && (
-          <select
-            name="departureAirport"
-            value={formData.departureAirport}
-            onChange={handleInputChange}
-            className="form-input"
-            required
-          >
-            <option value="">Sélectionner un aéroport</option>
-            {airportsData.map(airport => (
-              <option key={airport.code} value={airport.code}>
-                {airport.name} ({airport.city})
-              </option>
-            ))}
-          </select>
-        )}
-        
-        {formData.departureType === 'hotel' && (
-          <div className="space-y-3">
-            <input
-              type="text"
-              name="departureHotel"
-              value={formData.departureHotel}
-              onChange={handleInputChange}
-              placeholder="Nom de l'hôtel"
-              className="form-input"
-              required
-            />
-            <select
-              name="departureCity"
-              value={formData.departureCity}
-              onChange={handleInputChange}
-              className="form-input"
-              required
-            >
-              <option value="">Sélectionner la ville</option>
-              {tunisianCities.map(city => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
-          </div>
-        )}
-        
-        {formData.departureType === 'address' && (
-          <div className="space-y-3">
+      {/* Points de départ et arrivée */}
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-[#0F4C5C] mb-4 flex items-center gap-2">
+          <span className="text-2xl">📍</span> Points de départ et d'arrivée
+        </h3>
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Point de départ */}
+          <div className="space-y-4">
+            <label className="block text-sm font-semibold text-[#0F4C5C] uppercase tracking-wide">Point de départ</label>
             <input
               type="text"
               name="departureAddress"
               value={formData.departureAddress}
-              onChange={handleInputChange}
-              placeholder="Adresse complète"
-              className="form-input"
-              required
+              onChange={handleChange}
+              placeholder="Entrez votre adresse de départ"
+              className={`w-full px-4 py-3 rounded-lg border-2 ${errors.departureAddress ? 'border-red-400' : 'border-slate-200'} focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white`}
             />
+            {errors.departureAddress && <p className="text-red-500 text-sm">{errors.departureAddress}</p>}
             <select
               name="departureCity"
               value={formData.departureCity}
-              onChange={handleInputChange}
-              className="form-input"
-              required
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white text-[#1E293B]"
             >
-              <option value="">Sélectionner la ville</option>
+              <option value="">Sélectionner une ville</option>
               {tunisianCities.map(city => (
                 <option key={city} value={city}>{city}</option>
               ))}
             </select>
           </div>
-        )}
-      </div>
 
-      {/* Point d'arrivée */}
-      <div className="mb-6">
-        <label className="block text-[#1E293B] font-semibold mb-3">Point d'arrivée</label>
-        <div className="flex flex-wrap gap-4 mb-3">
-          {['airport', 'hotel', 'address'].map(type => (
-            <label key={type} className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="arrivalType"
-                value={type}
-                checked={formData.arrivalType === type}
-                onChange={handleInputChange}
-                className="w-4 h-4 accent-[#0F4C5C]"
-              />
-              <span className="text-[#1E293B]">
-                {type === 'airport' ? '✈️ Aéroport' : type === 'hotel' ? '🏨 Hôtel' : '📍 Adresse'}
-              </span>
-            </label>
-          ))}
-        </div>
-        
-        {formData.arrivalType === 'airport' && (
-          <select
-            name="arrivalAirport"
-            value={formData.arrivalAirport}
-            onChange={handleInputChange}
-            className="form-input"
-            required
-          >
-            <option value="">Sélectionner un aéroport</option>
-            {airportsData.map(airport => (
-              <option key={airport.code} value={airport.code}>
-                {airport.name} ({airport.city})
-              </option>
-            ))}
-          </select>
-        )}
-        
-        {formData.arrivalType === 'hotel' && (
-          <div className="space-y-3">
-            <input
-              type="text"
-              name="arrivalHotel"
-              value={formData.arrivalHotel}
-              onChange={handleInputChange}
-              placeholder="Nom de l'hôtel"
-              className="form-input"
-              required
-            />
-            <select
-              name="arrivalCity"
-              value={formData.arrivalCity}
-              onChange={handleInputChange}
-              className="form-input"
-              required
-            >
-              <option value="">Sélectionner la ville</option>
-              {tunisianCities.map(city => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
-          </div>
-        )}
-        
-        {formData.arrivalType === 'address' && (
-          <div className="space-y-3">
+          {/* Point d'arrivée */}
+          <div className="space-y-4">
+            <label className="block text-sm font-semibold text-[#0F4C5C] uppercase tracking-wide">Point d'arrivée</label>
             <input
               type="text"
               name="arrivalAddress"
               value={formData.arrivalAddress}
-              onChange={handleInputChange}
-              placeholder="Adresse complète"
-              className="form-input"
-              required
+              onChange={handleChange}
+              placeholder="Entrez votre adresse d'arrivée"
+              className={`w-full px-4 py-3 rounded-lg border-2 ${errors.arrivalAddress ? 'border-red-400' : 'border-slate-200'} focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white`}
             />
+            {errors.arrivalAddress && <p className="text-red-500 text-sm">{errors.arrivalAddress}</p>}
             <select
               name="arrivalCity"
               value={formData.arrivalCity}
-              onChange={handleInputChange}
-              className="form-input"
-              required
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white text-[#1E293B]"
             >
-              <option value="">Sélectionner la ville</option>
+              <option value="">Sélectionner une ville</option>
               {tunisianCities.map(city => (
                 <option key={city} value={city}>{city}</option>
               ))}
             </select>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Date & Heure */}
-      <div className="mb-6">
-        <label className="block text-[#1E293B] font-semibold mb-3">Date & Heure du transfert</label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm text-[#64748B] mb-1">Date (aller) *</label>
-            <input
-              type="date"
-              name="departureDate"
-              value={formData.departureDate}
-              onChange={handleInputChange}
-              className="form-input"
-              required
-            />
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-[#0F4C5C] mb-4 flex items-center gap-2">
+          <span className="text-2xl">📅</span> Date & Heure
+        </h3>
+        <div className={`grid ${formData.tripType === 'roundtrip' ? 'md:grid-cols-2' : 'md:grid-cols-2'} gap-6`}>
+          {/* Aller */}
+          <div className="space-y-4">
+            <label className="block text-sm font-semibold text-[#0F4C5C] uppercase tracking-wide">Aller</label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-[#64748B] mb-1">Date *</label>
+                <input
+                  type="date"
+                  name="departureDate"
+                  value={formData.departureDate}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 rounded-lg border-2 ${errors.departureDate ? 'border-red-400' : 'border-slate-200'} focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white`}
+                />
+                {errors.departureDate && <p className="text-red-500 text-sm">{errors.departureDate}</p>}
+              </div>
+              <div>
+                <label className="block text-xs text-[#64748B] mb-1">Heure *</label>
+                <input
+                  type="time"
+                  name="departureTime"
+                  value={formData.departureTime}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 rounded-lg border-2 ${errors.departureTime ? 'border-red-400' : 'border-slate-200'} focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white`}
+                />
+                {errors.departureTime && <p className="text-red-500 text-sm">{errors.departureTime}</p>}
+              </div>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm text-[#64748B] mb-1">Heure (aller) *</label>
-            <input
-              type="time"
-              name="departureTime"
-              value={formData.departureTime}
-              onChange={handleInputChange}
-              className="form-input"
-              required
-            />
-          </div>
+
+          {/* Retour - conditionnel */}
+          {formData.tripType === 'roundtrip' && (
+            <div className="space-y-4">
+              <label className="block text-sm font-semibold text-[#0F4C5C] uppercase tracking-wide">Retour</label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-[#64748B] mb-1">Date *</label>
+                  <input
+                    type="date"
+                    name="returnDate"
+                    value={formData.returnDate}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 rounded-lg border-2 ${errors.returnDate ? 'border-red-400' : 'border-slate-200'} focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white`}
+                  />
+                  {errors.returnDate && <p className="text-red-500 text-sm">{errors.returnDate}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs text-[#64748B] mb-1">Heure</label>
+                  <input
+                    type="time"
+                    name="returnTime"
+                    value={formData.returnTime}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        
-        {formData.tripType === 'roundTrip' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div>
-              <label className="block text-sm text-[#64748B] mb-1">Date (retour)</label>
-              <input
-                type="date"
-                name="returnDate"
-                value={formData.returnDate}
-                onChange={handleInputChange}
-                className="form-input"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-[#64748B] mb-1">Heure (retour)</label>
-              <input
-                type="time"
-                name="returnTime"
-                value={formData.returnTime}
-                onChange={handleInputChange}
-                className="form-input"
-              />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Passagers & Bagages */}
-      <div className="mb-6">
-        <label className="block text-[#1E293B] font-semibold mb-3">Passagers & Bagages</label>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-[#0F4C5C] mb-4 flex items-center gap-2">
+          <span className="text-2xl">👥</span> Passagers & Bagages
+        </h3>
+        <div className="grid md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm text-[#64748B] mb-1">Nombre de passagers *</label>
+            <label className="block text-sm font-semibold text-[#0F4C5C] uppercase tracking-wide mb-2">Nombre de passagers *</label>
             <input
               type="number"
               name="passengers"
+              value={formData.passengers}
+              onChange={handleChange}
               min="1"
               max="50"
-              value={formData.passengers}
-              onChange={handleInputChange}
-              className="form-input"
-              required
+              className={`w-full px-4 py-3 rounded-lg border-2 ${errors.passengers ? 'border-red-400' : 'border-slate-200'} focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white`}
             />
+            {errors.passengers && <p className="text-red-500 text-sm mt-1">{errors.passengers}</p>}
           </div>
           <div>
-            <label className="block text-sm text-[#64748B] mb-1">Nombre de bagages</label>
+            <label className="block text-sm font-semibold text-[#0F4C5C] uppercase tracking-wide mb-2">Nombre de bagages</label>
             <input
               type="number"
-              name="bags"
+              name="luggage"
+              value={formData.luggage}
+              onChange={handleChange}
               min="0"
               max="50"
-              value={formData.bags}
-              onChange={handleInputChange}
-              className="form-input"
+              className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white"
             />
           </div>
-          <div className="flex items-end pb-2">
-            <label className="flex items-center gap-2 cursor-pointer">
+          <div className="flex items-end">
+            <label className="flex items-center gap-3 cursor-pointer py-3">
               <input
                 type="checkbox"
                 name="babySeat"
                 checked={formData.babySeat}
-                onChange={handleInputChange}
-                className="w-4 h-4 accent-[#0F4C5C] rounded"
+                onChange={handleChange}
+                className="w-5 h-5 text-[#E92F64] focus:ring-[#E92F64] rounded"
               />
-              <span className="text-[#1E293B]">👶 Siège bébé requis</span>
+              <span className="text-[#1E293B] font-medium">Siège bébé requis</span>
             </label>
           </div>
         </div>
       </div>
 
-      {/* Véhicule */}
-      <div className="mb-6">
-        <label className="block text-[#1E293B] font-semibold mb-3">Type de véhicule souhaité</label>
-        <select
-          name="vehicleType"
-          value={formData.vehicleType}
-          onChange={handleInputChange}
-          className="form-input"
-          required
-        >
-          {vehiclesData.map(vehicle => (
-            <option key={vehicle.id} value={vehicle.id}>
-              {vehicle.icon} {vehicle.name} ({vehicle.capacity})
-            </option>
-          ))}
-        </select>
-        <p className="text-sm text-[#64748B] mt-2">
-          Le type de véhicule sera confirmé selon disponibilité.
-        </p>
+      {/* Choix du véhicule */}
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl p-6 border border-slate-200">
+        <h3 className="text-lg font-semibold text-[#0F4C5C] mb-4 flex items-center gap-2">
+          <span className="text-2xl">🚗</span> Choix du véhicule
+        </h3>
+        <div>
+          <label className="block text-sm font-semibold text-[#0F4C5C] uppercase tracking-wide mb-2">Type de véhicule souhaité *</label>
+          <select
+            name="vehicleType"
+            value={formData.vehicleType}
+            onChange={handleChange}
+            className={`w-full px-4 py-3 rounded-lg border-2 ${errors.vehicleType ? 'border-red-400' : 'border-slate-200'} focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white text-[#1E293B]`}
+          >
+            <option value="">Sélectionner un véhicule</option>
+            {vehiclesData.map(vehicle => (
+              <option key={vehicle.id} value={vehicle.id}>
+                {vehicle.icon} {vehicle.name} ({vehicle.capacity.min}-{vehicle.capacity.max} passagers)
+              </option>
+            ))}
+          </select>
+          {errors.vehicleType && <p className="text-red-500 text-sm mt-1">{errors.vehicleType}</p>}
+          <p className="text-sm text-[#64748B] mt-3 bg-amber-50 p-3 rounded-lg border border-amber-200">
+            💡 Le type de véhicule sera confirmé selon disponibilité. Notre équipe vous contactera pour valider et vous communiquer le tarif exact.
+          </p>
+        </div>
       </div>
 
       {/* Coordonnées */}
-      <div className="mb-6">
-        <label className="block text-[#1E293B] font-semibold mb-3">Vos coordonnées</label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div className="bg-gradient-to-r from-[#0F4C5C]/5 to-[#1ECAD3]/5 rounded-xl p-6 border border-[#0F4C5C]/20">
+        <h3 className="text-lg font-semibold text-[#0F4C5C] mb-4 flex items-center gap-2">
+          <span className="text-2xl">📞</span> Vos coordonnées
+        </h3>
+        <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm text-[#64748B] mb-1">Nom complet *</label>
+            <label className="block text-sm font-semibold text-[#0F4C5C] uppercase tracking-wide mb-2">Nom complet *</label>
             <input
               type="text"
               name="fullName"
               value={formData.fullName}
-              onChange={handleInputChange}
+              onChange={handleChange}
               placeholder="Votre nom complet"
-              className="form-input"
-              required
+              className={`w-full px-4 py-3 rounded-lg border-2 ${errors.fullName ? 'border-red-400' : 'border-slate-200'} focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white`}
             />
+            {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
           </div>
           <div>
-            <label className="block text-sm text-[#64748B] mb-1">Téléphone *</label>
+            <label className="block text-sm font-semibold text-[#0F4C5C] uppercase tracking-wide mb-2">Téléphone *</label>
             <input
               type="tel"
               name="phone"
               value={formData.phone}
-              onChange={handleInputChange}
+              onChange={handleChange}
               placeholder="+216 XX XXX XXX"
-              className="form-input"
-              required
+              className={`w-full px-4 py-3 rounded-lg border-2 ${errors.phone ? 'border-red-400' : 'border-slate-200'} focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white`}
             />
+            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-semibold text-[#0F4C5C] uppercase tracking-wide mb-2">Email *</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="votre@email.com"
+              className={`w-full px-4 py-3 rounded-lg border-2 ${errors.email ? 'border-red-400' : 'border-slate-200'} focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white`}
+            />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-semibold text-[#0F4C5C] uppercase tracking-wide mb-2">Remarques / Demandes spéciales</label>
+            <textarea
+              name="remarks"
+              value={formData.remarks}
+              onChange={handleChange}
+              rows="3"
+              placeholder="Précisez vos demandes particulières..."
+              className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-[#1ECAD3] focus:ring-2 focus:ring-[#1ECAD3]/20 outline-none transition-all bg-white resize-none"
+            ></textarea>
           </div>
         </div>
-        <div className="mb-4">
-          <label className="block text-sm text-[#64748B] mb-1">Email *</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            placeholder="votre@email.com"
-            className="form-input"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm text-[#64748B] mb-1">Remarques</label>
-          <textarea
-            name="remarks"
-            value={formData.remarks}
-            onChange={handleInputChange}
-            placeholder="Informations supplémentaires..."
-            rows={3}
-            className="form-input resize-none"
-          />
-        </div>
       </div>
 
-      {/* Résumé */}
-      <div className="bg-[#F8FAFB] rounded-lg p-4 mb-6">
-        <h4 className="font-semibold text-[#1E293B] mb-2">📋 Résumé du transfert</h4>
-        <div className="text-sm text-[#64748B] space-y-1">
-          <p><span className="font-medium">Trajet :</span> {formData.tripType === 'oneWay' ? 'Aller simple' : 'Aller-retour'}</p>
-          <p><span className="font-medium">Départ :</span> {getDepartureDisplay()}</p>
-          <p><span className="font-medium">Arrivée :</span> {getArrivalDisplay()}</p>
-          <p><span className="font-medium">Date :</span> {formData.departureDate || '—'} à {formData.departureTime || '—'}</p>
-          <p><span className="font-medium">Passagers :</span> {formData.passengers} ({formData.bags} bagages)</p>
-        </div>
+      {/* Bouton submit */}
+      <div className="text-center pt-4">
+        <button
+          type="submit"
+          className="bg-[#E92F64] hover:bg-[#D4265A] text-white font-bold py-4 px-12 rounded-xl text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
+        >
+          🎯 Demander un devis gratuit
+        </button>
       </div>
-
-      <button type="submit" className="btn-primary">
-        Demander un devis gratuit
-      </button>
     </form>
   );
-}
+};
+
+export default TransferForm;
