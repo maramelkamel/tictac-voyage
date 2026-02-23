@@ -48,11 +48,11 @@ const ContactPage = () => {
 
       <style>{`
         .contact-hero {
-           position: relative;
-           min-height: 420px;
-           display: flex;
-           align-items: center;
-            overflow: visible; 
+          position: relative;
+          min-height: 420px;
+          display: flex;
+          align-items: center;
+          overflow: visible;
         }
         .hero-photo {
           position: absolute;
@@ -60,9 +60,8 @@ const ContactPage = () => {
           background-image: url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1600&q=80');
           background-size: cover;
           background-position: center;
-          transition: transform 8s ease;
+          border-radius: 0;
         }
-        .hero-photo:hover { transform: scale(1.03); }
         .hero-overlay {
           position: absolute;
           inset: 0;
@@ -74,22 +73,25 @@ const ContactPage = () => {
           );
         }
         .hero-content {
-         position: relative;
-         z-index: 2;
-         width: 100%;
-         padding: 80px 0 60px;  
+          position: relative;
+          z-index: 2;
+          width: 100%;
+          padding: 80px 0 80px;
         }
 
-        .stat-chip {
-          background: rgba(255,255,255,0.14);
-          border: 1px solid rgba(255,255,255,0.28);
-          backdrop-filter: blur(14px);
-          border-radius: 18px;
-          padding: 22px 18px;
-          text-align: center;
-          transition: transform 0.3s ease, background 0.3s ease;
+        .badge-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(255,255,255,0.18);
+          border: 1px solid rgba(255,255,255,0.3);
+          border-radius: 50px;
+          padding: 6px 16px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #fff;
+          margin-bottom: 16px;
         }
-        .stat-chip:hover { transform: translateY(-5px); background: rgba(255,255,255,0.22); }
 
         .section-tag {
           display: inline-block;
@@ -197,20 +199,6 @@ const ContactPage = () => {
           pointer-events: none;
         }
 
-        .badge-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: rgba(255,255,255,0.18);
-          border: 1px solid rgba(255,255,255,0.3);
-          border-radius: 50px;
-          padding: 6px 16px;
-          font-size: 13px;
-          font-weight: 600;
-          color: #fff;
-          margin-bottom: 16px;
-        }
-
         .hours-card {
           background: #fff;
           border-radius: 20px;
@@ -257,13 +245,18 @@ const ContactPage = () => {
           box-shadow: 0 4px 14px rgba(21,101,192,0.12);
         }
 
-        .divider-wave {
-          background: #f0f6ff;
-          clip-path: ellipse(55% 60% at 50% 100%);
-          height: 80px;
-          margin-top: -40px;
-          position: relative;
-          z-index: 1;
+        .stat-card {
+          background: #fff;
+          border-radius: 18px;
+          padding: 22px 18px;
+          text-align: center;
+          box-shadow: 0 8px 30px rgba(21,101,192,0.13);
+          border: 1px solid #e3f2fd;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .stat-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 16px 40px rgba(216,27,96,0.13);
         }
 
         @media (max-width: 1024px) {
@@ -288,47 +281,56 @@ const ContactPage = () => {
         <div className="hero-overlay" />
         <div className="hero-content">
           <div className="container" style={{ textAlign: 'center' }}>
-            <div style={{ justifyContent: 'center', display: 'flex' }}>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
               <div className="badge-pill">📍 Tunis, Tunisie — Agence de voyage</div>
             </div>
             <h1 style={{
-              fontSize: 'clamp(2.2rem, 5vw, 4rem)',
+              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
               fontWeight: 900,
               color: '#fff',
-              marginBottom: '18px',
+              marginBottom: '16px',
               lineHeight: 1.15,
               textShadow: '0 2px 20px rgba(0,0,0,0.25)',
             }}>
               Contactez <span style={{ color: '#f48fb1' }}>Tictac Voyages</span>
             </h1>
             <p style={{
-              fontSize: '18px',
+              fontSize: '17px',
               color: 'rgba(255,255,255,0.88)',
-              maxWidth: '560px',
-              margin: '0 auto 52px',
+              maxWidth: '520px',
+              margin: '0 auto',
               lineHeight: 1.75,
               textShadow: '0 1px 8px rgba(0,0,0,0.2)',
             }}>
-              Notre équipe de passionnés est là pour transformer votre rêve de voyage en réalité. Parlons-en !
+              Notre équipe de passionnés est là pour transformer votre rêve de voyage en réalité.
             </p>
-            <div
-              className="stats-grid"
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', maxWidth: '820px', margin: '0 auto' }}
-            >
-              {stats.map((s, i) => (
-                <div className="stat-chip" key={i}>
-                  <div style={{ fontSize: '26px', marginBottom: '8px' }}>{s.icon}</div>
-                  <div style={{ fontSize: '22px', fontWeight: 800, color: '#fff', lineHeight: 1 }}>{s.value}</div>
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 500, marginTop: '4px' }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Wave */}
-      <div className="divider-wave" />
+      {/* ── STATS OVERLAPPING HERO BOTTOM ── */}
+      <div style={{ position: 'relative', zIndex: 10, marginTop: '-50px', marginBottom: '30px' }}>
+        <div className="container">
+          <div
+            className="stats-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4,1fr)',
+              gap: '16px',
+              maxWidth: '860px',
+              margin: '0 auto',
+            }}
+          >
+            {stats.map((s, i) => (
+              <div className="stat-card" key={i}>
+                <div style={{ fontSize: '28px', marginBottom: '10px' }}>{s.icon}</div>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: '#1565C0', lineHeight: 1 }}>{s.value}</div>
+                <div style={{ fontSize: '12px', color: '#aaa', fontWeight: 500, marginTop: '5px' }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* ── CONTACT CARDS ── */}
       <section style={{ padding: '20px 0 60px' }}>
@@ -367,14 +369,14 @@ const ContactPage = () => {
         </div>
       </section>
 
-      {/* ── FORM + RIGHT ── */}
+      {/* ── FORM + RIGHT COLUMN ── */}
       <section style={{ padding: '0 0 70px' }}>
         <div className="container">
           <div
             className="contact-layout"
             style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '28px', alignItems: 'start' }}
           >
-            {/* Form */}
+            {/* ── FORM ── */}
             <div className="form-card">
               {submitted ? (
                 <div style={{ textAlign: 'center', padding: '50px 20px' }}>
@@ -386,7 +388,9 @@ const ContactPage = () => {
                     fontSize: '36px', margin: '0 auto 24px',
                     boxShadow: '0 8px 24px rgba(216,27,96,0.35)',
                   }}>✓</div>
-                  <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#1a1a2e', marginBottom: '12px' }}>Message envoyé !</h2>
+                  <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#1a1a2e', marginBottom: '12px' }}>
+                    Message envoyé !
+                  </h2>
                   <p style={{ color: '#888', lineHeight: 1.7, marginBottom: '28px' }}>
                     Merci de nous avoir contactés. Un conseiller vous répondra sous 24h.
                   </p>
@@ -407,8 +411,9 @@ const ContactPage = () => {
                   <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#1a1a2e', marginBottom: '6px' }}>
                     ✉️ Envoyez-nous un message
                   </h2>
-                  <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '28px' }}>Réponse garantie sous 24h ouvrables.</p>
-
+                  <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '28px' }}>
+                    Réponse garantie sous 24h ouvrables.
+                  </p>
                   <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                       <div className="form-field">
@@ -460,7 +465,7 @@ const ContactPage = () => {
               )}
             </div>
 
-            {/* Right column */}
+            {/* ── RIGHT COLUMN ── */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
 
               {/* About */}
@@ -508,12 +513,10 @@ const ContactPage = () => {
                   }}>
                     <span style={{ fontSize: '14px', color: '#555', fontWeight: 500 }}>{row.day}</span>
                     <span style={{
-                      fontSize: '13px',
-                      fontWeight: 700,
+                      fontSize: '13px', fontWeight: 700,
                       color: row.open ? '#1e88e5' : '#D81B60',
                       background: row.open ? '#e3f2fd' : '#fce4ec',
-                      padding: '4px 12px',
-                      borderRadius: '50px',
+                      padding: '4px 12px', borderRadius: '50px',
                     }}>
                       {row.hours}
                     </span>
@@ -569,8 +572,7 @@ const ContactPage = () => {
                   borderRadius: '16px',
                   background: 'linear-gradient(135deg,#e3f2fd,#fce4ec)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '26px',
-                  marginBottom: '18px',
+                  fontSize: '26px', marginBottom: '18px',
                 }}>
                   {v.icon}
                 </div>
@@ -590,7 +592,9 @@ const ContactPage = () => {
             <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#1a1a2e', marginBottom: '8px' }}>
               Des experts à votre service
             </h2>
-            <p style={{ color: '#aaa', fontSize: '15px' }}>Une équipe passionnée prête à construire le voyage de vos rêves.</p>
+            <p style={{ color: '#aaa', fontSize: '15px' }}>
+              Une équipe passionnée prête à construire le voyage de vos rêves.
+            </p>
           </div>
           <div
             className="team-grid"
