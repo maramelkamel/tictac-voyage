@@ -1,125 +1,127 @@
+import React from 'react';
 
+const inputStyle = {
+  width: '100%',
+  padding: '12px 16px',
+  background: 'rgba(255,255,255,0.08)',
+  borderRadius: '8px',
+  color: '#fff',
+  fontSize: '14px',
+  border: '1px solid rgba(255,255,255,0.1)',
+  outline: 'none',
+  boxSizing: 'border-box',
+};
 
 const Footer = () => {
-
-
   const services = [
-    { id: 1, label: 'Location de Bus', href: "/transport" },
-    { id: 2, label: 'Hôtels', href: '#hotels' },
-    { id: 3, label: 'Location de voiture', href: "/transport" },
-    { id: 4, label: 'Omra', href: "/Omra/Omra" },
-    { id: 5, label: 'Voyages Organisés', href: '#voyageorg' },
-    { id: 6, label: 'Voyages Sur Mesure', href: '#voyagesurmes' },
-    { id: 7, label: 'Billetterie', href: '#billetterie' },
+   
+    { id: 2, label: 'Hôtels',               href: '#hotels' },
+    { id: 1, label: 'Location de Bus',      href: '/transport' },
+    { id: 3, label: 'Location de voiture',  href: '/transport' },
+    { id: 5, label: 'Voyages Organisés',    href: '/VoyagesOrganise/VoyagesOrganise' },
+    { id: 4, label: 'Omra',                 href: '/Omra/Omra' },
+    { id: 6, label: 'Voyages Sur Mesure',   href: '#voyagesurmes' },
+    { id: 7, label: 'Billetterie',          href: '#billetterie' },
   ];
 
-  const contact = [
-    { icon: 'fas fa-phone', label: '+216 36 149 885' },
-    { icon: 'fas fa-envelope', label: 'tictacvoyages@gmail.com' },
+  const contactInfo = [
+    { icon: 'fas fa-phone',          label: '+216 36 149 885' },
+    { icon: 'fas fa-envelope',       label: 'tictacvoyages@gmail.com' },
     { icon: 'fas fa-map-marker-alt', label: 'Nouvelle Medina, Tunis' },
   ];
 
   const socials = [
     { icon: 'fab fa-facebook-f', href: '#' },
-    { icon: 'fab fa-instagram', href: '#' },
-    { icon: 'fab fa-whatsapp', href: '#' },
-    { icon: 'fab fa-youtube', href: '#' },
+    { icon: 'fab fa-instagram',  href: '#' },
+    { icon: 'fab fa-whatsapp',   href: '#' },
+    { icon: 'fab fa-youtube',    href: '#' },
   ];
 
-  const handleContactSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Contact form submitted');
     alert('Votre message a été envoyé !');
   };
 
   return (
     <footer
-      id="footer"
       style={{
         background: 'var(--primary)',
-        color: 'var(--white)',
+        color: '#fff',
         padding: '72px 0 0',
       }}
     >
       <div className="container">
+
+        {/* ── 4-column grid ── */}
         <div
+          className="footer-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: '1.5fr 1fr 1.5fr',
-            gap: '48px',
+            gridTemplateColumns: '1.2fr 1fr 1fr 1.3fr',
+            gap: '40px',
             paddingBottom: '48px',
             borderBottom: '1px solid rgba(255,255,255,0.1)',
           }}
-          className="footer-grid"
         >
-          {/* About Section */}
-          <div>
-            <div style={{ marginBottom: '20px' }}>
-              <h1 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--white)' }}>
-                TICTAC VOYAGES
-              </h1>
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  color: 'var(--gold)',
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                }}
-              >
-                Agence de Voyage
-              </span>
-            </div>
 
-            <p
+          {/* ── Col 1 : Brand + Socials ── */}
+          <div>
+            <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>
+              TICTAC VOYAGES
+            </h1>
+            <span
               style={{
-                fontSize: '14px',
-                color: 'rgba(255,255,255,0.7)',
-                lineHeight: 1.7,
-                marginBottom: '24px',
+                fontSize: '10px',
+                fontWeight: 600,
+                color: 'var(--gold)',
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                display: 'block',
+                marginBottom: '16px',
               }}
             >
+              Agence de Voyage
+            </span>
+
+            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, marginBottom: '24px' }}>
               Votre partenaire de confiance pour tous vos voyages en Tunisie et à l'international.
             </p>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
-              {socials.map((social, idx) => (
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {socials.map((s, i) => (
                 <a
-                  key={idx}
-                  href={social.href}
-                  aria-label="Social link"
-                  className="social-link"
+                  key={i}
+                  href={s.href}
+                  className="footer-social"
+                  aria-label="social"
                   style={{
                     width: '42px',
                     height: '42px',
                     background: 'rgba(255,255,255,0.08)',
-                    borderRadius: 'var(--radius-sm)',
+                    borderRadius: '8px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: 'var(--white)',
+                    color: '#fff',
                     fontSize: '16px',
-                    transition: 'all 0.3s ease',
                     textDecoration: 'none',
+                    transition: 'all 0.3s ease',
                   }}
                 >
-                  <i className={social.icon} />
+                  <i className={s.icon} />
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Services */}
+          {/* ── Col 2 : Nos Services ── */}
           <div>
-            <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '24px' }}>
-              Nos Services
-            </h4>
-            <ul style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {services.map((service) => (
-                <li key={service.id}>
+            <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '24px' }}>Nos Services</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {services.map((s) => (
+                <li key={s.id}>
                   <a
-                    href={service.href}
+                    href={s.href}
                     className="footer-link"
                     style={{
                       fontSize: '14px',
@@ -127,29 +129,25 @@ const Footer = () => {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '10px',
-                      transition: 'all 0.3s ease',
                       textDecoration: 'none',
+                      transition: 'all 0.3s ease',
                     }}
                   >
                     <i className="fas fa-chevron-right" style={{ fontSize: '10px', color: 'var(--secondary)' }} />
-                    {service.label}
+                    {s.label}
                   </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Contact Form */}
+          {/* ── Col 3 : Contactez-nous ── */}
           <div>
-            <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '24px' }}>
-              Contactez-nous
-            </h4>
-            
-            {/* Contact Info */}
-            <ul style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
-              {contact.map((item, idx) => (
+            <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '24px' }}>Contactez-nous</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {contactInfo.map((item, i) => (
                 <li
-                  key={idx}
+                  key={i}
                   style={{
                     display: 'flex',
                     alignItems: 'flex-start',
@@ -158,113 +156,86 @@ const Footer = () => {
                     color: 'rgba(255,255,255,0.7)',
                   }}
                 >
-                  <i className={item.icon} style={{ color: 'var(--secondary)', marginTop: '4px', width: '16px' }} />
+                  <i className={item.icon} style={{ color: 'var(--secondary)', marginTop: '3px', width: '16px' }} />
                   {item.label}
                 </li>
               ))}
             </ul>
+          </div>
 
-            {/* Form */}
-            <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* ── Col 4 : Messagerie ── */}
+          <div>
+            <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '24px' }}>Envoyez-nous un message</h4>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <input
+                type="text"
+                placeholder="Votre nom"
+                required
+                style={inputStyle}
+              />
               <input
                 type="email"
                 placeholder="Votre email"
                 required
-                style={{
-                  width: '100%',
-                  padding: '14px 18px',
-                  background: 'rgba(255,255,255,0.08)',
-                  borderRadius: 'var(--radius-md)',
-                  color: 'var(--white)',
-                  fontSize: '14px',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  outline: 'none',
-                }}
+                style={inputStyle}
               />
               <textarea
                 placeholder="Votre message"
-                rows="3"
+                rows={3}
                 required
-                style={{
-                  width: '100%',
-                  padding: '14px 18px',
-                  background: 'rgba(255,255,255,0.08)',
-                  borderRadius: 'var(--radius-md)',
-                  color: 'var(--white)',
-                  fontSize: '14px',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  outline: 'none',
-                  resize: 'none',
-                  fontFamily: 'inherit',
-                }}
+                style={{ ...inputStyle, resize: 'none', fontFamily: 'inherit' }}
               />
               <button
                 type="submit"
                 style={{
-                  padding: '14px 24px',
+                  padding: '13px 24px',
                   background: 'var(--accent)',
-                  color: 'var(--white)',
-                  borderRadius: 'var(--radius-md)',
+                  color: '#fff',
+                  borderRadius: '8px',
                   fontWeight: 600,
                   fontSize: '14px',
-                  transition: 'all 0.3s ease',
                   border: 'none',
                   cursor: 'pointer',
                   alignSelf: 'flex-start',
+                  transition: 'all 0.3s ease',
                 }}
               >
                 Envoyer
               </button>
             </form>
           </div>
+
         </div>
 
-        {/* Footer Bottom */}
+        {/* ── Bottom bar ── */}
         <div style={{ padding: '24px 0', textAlign: 'center' }}>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
             © 2025 TICTAC VOYAGES. Tous droits réservés. |{' '}
-            <a href="#" className="hover-text-pink" style={{ color: 'var(--secondary)', textDecoration: 'none', transition: 'all 0.3s ease' }}>
+            <a href="#" className="footer-bottom-link" style={{ color: 'var(--secondary)', textDecoration: 'none' }}>
               Mentions légales
             </a>{' '}
             |{' '}
-            <a href="#" className="hover-text-pink" style={{ color: 'var(--secondary)', textDecoration: 'none', transition: 'all 0.3s ease' }}>
+            <a href="#" className="footer-bottom-link" style={{ color: 'var(--secondary)', textDecoration: 'none' }}>
               Confidentialité
             </a>
           </p>
         </div>
+
       </div>
 
       <style>{`
-        /* Hover effects */
-        .social-link:hover {
-          background: #D81B60 !important;
-          transform: translateY(-3px);
-        }
-
-        .footer-link:hover {
-          color: #D81B60 !important;
-          transform: translateX(5px);
-        }
-        
-        .footer-link:hover i {
-          color: #D81B60 !important;
-        }
-
-        .hover-text-pink:hover {
-          color: #D81B60 !important;
-        }
-
-        /* Form focus effects */
-        input:focus, textarea:focus {
+        .footer-social:hover { background: #D81B60 !important; transform: translateY(-3px); }
+        .footer-link:hover   { color: #D81B60 !important; transform: translateX(5px); }
+        .footer-link:hover i { color: #D81B60 !important; }
+        .footer-bottom-link:hover { color: #D81B60 !important; }
+        footer input:focus, footer textarea:focus {
           background: rgba(255,255,255,0.15) !important;
           border-color: rgba(255,255,255,0.3) !important;
         }
-
-        /* Responsive */
         @media (max-width: 1024px) {
           .footer-grid { grid-template-columns: 1fr 1fr !important; }
         }
-        @media (max-width: 768px) {
+        @media (max-width: 640px) {
           .footer-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
         }
       `}</style>

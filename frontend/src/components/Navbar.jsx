@@ -59,7 +59,7 @@ const navLinks = [
   {
     id: 6,
     label: 'Contact',
-    href: '#footer',
+    href: '/Contact',
   },
 ];
 
