@@ -10,6 +10,7 @@ import TransportPage from './pages/Transport/TransportPage';
 import VoyagesOrganise from './pages/VoyagesOrganise/VoyagesOrganise';
 import Detail from './pages/VoyagesOrganise/Detail';
 import Reserver from './pages/VoyagesOrganise/Reserver';
+import HotelDetails from './pages/HotelDetails';
 
 
 
@@ -28,6 +29,7 @@ function App() {
         <Route path="/VoyagesOrganise/VoyagesOrganise" element={<VoyagesOrganise />} />
         <Route path="/VoyagesOrganise/Detail" element={<Detail />} />
         <Route path="/VoyagesOrganise/Reserver" element={<Reserver />} />
+         <Route path="/hotels/:id" element={<HotelDetails />} />
       </Routes>
       
     </Router>

@@ -1,84 +1,11 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CardStyle from '../components/CardStyle';
 import SearchSection from '../components/SearchSection';
 import Chatbot from '../components/Chatbot';
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// Hotel data
-const hotelsData = [
-  {
-    id: 1,
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
-    title: 'Royal Azur Thalasso Golf',
-    location: 'Hammamet, Tunisie',
-    description: 'Vue mer panoramique, accès direct plage, centre thalasso, piscines chauffées et animation.',
-    rating: 9.2,
-    stars: 5,
-    badge: 'Populaire',
-    badgeType: 'default',
-    amenities: [
-      { icon: 'fas fa-wifi', name: 'WiFi' },
-      { icon: 'fas fa-swimming-pool', name: 'Piscine' },
-      { icon: 'fas fa-spa', name: 'Spa' },
-      { icon: 'fas fa-utensils', name: 'Restaurant' },
-    ],
-    priceOptions: [
-      { label: 'LPD', value: 180 },
-      { label: 'DP', value: 250 },
-      { label: 'PC', value: 320 },
-      { label: 'AI', value: 420 },
-    ],
-  },
-  {
-    id: 2,
-    image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80',
-    title: 'Djerba Paradise Resort',
-    location: 'Djerba, Tunisie',
-    description: 'Complexe familial avec parc aquatique, clubs enfants, restaurants thématiques et spectacles.',
-    rating: 8.7,
-    stars: 4,
-    badge: '-25%',
-    badgeType: 'promo',
-    amenities: [
-      { icon: 'fas fa-wifi', name: 'WiFi' },
-      { icon: 'fas fa-water', name: 'Aquapark' },
-      { icon: 'fas fa-child', name: 'Kids' },
-      { icon: 'fas fa-umbrella-beach', name: 'Plage' },
-    ],
-    priceOptions: [
-      { label: 'LPD', value: 145 },
-      { label: 'DP', value: 195 },
-      { label: 'PC', value: 265 },
-      { label: 'AI', value: 350 },
-    ],
-  },
-  {
-    id: 3,
-    image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80',
-    title: 'Sousse Pearl Marriott',
-    location: 'Sousse, Tunisie',
-    description: 'Luxe absolu face à la Méditerranée, golf 18 trous, spa et gastronomie raffinée.',
-    rating: 9.5,
-    stars: 5,
-    badge: 'Top Ventes',
-    badgeType: 'default',
-    amenities: [
-      { icon: 'fas fa-wifi', name: 'WiFi' },
-      { icon: 'fas fa-golf-ball', name: 'Golf' },
-      { icon: 'fas fa-dumbbell', name: 'Fitness' },
-      { icon: 'fas fa-concierge-bell', name: 'Butler' },
-    ],
-    priceOptions: [
-      { label: 'LPD', value: 220 },
-      { label: 'DP', value: 290 },
-      { label: 'PC', value: 380 },
-      { label: 'AI', value: 480 },
-    ],
-  },
-];
+import { hotelsData } from '../data/hotelsData';
 
 // Destinations data
 const destinationsData = [
@@ -136,6 +63,7 @@ const slidesData = [
 
 const HomePage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const navigate = useNavigate();
 
   // Auto-slide effect
   useEffect(() => {
@@ -188,10 +116,10 @@ const HomePage = () => {
           ))}
         </div>
         <button className="slider-control prev" onClick={prevSlide}>
-          <i className="fas fa-chevron-left"></i>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
         </button>
         <button className="slider-control next" onClick={nextSlide}>
-          <i className="fas fa-chevron-right"></i>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
       </section>
 
@@ -199,15 +127,15 @@ const HomePage = () => {
       <SearchSection onSearch={handleSearch} />
 
       {/* HOTELS SECTION */}
-      <section className="section hotels-section" id="hotels">
-        <div className="container">
-          <div className="section-header">
-            <h2>Meilleurs Hôtels en Tunisie</h2>
-            <p>Notre sélection des établissements les mieux notés, au meilleur prix</p>
-            <div className="section-header-line"></div>
+      <section className="section hotels-section bg-[var(--color-background-main)]" id="hotels">
+        <div className="container mx-auto px-4">
+          <div className="section-header text-center mb-12">
+            <h2 className="text-3xl font-bold text-[var(--color-primary)]">Meilleurs Hôtels en Tunisie</h2>
+            <p className="text-[var(--color-text-secondary)] mt-2">Notre sélection des établissements les mieux notés, au meilleur prix</p>
+            <div className="section-header-line w-24 h-1 bg-[var(--color-secondary)] mx-auto mt-4"></div>
           </div>
 
-          <div className="hotels-grid">
+          <div className="hotels-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {hotelsData.map((hotel) => (
               <CardStyle
                 key={hotel.id}
@@ -221,8 +149,8 @@ const HomePage = () => {
                 badgeType={hotel.badgeType}
                 amenities={hotel.amenities}
                 priceOptions={hotel.priceOptions}
-                onDetailsClick={() => console.log('Details:', hotel.id)}
-                onReserveClick={() => console.log('Reserve:', hotel.id)}
+                onDetailsClick={() => navigate(`/hotels/${hotel.id}`)}
+                onReserveClick={() => navigate(`/hotels/${hotel.id}#pricing`)}
                 onFavoriteClick={(isFavorite) => console.log('Favorite:', hotel.id, isFavorite)}
               />
             ))}
@@ -231,22 +159,22 @@ const HomePage = () => {
       </section>
 
       {/* DESTINATIONS SECTION */}
-      <section className="section destinations-section" id="destinations">
-        <div className="container">
-          <div className="section-header">
-            <h2>Destinations Populaires</h2>
-            <p>Découvrez les plus belles régions de Tunisie</p>
-            <div className="section-header-line"></div>
+      <section className="section destinations-section bg-white py-16" id="destinations">
+        <div className="container mx-auto px-4">
+          <div className="section-header text-center mb-12">
+            <h2 className="text-3xl font-bold text-[var(--color-primary)]">Destinations Populaires</h2>
+            <p className="text-[var(--color-text-secondary)] mt-2">Découvrez les plus belles régions de Tunisie</p>
+            <div className="section-header-line w-24 h-1 bg-[var(--color-secondary)] mx-auto mt-4"></div>
           </div>
 
-          <div className="destinations-grid">
+          <div className="destinations-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {destinationsData.map((destination) => (
-              <div key={destination.id} className="destination-card">
-                <img src={destination.image} alt={destination.name} />
-                <div className="destination-overlay">
-                  <h3>{destination.name}</h3>
-                  <p>{destination.description}</p>
-                  <span className="price">{destination.price}</span>
+              <div key={destination.id} className="destination-card relative rounded-xl overflow-hidden shadow-lg group h-72 cursor-pointer">
+                <img src={destination.image} alt={destination.name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" />
+                <div className="destination-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-6 text-white">
+                  <h3 className="text-xl font-bold mb-1">{destination.name}</h3>
+                  <p className="text-sm text-gray-300 mb-2">{destination.description}</p>
+                  <span className="price font-semibold text-[var(--color-secondary)]">{destination.price}</span>
                 </div>
               </div>
             ))}
@@ -255,43 +183,40 @@ const HomePage = () => {
       </section>
 
       {/* ADVANTAGES SECTION */}
-      <section className="section advantages-section" id="advantages">
-        <div className="container">
-          <div className="section-header">
-            <h2>Pourquoi Choisir TICTAC VOYAGES</h2>
-            <p>Votre satisfaction est notre priorité absolue</p>
-            <div className="section-header-line"></div>
+      <section className="section advantages-section bg-[var(--color-background-main)] py-16" id="advantages">
+        <div className="container mx-auto px-4">
+          <div className="section-header text-center mb-12">
+            <h2 className="text-3xl font-bold text-[var(--color-primary)]">Pourquoi Choisir TICTAC VOYAGES</h2>
+            <p className="text-[var(--color-text-secondary)] mt-2">Votre satisfaction est notre priorité absolue</p>
+            <div className="section-header-line w-24 h-1 bg-[var(--color-secondary)] mx-auto mt-4"></div>
           </div>
 
-          <div className="advantages-grid">
-            <div className="advantage-card">
-              <div className="advantage-icon">
-                <i className="fas fa-tag"></i>
+          <div className="advantages-grid grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="advantage-card bg-white p-8 rounded-xl shadow-md text-center hover:-translate-y-2 transition-transform duration-300">
+              <div className="advantage-icon w-16 h-16 mx-auto bg-blue-50 text-[var(--color-primary)] rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
               </div>
-              <h3>Meilleurs Prix Garantis</h3>
-              <p>
-                Nous négocions directement avec les hôtels pour vous offrir les tarifs les
-                plus compétitifs du marché.
+              <h3 className="text-xl font-bold text-[var(--color-text-main)] mb-3">Meilleurs Prix Garantis</h3>
+              <p className="text-[var(--color-text-secondary)]">
+                Nous négocions directement avec les hôtels pour vous offrir les tarifs les plus compétitifs du marché.
               </p>
             </div>
-            <div className="advantage-card">
-              <div className="advantage-icon">
-                <i className="fas fa-headset"></i>
+            <div className="advantage-card bg-white p-8 rounded-xl shadow-md text-center hover:-translate-y-2 transition-transform duration-300">
+              <div className="advantage-icon w-16 h-16 mx-auto bg-blue-50 text-[var(--color-primary)] rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
               </div>
-              <h3>Service Client 24h/7j</h3>
-              <p>
-                Notre équipe est disponible à tout moment pour répondre à vos questions et
-                vous accompagner.
+              <h3 className="text-xl font-bold text-[var(--color-text-main)] mb-3">Service Client 24h/7j</h3>
+              <p className="text-[var(--color-text-secondary)]">
+                Notre équipe est disponible à tout moment pour répondre à vos questions et vous accompagner.
               </p>
             </div>
-            <div className="advantage-card">
-              <div className="advantage-icon">
-                <i className="fas fa-shield-alt"></i>
+            <div className="advantage-card bg-white p-8 rounded-xl shadow-md text-center hover:-translate-y-2 transition-transform duration-300">
+              <div className="advantage-icon w-16 h-16 mx-auto bg-blue-50 text-[var(--color-primary)] rounded-full flex items-center justify-center mb-6">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
               </div>
-              <h3>Paiement Sécurisé</h3>
-              <p>
-                Vos transactions sont 100% sécurisées. Paiement en ligne ou en agence selon
-                votre préférence.
+              <h3 className="text-xl font-bold text-[var(--color-text-main)] mb-3">Paiement Sécurisé</h3>
+              <p className="text-[var(--color-text-secondary)]">
+                Vos transactions sont 100% sécurisées. Paiement en ligne ou en agence selon votre préférence.
               </p>
             </div>
           </div>
