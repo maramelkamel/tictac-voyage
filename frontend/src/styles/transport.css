@@ -1,157 +1,1127 @@
+/* src/styles/Transport.css */
 
-
-/* ============================================
-   VARIABLES GLOBALES
-   ============================================ */
-:root {
-  --primary: #0F4C5C;
-  --primary-dark: #0a3a47;
-  --secondary: #1ECAD3;
-  --accent: #E92F64;
-  --accent-dark: #B32D5E;
-  --white: #FFFFFF;
-  --off-white: #F8FAFB;
-  --gray-50: #F1F5F9;
-  --gray-100: #E2E8F0;
-  --gray-400: #64748B;
-  --gray-700: #1E293B;
+/* ═══════════════════════════════════════════
+   TRANSPORT PAGE - GLOBAL
+   ═══════════════════════════════════════════ */
+.transport-page {
+  min-height: 100vh;
+  background-color: #F8FAFB;
+  font-family: inherit;
 }
 
-/* ============================================
-   BASE STYLES
-   ============================================ */
-* {
-  margin: 0;
-  padding: 0;
+/* ═══════════════════════════════════════════
+   HERO SECTION
+   ═══════════════════════════════════════════ */
+.transport-hero {
+  position: relative;
+  height: 520px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.transport-hero-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+}
+
+.transport-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 76, 92, 0.92) 0%,
+    rgba(10, 58, 71, 0.85) 50%,
+    rgba(15, 76, 92, 0.75) 100%
+  );
+  z-index: 1;
+}
+
+.transport-hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 80px 24px 40px;
+  text-align: center;
+  color: #fff;
+}
+
+.transport-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: rgba(30, 202, 211, 0.15);
+  border: 1px solid rgba(30, 202, 211, 0.3);
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #4dd9e0;
+  margin-bottom: 24px;
+  backdrop-filter: blur(8px);
+}
+
+.transport-hero-badge-dot {
+  width: 8px;
+  height: 8px;
+  background: #1ECAD3;
+  border-radius: 50%;
+  animation: transportPulse 2s ease-in-out infinite;
+}
+
+@keyframes transportPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+}
+
+.transport-hero-title {
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 20px;
+  letter-spacing: -0.5px;
+}
+
+.transport-hero-title span {
+  background: linear-gradient(135deg, #1ECAD3, #4dd9e0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.transport-hero-subtitle {
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 600px;
+  margin: 0 auto 32px;
+}
+
+.transport-hero-features {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.transport-hero-feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.transport-hero-feature svg {
+  width: 20px;
+  height: 20px;
+  color: #1ECAD3;
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════
+   MAIN CONTENT
+   ═══════════════════════════════════════════ */
+.transport-main {
+  position: relative;
+  margin-top: -60px;
+  z-index: 3;
+  padding-bottom: 80px;
+}
+
+.transport-container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ═══════════════════════════════════════════
+   TABS
+   ═══════════════════════════════════════════ */
+.transport-tabs-wrapper {
+  margin-bottom: 32px;
+}
+
+.transport-tabs {
+  display: flex;
+  background: #fff;
+  border-radius: 16px;
+  padding: 6px;
+  box-shadow: 0 8px 24px rgba(15, 76, 92, 0.12);
+  border: 1px solid #E2E8F0;
+}
+
+.transport-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 18px 24px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.transport-tab svg {
+  width: 24px;
+  height: 24px;
+  color: #94A3B8;
+  flex-shrink: 0;
+  transition: color 0.3s;
+}
+
+.transport-tab div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.transport-tab-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #475569;
+  transition: color 0.3s;
+}
+
+.transport-tab-desc {
+  font-size: 0.78rem;
+  color: #94A3B8;
+  margin-top: 2px;
+  transition: color 0.3s;
+}
+
+.transport-tab:hover:not(.active) {
+  background: #F1F5F9;
+}
+
+.transport-tab.active {
+  background: linear-gradient(135deg, #0F4C5C, #1a6b80);
+  box-shadow: 0 4px 16px rgba(15, 76, 92, 0.3);
+}
+
+.transport-tab.active svg {
+  color: #1ECAD3;
+}
+
+.transport-tab.active .transport-tab-title {
+  color: #fff;
+}
+
+.transport-tab.active .transport-tab-desc {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ═══════════════════════════════════════════
+   SUCCESS MESSAGE
+   ═══════════════════════════════════════════ */
+.transport-success {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border: 1px solid #6ee7b7;
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+  animation: transportSlideDown 0.4s ease;
+}
+
+@keyframes transportSlideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.transport-success-icon svg {
+  width: 36px;
+  height: 36px;
+  color: #059669;
+}
+
+.transport-success h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #065f46;
+  margin-bottom: 4px;
+}
+
+.transport-success p {
+  font-size: 0.88rem;
+  color: #047857;
+  line-height: 1.5;
+}
+
+.transport-success-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #059669;
+  flex-shrink: 0;
+}
+
+.transport-success-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ═══════════════════════════════════════════
+   FORM SECTIONS
+   ═══════════════════════════════════════════ */
+.transport-form {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.transport-form-section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(15, 76, 92, 0.06);
+  border: 1px solid #E2E8F0;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.transport-form-section:hover {
+  box-shadow: 0 4px 16px rgba(15, 76, 92, 0.1);
+  border-color: #CBD5E1;
+}
+
+.transport-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.transport-section-number {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0F4C5C, #1a6b80);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(15, 76, 92, 0.2);
+}
+
+.transport-section-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1E293B;
+  margin-bottom: 4px;
+}
+
+.transport-section-desc {
+  font-size: 0.88rem;
+  color: #64748B;
+  line-height: 1.4;
+}
+
+/* ═══════════════════════════════════════════
+   TOGGLE BUTTONS (Trip Type / Duration)
+   ═══════════════════════════════════════════ */
+.transport-toggle-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.transport-toggle-group.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.transport-toggle-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  border: 2px solid #E2E8F0;
+  border-radius: 14px;
+  background: #F8FAFB;
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #475569;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.transport-toggle-btn svg {
+  width: 28px;
+  height: 28px;
+  color: #94A3B8;
+  transition: all 0.3s;
+}
+
+.transport-toggle-sub {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #94A3B8;
+  margin-top: -4px;
+}
+
+.transport-toggle-btn:hover {
+  border-color: #1ECAD3;
+  background: rgba(30, 202, 211, 0.04);
+}
+
+.transport-toggle-btn.active {
+  border-color: #0F4C5C;
+  background: linear-gradient(135deg, rgba(15, 76, 92, 0.04), rgba(30, 202, 211, 0.06));
+  color: #0F4C5C;
+  box-shadow: 0 0 0 3px rgba(15, 76, 92, 0.1);
+}
+
+.transport-toggle-btn.active svg {
+  color: #1ECAD3;
+}
+
+.transport-toggle-btn.active .transport-toggle-sub {
+  color: #0F4C5C;
+}
+
+/* ═══════════════════════════════════════════
+   DAYS PICKER
+   ═══════════════════════════════════════════ */
+.transport-days-picker {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(15, 76, 92, 0.03), rgba(30, 202, 211, 0.05));
+  border-radius: 12px;
+  border: 1px dashed rgba(15, 76, 92, 0.2);
+  animation: transportSlideDown 0.3s ease;
+}
+
+.transport-days-picker .transport-label {
+  margin-bottom: 12px;
+}
+
+/* ═══════════════════════════════════════════
+   FORM FIELDS
+   ═══════════════════════════════════════════ */
+.transport-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.transport-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.transport-field-group:first-child {
+  margin-top: 0;
+}
+
+.transport-row .transport-field-group {
+  margin-top: 0;
+}
+
+.transport-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.transport-label svg {
+  width: 18px;
+  height: 18px;
+  color: #0F4C5C;
+  flex-shrink: 0;
+}
+
+.transport-optional {
+  font-weight: 400;
+  color: #94A3B8;
+  font-size: 0.82rem;
+  margin-left: 4px;
+}
+
+.transport-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: #1E293B;
+  background: #F8FAFB;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  font-family: inherit;
   box-sizing: border-box;
 }
 
-
-/* ============================================
-   FORM STYLES
-   ============================================ */
-.form-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  color: var(--gray-700);
-  background-color: var(--white);
-  border: 2px solid var(--gray-100);
-  border-radius: 8px;
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-.form-input:focus {
-  border-color: var(--secondary);
-  box-shadow: 0 0 0 3px rgba(30, 202, 211, 0.15);
-}
-
-.form-input::placeholder {
+.transport-input::placeholder {
   color: #94A3B8;
 }
 
-/* ============================================
-   BUTTON STYLES
-   ============================================ */
-.btn-primary {
-  display: inline-flex;
+.transport-input:hover {
+  border-color: #CBD5E1;
+}
+
+.transport-input:focus {
+  border-color: #1ECAD3;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(30, 202, 211, 0.1);
+}
+
+.transport-input.error {
+  border-color: #E92F64;
+  background: rgba(233, 47, 100, 0.02);
+}
+
+.transport-input.error:focus {
+  box-shadow: 0 0 0 4px rgba(233, 47, 100, 0.1);
+}
+
+.transport-textarea {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: #1E293B;
+  background: #F8FAFB;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+  box-sizing: border-box;
+}
+
+.transport-textarea::placeholder {
+  color: #94A3B8;
+}
+
+.transport-textarea:hover {
+  border-color: #CBD5E1;
+}
+
+.transport-textarea:focus {
+  border-color: #1ECAD3;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(30, 202, 211, 0.1);
+}
+
+.transport-char-count {
+  font-size: 0.78rem;
+  color: #94A3B8;
+  text-align: right;
+}
+
+.transport-field-error {
+  font-size: 0.82rem;
+  color: #E92F64;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.transport-field-error.center {
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.transport-field-error::before {
+  content: '!';
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--white);
-  background: var(--accent-dark);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(233, 47, 100, 0.3);
+  width: 16px;
+  height: 16px;
+  background: #E92F64;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 800;
+  flex-shrink: 0;
 }
 
-.btn-primary:hover {
+/* ═══════════════════════════════════════════
+   ITINERARY VISUAL
+   ═══════════════════════════════════════════ */
+.transport-itinerary {
+  display: flex;
+  gap: 20px;
+}
+
+.transport-itinerary-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+  min-width: 20px;
+}
+
+.transport-itinerary-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 3px solid;
+  z-index: 1;
+}
+
+.transport-itinerary-dot.start {
+  border-color: #1ECAD3;
+  background: #fff;
+}
+
+.transport-itinerary-dot.end {
+  border-color: #B32D5E;
+  background: #fff;
+}
+
+.transport-itinerary-connector {
+  width: 2px;
+  flex: 1;
+  min-height: 50px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #CBD5E1 0,
+    #CBD5E1 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  margin: 4px 0;
+}
+
+.transport-itinerary-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ═══════════════════════════════════════════
+   VEHICLE CARDS
+   ═══════════════════════════════════════════ */
+.transport-vehicles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.transport-vehicle-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 16px;
+  border: 2px solid #E2E8F0;
+  border-radius: 16px;
+  background: #F8FAFB;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.transport-vehicle-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15, 76, 92, 0.03), rgba(30, 202, 211, 0.05));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.transport-vehicle-card:hover::before {
+  opacity: 1;
+}
+
+.transport-vehicle-card:hover {
+  border-color: #1ECAD3;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(233, 47, 100, 0.4);
+  box-shadow: 0 8px 20px rgba(15, 76, 92, 0.1);
 }
 
-/* ============================================
-   TAB STYLES
-   ============================================ */
-.tab-btn {
-  padding: 0.875rem 1.75rem;
-  border-radius: 8px;
-  font-weight: 600;
+.transport-vehicle-card.active {
+  border-color: #0F4C5C;
+  background: linear-gradient(135deg, rgba(15, 76, 92, 0.03), rgba(30, 202, 211, 0.06));
+  box-shadow: 0 0 0 3px rgba(15, 76, 92, 0.12), 0 8px 20px rgba(15, 76, 92, 0.1);
+}
+
+.transport-vehicle-card.error {
+  border-color: #E92F64;
+}
+
+.transport-vehicle-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0F4C5C, #1a6b80);
+  border-radius: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.transport-vehicle-icon svg {
+  width: 28px;
+  height: 28px;
+  color: #1ECAD3;
+}
+
+.transport-vehicle-name {
   font-size: 1rem;
-  cursor: pointer;
+  font-weight: 700;
+  color: #1E293B;
+  position: relative;
+  z-index: 1;
+}
+
+.transport-vehicle-desc {
+  font-size: 0.8rem;
+  color: #64748B;
+  position: relative;
+  z-index: 1;
+}
+
+.transport-vehicle-capacity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0F4C5C;
+  background: rgba(30, 202, 211, 0.1);
+  padding: 6px 12px;
+  border-radius: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.transport-vehicle-capacity svg {
+  width: 16px;
+  height: 16px;
+}
+
+.transport-vehicle-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  background: #0F4C5C;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: transportCheckPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 1;
+}
+
+@keyframes transportCheckPop {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+.transport-vehicle-check svg {
+  width: 14px;
+  height: 14px;
+  color: #fff;
+}
+
+/* ═══════════════════════════════════════════
+   COUNTER
+   ═══════════════════════════════════════════ */
+.transport-counter {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px;
+  background: #F8FAFB;
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.transport-counter-btn {
+  width: 40px;
+  height: 40px;
   border: none;
-  transition: all 0.3s ease;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0F4C5C, #1a6b80);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-.tab-active {
-  background-color: var(--white);
-  color: var(--primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+.transport-counter-btn:hover {
+  background: linear-gradient(135deg, #1a6b80, #0F4C5C);
+  transform: scale(1.05);
 }
 
-.tab-inactive {
-  background-color: transparent;
-  color: var(--gray-400);
+.transport-counter-btn:active {
+  transform: scale(0.95);
 }
 
-.tab-inactive:hover {
-  color: var(--gray-700);
-  background-color: rgba(255, 255, 255, 0.5);
+.transport-counter-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
-/* ============================================
-   ANIMATIONS
-   ============================================ */
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+.transport-counter-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0F4C5C;
+  min-width: 32px;
+  text-align: center;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
+.transport-counter-label {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #64748B;
+  margin-right: 8px;
+}
+
+/* ═══════════════════════════════════════════
+   CHECKBOXES
+   ═══════════════════════════════════════════ */
+.transport-options-row {
+  display: flex;
+  gap: 24px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.transport-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #334155;
+  padding: 12px 18px;
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
+  transition: all 0.3s;
+  user-select: none;
+}
+
+.transport-checkbox-label:hover {
+  border-color: #CBD5E1;
+  background: #F1F5F9;
+}
+
+.transport-checkbox-label input[type='checkbox'] {
+  display: none;
+}
+
+.transport-checkbox-custom {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #CBD5E1;
+  border-radius: 6px;
+  position: relative;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.transport-checkbox-label input[type='checkbox']:checked ~ .transport-checkbox-custom {
+  background: #0F4C5C;
+  border-color: #0F4C5C;
+}
+
+.transport-checkbox-label input[type='checkbox']:checked ~ .transport-checkbox-custom::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 11px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+
+.transport-checkbox-label:has(input:checked) {
+  border-color: #0F4C5C;
+  background: rgba(15, 76, 92, 0.03);
+}
+
+/* ═══════════════════════════════════════════
+   RETURN FIELDS ANIMATION
+   ═══════════════════════════════════════════ */
+.transport-return-fields {
+  animation: transportSlideDown 0.4s ease;
+}
+
+/* ═══════════════════════════════════════════
+   SUBMIT SECTION
+   ═══════════════════════════════════════════ */
+.transport-submit-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 0;
+}
+
+.transport-submit-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(30, 202, 211, 0.06);
+  border: 1px solid rgba(30, 202, 211, 0.2);
+  border-radius: 12px;
+  padding: 16px 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.transport-submit-info svg {
+  width: 22px;
+  height: 22px;
+  color: #0F4C5C;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.transport-submit-info p {
+  font-size: 0.88rem;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.transport-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+  padding: 18px 36px;
+  background: linear-gradient(135deg, #B32D5E, #E92F64);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(179, 45, 94, 0.3);
+  letter-spacing: 0.3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.transport-submit-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #E92F64, #B32D5E);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.transport-submit-btn:hover::before {
+  opacity: 1;
+}
+
+.transport-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(179, 45, 94, 0.4);
+}
+
+.transport-submit-btn:active {
+  transform: translateY(0);
+}
+
+.transport-submit-btn svg {
+  width: 20px;
+  height: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.transport-submit-btn span,
+.transport-submit-btn svg {
+  position: relative;
+  z-index: 1;
+}
+
+.transport-submit-btn.loading {
+  opacity: 0.85;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* SPINNER */
+.transport-spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: transportSpin 0.8s linear infinite;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes transportSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .transport-hero {
+    height: 440px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .transport-hero-content {
+    padding: 100px 20px 40px;
+  }
+
+  .transport-hero-features {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .transport-tabs {
+    flex-direction: column;
+  }
+
+  .transport-tab {
+    justify-content: flex-start;
+  }
+
+  .transport-form-section {
+    padding: 24px 18px;
+  }
+
+  .transport-toggle-group.three {
+    grid-template-columns: 1fr;
+  }
+
+  .transport-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .transport-row .transport-field-group {
+    margin-top: 16px;
+  }
+
+  .transport-row .transport-field-group:first-child {
+    margin-top: 0;
+  }
+
+  .transport-vehicles {
+    grid-template-columns: 1fr;
+  }
+
+  .transport-vehicle-card {
+    flex-direction: row;
+    padding: 16px 18px;
+    gap: 16px;
+  }
+
+  .transport-vehicle-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .transport-vehicle-card {
+    text-align: left;
+    align-items: center;
+  }
+
+  .transport-options-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .transport-itinerary-line {
+    display: none;
+  }
+
+  .transport-section-header {
+    gap: 12px;
+  }
+
+  .transport-section-number {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    font-size: 0.9rem;
   }
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
+@media (max-width: 480px) {
+  .transport-hero {
+    height: 380px;
   }
-  50% {
-    opacity: 0.5;
+
+  .transport-hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .transport-hero-badge {
+    font-size: 0.78rem;
+    padding: 6px 14px;
+  }
+
+  .transport-toggle-group {
+    grid-template-columns: 1fr;
+  }
+
+  .transport-counter {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .transport-submit-btn {
+    max-width: 100%;
   }
 }
 
-.animate-pulse {
-  animation: pulse 2s infinite;
-}
+@media (max-width: 360px) {
+  .transport-form-section {
+    padding: 18px 14px;
+  }
 
-/* ============================================
-   SCROLLBAR
-   ============================================ */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--gray-50);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--gray-400);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary);
+  .transport-section-title {
+    font-size: 1.05rem;
+  }
 }

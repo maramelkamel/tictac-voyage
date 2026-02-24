@@ -67,6 +67,7 @@ body {
   color: var(--gray-700);
   line-height: 1.6;
   overflow-x: hidden;
+  padding-top: 138px;
 }
 
 a { text-decoration: none; color: inherit; }
