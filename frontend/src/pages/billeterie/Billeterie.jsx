@@ -15,7 +15,7 @@ import ReservationSummary from './components/ReservationSummary.jsx'
 import HowItWorks from './components/HowItWorks.jsx'
 
 // Import des donnees
-import { flightsData } from './data.js'
+import { flightsData } from '../../data/data.js'
 
 // Import des styles
 import '../../styles/Billeterie.css'

@@ -1,4 +1,4 @@
-import { filterOptions } from "../data"
+import { filterOptions } from "../../../data/data"
 
 const FilterSidebar = ({filters, setFilters, resetFilters}) => {
   return (

@@ -1,5 +1,5 @@
 import { FaSearch, FaCheck, FaCreditCard, FaTicketAlt } from "react-icons/fa"
-import { stepsData } from "../data"
+import { stepsData } from "../../../data/data"
 
 const HowItWorks = () => {
   const icons = {

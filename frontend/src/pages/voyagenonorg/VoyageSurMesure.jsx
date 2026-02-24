@@ -13,7 +13,7 @@ import {
   sortOptions,
   howItWorksSteps,
   modalHighlights,
-} from './voyageSurMesureData';
+} from '../../data/voyageSurMesureData';
 import '../../styles/VoyageSurMesure.css';
 
 /* ═══════════════════════════════════════════
