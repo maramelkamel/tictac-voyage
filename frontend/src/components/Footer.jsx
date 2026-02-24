@@ -15,13 +15,12 @@ const inputStyle = {
 const Footer = () => {
   const services = [
    
-    { id: 2, label: 'Hôtels',               href: '#hotels' },
-    { id: 1, label: 'Location de Bus',      href: '/transport' },
-    { id: 3, label: 'Location de voiture',  href: '/transport' },
-    { id: 5, label: 'Voyages Organisés',    href: '/VoyagesOrganise/VoyagesOrganise' },
+    { id: 1, label: 'Hôtels',               href: '/' },
+    { id: 2, label: 'Transport',  href: '/transport' },
+    { id: 3, label: 'Voyages Organisés',    href: '/VoyagesOrganise/VoyagesOrganise' },
     { id: 4, label: 'Omra',                 href: '/Omra/Omra' },
-    { id: 6, label: 'Voyages Sur Mesure',   href: '#voyagesurmes' },
-    { id: 7, label: 'Billetterie',          href: '#billetterie' },
+    { id: 5, label: 'Voyages Sur Mesure',   href: '/voyagenonorg/VoyageSurMesure' },
+    { id: 6, label: 'Billetterie',          href: '#billetterie' },
   ];
 
   const contactInfo = [

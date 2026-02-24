@@ -6,7 +6,7 @@ const navLinks = [
   {
     id: 1,
     label: 'Hôtels',
-    href: '/HomePage',
+    href: '/',
   },
   {
     id: 2,
@@ -23,7 +23,7 @@ const navLinks = [
         icon: 'fas fa-star',
         title: 'Voyages Sur Mesure',
         desc: '100% personnalisé',
-        href: '/voyagesSur-mesure',
+        href: '/voyagenonorg/VoyageSurMesure',
       },
     ],
   },
@@ -36,7 +36,7 @@ const navLinks = [
         icon: 'fas fa-bus',
         title: 'Location de Bus',
         desc: 'Transport groupe',
-        href: '/location',
+        href: '/transport',
       },
       {
         icon: 'fas fa-car',
