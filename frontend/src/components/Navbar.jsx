@@ -49,7 +49,7 @@ const navLinks = [
   {
     id: 4,
     label: 'Billetterie',
-    href: '/billetterie',
+    href: '/billeterie/Billeterie',
   },
   {
     id: 5,

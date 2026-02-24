@@ -13,6 +13,7 @@ import Reserver from './pages/VoyagesOrganise/Reserver';
 import HotelDetails from './pages/HotelDetails';
 import Contact from './pages/Contact';
 import VoyageSurMesure from './pages/voyagenonorg/VoyageSurMesure';
+import Billeterie from './pages/billeterie/Billeterie';
 
 
 
@@ -34,6 +35,7 @@ function App() {
         <Route path="/VoyagesOrganise/Reserver/:id" element={<Reserver />} />
          <Route path="/hotels/:id" element={<HotelDetails />} />
          <Route path="/Contact" element={<Contact/>} />
+         <Route path="/billeterie/Billeterie" element={<Billeterie/>} />
       </Routes>
       
     </Router>

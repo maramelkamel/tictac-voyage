@@ -20,7 +20,7 @@ const Footer = () => {
     { id: 3, label: 'Voyages Organisés',    href: '/VoyagesOrganise/VoyagesOrganise' },
     { id: 4, label: 'Omra',                 href: '/Omra/Omra' },
     { id: 5, label: 'Voyages Sur Mesure',   href: '/voyagenonorg/VoyageSurMesure' },
-    { id: 6, label: 'Billetterie',          href: '#billetterie' },
+    { id: 6, label: 'Billetterie',          href: '/billeterie/Billeterie' },
   ];
 
   const contactInfo = [
