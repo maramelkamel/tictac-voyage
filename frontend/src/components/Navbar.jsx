@@ -30,21 +30,8 @@ const navLinks = [
   {
     id: 3,
     label: 'Transport',
-    href: '#',
-    submenu: [
-      {
-        icon: 'fas fa-bus',
-        title: 'Location de Bus',
-        desc: 'Transport groupe',
-        href: '/transport',
-      },
-      {
-        icon: 'fas fa-car',
-        title: 'Location de Voiture',
-        desc: 'Toutes catégories',
-        href: '/location-voiture',
-      },
-    ],
+    href: '/transport',
+    
   },
   {
     id: 4,

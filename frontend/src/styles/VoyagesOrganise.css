@@ -826,3 +826,65 @@ body {
     grid-template-columns: 1fr;
   }
 }
+/* Toolbar */
+.vsm-filters-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.vsm-filters-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #475569;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.vsm-filters-toggle:hover {
+  border-color: #1ECAD3;
+  color: #0F4C5C;
+}
+
+.vsm-filters-toggle.open {
+  border-color: #0F4C5C;
+  color: #0F4C5C;
+  background: rgba(15, 76, 92, 0.03);
+}
+
+.vsm-filters-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.vsm-chevron {
+  width: 16px !important;
+  height: 16px !important;
+  transition: transform 0.3s;
+}
+
+.vsm-filters-toggle.open .vsm-chevron {
+  transform: rotate(180deg);
+}
+
+.vsm-filter-badge {
+  background: #B32D5E;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  min-width: 18px;
+  text-align: center;
+}
