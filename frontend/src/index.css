@@ -546,6 +546,34 @@ input, select { font-family: inherit; border: none; outline: none; }
   font-size: 16px;
   margin-top: 8px;
 }
+/* ==== OPTIONNEL : helpers globaux pour les formulaires ==== */
+.form-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--gray-500);
+}
+
+.form-input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+  background: var(--gray-50);
+  font-size: 14px;
+  color: var(--gray-700);
+  transition: all var(--duration) var(--ease);
+}
+
+.form-input:focus {
+  background: var(--white);
+  border-color: var(--accent-alpha);
+  box-shadow: 0 0 0 2px var(--accent-alpha);
+  outline: none;
+}
 
 /* ============================================
    HOTELS GRID
