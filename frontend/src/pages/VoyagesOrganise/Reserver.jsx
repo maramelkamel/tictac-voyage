@@ -5,25 +5,23 @@ import Footer from '../../components/Footer';
 import '../../styles/omrastyle.css';
 
 const Reserver = () => {
-  const { state } = useLocation();
-  const navigate  = useNavigate();
-  const { id }    = useParams();
+  const { state }  = useLocation();
+  const navigate   = useNavigate();
+  const { id }     = useParams();
 
   const [form, setForm] = useState({
-    prenom:     '',
-    nom:        '',
-    email:      '',
-    telephone:  '',
-    dateDepart: '',
-    personnes:  '2',
-    chambre:    'double',
-    notes:      '',
+    prenom:    '',
+    nom:       '',
+    email:     '',
+    telephone: '',
+    personnes: '2',
+    chambre:   'double',
+    notes:     '',
   });
 
-  const [submitted, setSubmitted] = useState(false);
-  const [loading,   setLoading]   = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  /* Fallback if user refreshes directly on this URL */
+  /* ── Fallback ── */
   if (!state?.voyage) {
     return (
       <div>
@@ -33,8 +31,11 @@ const Reserver = () => {
           <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--gray-800)', marginBottom: 16 }}>
             Voyage introuvable.
           </p>
-          <button className="omra-reserve__submit" style={{ width: 'auto', padding: '14px 28px' }}
-            onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')}>
+          <button
+            className="omra-reserve__submit"
+            style={{ width: 'auto', padding: '14px 28px' }}
+            onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')}
+          >
             ← Retour aux voyages
           </button>
         </div>
@@ -46,52 +47,23 @@ const Reserver = () => {
   const { titre, image, pays, destination, prix, duree, depart, places } = state.voyage;
   const totalPrix = prix * parseInt(form.personnes || 1, 10);
 
-  const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = e => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: connect to your API
-    setTimeout(() => { setLoading(false); setSubmitted(true); }, 1200);
+    setTimeout(() => {
+      setLoading(false);
+      navigate(`/VoyagesOrganise/Payment/${id}`, {
+        state: {
+          voyage:    state.voyage,
+          booking:   form,
+          totalPrix,
+        },
+      });
+    }, 800);
   };
 
-  /* ── SUCCESS STATE ── */
-  if (submitted) {
-    return (
-      <div>
-        <Navbar />
-        <div className="omra-reserve" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="container">
-            <div className="omra-reserve__form-card" style={{ maxWidth: 560, margin: '40px auto' }}>
-              <div className="omra-reserve__success">
-                <div className="omra-reserve__success-icon">✓</div>
-                <h2 className="omra-reserve__success-title">Réservation confirmée !</h2>
-                <p className="omra-reserve__success-desc">
-                  Merci <strong>{form.prenom} {form.nom}</strong> ! Votre demande pour{' '}
-                  <strong>{titre}</strong> a bien été enregistrée.<br />
-                  Un conseiller vous contactera sous 24h à <strong>{form.email}</strong>.
-                </p>
-                <div className="omra-reserve__success-actions">
-                  <button className="omra-reserve__success-btn" onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')}>
-                    ← Voir d'autres voyages
-                  </button>
-                  <button
-                    className="omra-reserve__success-btn omra-reserve__success-btn--outline"
-                    onClick={() => navigate(`/VoyagesOrganise/VoyagesOrganise/${id}`, { state })}
-                  >
-                    Retour aux détails
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  /* ── BOOKING FORM ── */
   return (
     <div>
       <Navbar />
@@ -123,73 +95,82 @@ const Reserver = () => {
 
                 <form className="omra-reserve__form-body" onSubmit={handleSubmit}>
 
-                  {/* Name */}
+                  {/* Name row */}
                   <div className="omra-reserve__form-row">
                     <div className="omra-reserve__field">
                       <label htmlFor="prenom">Prénom *</label>
-                      <input id="prenom" name="prenom" type="text" required
-                        placeholder="Votre prénom" value={form.prenom} onChange={handleChange} />
+                      <input
+                        id="prenom" name="prenom" type="text" required
+                        placeholder="Votre prénom"
+                        value={form.prenom} onChange={handleChange}
+                      />
                     </div>
                     <div className="omra-reserve__field">
                       <label htmlFor="nom">Nom *</label>
-                      <input id="nom" name="nom" type="text" required
-                        placeholder="Votre nom" value={form.nom} onChange={handleChange} />
+                      <input
+                        id="nom" name="nom" type="text" required
+                        placeholder="Votre nom"
+                        value={form.nom} onChange={handleChange}
+                      />
                     </div>
                   </div>
 
-                  {/* Contact */}
+                  {/* Contact row */}
                   <div className="omra-reserve__form-row">
                     <div className="omra-reserve__field">
                       <label htmlFor="email">Email *</label>
-                      <input id="email" name="email" type="email" required
-                        placeholder="votre@email.com" value={form.email} onChange={handleChange} />
+                      <input
+                        id="email" name="email" type="email" required
+                        placeholder="votre@email.com"
+                        value={form.email} onChange={handleChange}
+                      />
                     </div>
                     <div className="omra-reserve__field">
                       <label htmlFor="telephone">Téléphone</label>
-                      <input id="telephone" name="telephone" type="tel"
-                        placeholder="+216 XX XXX XXX" value={form.telephone} onChange={handleChange} />
+                      <input
+                        id="telephone" name="telephone" type="tel"
+                        placeholder="+216 XX XXX XXX"
+                        value={form.telephone} onChange={handleChange}
+                      />
                     </div>
                   </div>
 
-                  {/* Trip details */}
+                  {/* Voyageurs row */}
                   <div className="omra-reserve__form-row">
                     <div className="omra-reserve__field">
-                      <label htmlFor="dateDepart">Date de départ *</label>
-                      <input id="dateDepart" name="dateDepart" type="date" required
-                        value={form.dateDepart} onChange={handleChange} />
+                      <label htmlFor="personnes">Nombre de voyageurs</label>
+                      <input
+                        id="personnes" name="personnes" type="number" min="1" max="20"
+                        value={form.personnes} onChange={handleChange}
+                      />
                     </div>
                     <div className="omra-reserve__field">
-                      <label htmlFor="personnes">Nombre de voyageurs</label>
-                      <input id="personnes" name="personnes" type="number" min="1" max="20"
-                        value={form.personnes} onChange={handleChange} />
+                      <label htmlFor="chambre">Type de chambre</label>
+                      <select id="chambre" name="chambre" value={form.chambre} onChange={handleChange}>
+                        <option value="single">Chambre single</option>
+                        <option value="double">Chambre double</option>
+                        <option value="triple">Chambre triple</option>
+                        <option value="suite">Suite</option>
+                      </select>
                     </div>
-                  </div>
-
-                  {/* Room type */}
-                  <div className="omra-reserve__field">
-                    <label htmlFor="chambre">Type de chambre</label>
-                    <select id="chambre" name="chambre" value={form.chambre} onChange={handleChange}>
-                      <option value="single">Chambre single</option>
-                      <option value="double">Chambre double</option>
-                      <option value="triple">Chambre triple</option>
-                      <option value="suite">Suite</option>
-                    </select>
                   </div>
 
                   {/* Notes */}
                   <div className="omra-reserve__field">
                     <label htmlFor="notes">Demandes spéciales</label>
-                    <textarea id="notes" name="notes" rows={3}
+                    <textarea
+                      id="notes" name="notes" rows={3}
                       placeholder="Allergies, accessibilité, préférences…"
-                      value={form.notes} onChange={handleChange} />
+                      value={form.notes} onChange={handleChange}
+                    />
                   </div>
 
                   <button type="submit" className="omra-reserve__submit" disabled={loading}>
-                    {loading ? 'Envoi en cours…' : 'Confirmer la réservation →'}
+                    {loading ? 'Chargement…' : 'Continuer vers le paiement →'}
                   </button>
 
                   <p style={{ fontSize: '12px', color: 'var(--gray-400)', textAlign: 'center' }}>
-                    Un conseiller finalise votre dossier sous 24h. Aucun paiement immédiat.
+                    Étape suivante : choisissez votre mode de paiement.
                   </p>
 
                 </form>
@@ -199,7 +180,6 @@ const Reserver = () => {
             {/* ── Right: sticky summary ── */}
             <aside style={{ position: 'sticky', top: 110 }}>
 
-              {/* Package card */}
               <div className="omra-reserve__pkg-card">
                 <img src={image} alt={titre} className="omra-reserve__pkg-img" />
                 <div className="omra-reserve__pkg-info">
@@ -213,10 +193,8 @@ const Reserver = () => {
                 </div>
               </div>
 
-              {/* Price summary */}
               <div className="omra-reserve__summary">
                 <div className="omra-reserve__summary-title">Récapitulatif du prix</div>
-
                 <div className="omra-reserve__summary-row">
                   <span>Prix / personne</span>
                   <span>{prix.toLocaleString('fr-FR')} TND</span>
@@ -225,7 +203,6 @@ const Reserver = () => {
                   <span>Voyageurs</span>
                   <span>× {form.personnes}</span>
                 </div>
-
                 <div className="omra-reserve__summary-total">
                   <span className="omra-reserve__summary-total-label">Total estimé</span>
                   <span className="omra-reserve__summary-total-amount">
@@ -235,7 +212,6 @@ const Reserver = () => {
               </div>
 
             </aside>
-
           </div>
         </div>
       </div>
