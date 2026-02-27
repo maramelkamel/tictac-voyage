@@ -23,7 +23,7 @@ const navLinks = [
         icon: 'fas fa-star',
         title: 'Voyages Sur Mesure',
         desc: '100% personnalisé',
-        href: '/voyagenonorg/VoyageSurMesure',
+        href: '/CustomTripAbroad',
       },
     ],
   },

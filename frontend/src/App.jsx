@@ -12,9 +12,10 @@ import Detail from './pages/VoyagesOrganise/Detail';
 import Reserver from './pages/VoyagesOrganise/Reserver';
 import HotelDetails from './pages/HotelDetails';
 import Contact from './pages/Contact';
-import VoyageSurMesure from './pages/voyagenonorg/VoyageSurMesure';
+
 import Billeterie from './pages/billeterie/Billeterie';
 import Payment from './pages/VoyagesOrganise/Payment';
+import CustomTripAbroad from './pages/CustomTripAbroad';
 
 
 
@@ -31,13 +32,13 @@ function App() {
         <Route path="/transport" element={<Transport />} />
 
         <Route path="/VoyagesOrganise/VoyagesOrganise" element={<VoyagesOrganise />} />
-        <Route path="/voyagenonorg/VoyageSurMesure" element={<VoyageSurMesure />} />
         <Route path="/VoyagesOrganise/Detail/:id" element={<Detail />} />
         <Route path="/VoyagesOrganise/Reserver/:id" element={<Reserver />} />
          <Route path="/hotels/:id" element={<HotelDetails />} />
          <Route path="/Contact" element={<Contact/>} />
          <Route path="/billeterie/Billeterie" element={<Billeterie/>} />
          <Route path="/VoyagesOrganise/Payment/:id" element={<Payment />} />
+         <Route path="/CustomTripAbroad" element={<CustomTripAbroad/>} />
       </Routes>
       
     </Router>
