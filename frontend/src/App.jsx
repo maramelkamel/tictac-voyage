@@ -14,6 +14,7 @@ import HotelDetails from './pages/HotelDetails';
 import Contact from './pages/Contact';
 import VoyageSurMesure from './pages/voyagenonorg/VoyageSurMesure';
 import Billeterie from './pages/billeterie/Billeterie';
+import Payment from './pages/VoyagesOrganise/Payment';
 
 
 
@@ -36,6 +37,7 @@ function App() {
          <Route path="/hotels/:id" element={<HotelDetails />} />
          <Route path="/Contact" element={<Contact/>} />
          <Route path="/billeterie/Billeterie" element={<Billeterie/>} />
+         <Route path="/VoyagesOrganise/Payment/:id" element={<Payment />} />
       </Routes>
       
     </Router>
