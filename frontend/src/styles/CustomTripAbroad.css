@@ -70,7 +70,7 @@
   padding: 0 clamp(1rem, 4vw, 2.5rem);
 }
 
-/* Hero Section - Identique Omra */
+/* Hero Section -  */
 .hero-section {
   position: relative;
   min-height: 65vh;
@@ -130,9 +130,10 @@
   font-size: clamp(36px, 6vw, 72px);
   font-weight: 900;
   color: var(--white);
-  line-height: 1.1;
-  margin-bottom: 20px;
+  line-height: 0.9;
+  margin-bottom: 50px;
   letter-spacing: -0.02em;
+  
 }
 
 .hero-subtitle {
@@ -170,7 +171,7 @@
   left: 0;
   right: 0;
   height: 64px;
-  background: linear-gradient(to bottom, transparent, var(--gray-50));
+  
 }
 /* ============================================
    MAIN SECTION & LAYOUT
