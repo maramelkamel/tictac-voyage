@@ -1,26 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import '../../styles/omrastyle.css';
+import '../../styles/detail.css';
+
+/* ── gallery helper: generate extra Unsplash photos from the hero image ── */
+const buildGallery = (mainImage, destination) => {
+  const queries = [
+    `${destination} travel landscape`,
+    `${destination} architecture`,
+    `${destination} food culture`,
+    `${destination} street`,
+  ];
+  const seeds = [10, 20, 30, 40];
+  const extras = seeds.map((s, i) =>
+    `https://source.unsplash.com/800x600/?${encodeURIComponent(queries[i] || destination)}&sig=${s}`
+  );
+  return [mainImage, ...extras];
+};
 
 const Details = () => {
-  const { state } = useLocation();
-  const navigate  = useNavigate();
-  const { id }    = useParams();
+  const { state }  = useLocation();
+  const navigate   = useNavigate();
+  const { id }     = useParams();
+  const [lightbox, setLightbox] = useState(null); // index | null
 
-  /* Fallback if user refreshes directly on this URL */
+  /* ── Fallback ── */
   if (!state?.voyage) {
     return (
-      <div>
+      <div className="detail-page">
         <Navbar />
-        <div style={{ textAlign: 'center', padding: '160px 24px', color: 'var(--gray-400)' }}>
+        <div style={{ textAlign: 'center', padding: '160px 24px' }}>
           <div style={{ fontSize: '3rem', marginBottom: 16 }}>😕</div>
-          <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--gray-800)', marginBottom: 16 }}>
+          <p style={{ fontSize: '18px', fontWeight: 700, color: '#0a2832', marginBottom: 16 }}>
             Voyage introuvable.
           </p>
-          <button className="omra-details__reserve-btn" style={{ width: 'auto', padding: '14px 28px' }}
-            onClick={() => navigate('/voyages')}>
+          <button
+            onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')}
+            style={{ padding: '14px 28px', background: 'linear-gradient(135deg,#e8306a,#b72754)', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, cursor: 'pointer' }}
+          >
             ← Retour aux voyages
           </button>
         </div>
@@ -31,99 +49,160 @@ const Details = () => {
 
   const {
     titre, destination, pays, image, prix, duree,
-    rating, avis, description, depart, programme = [],
-    inclus = [], nonInclus = [], places, badge,
+    rating = 4.8, avis = 124, description, depart,
+    programme = [], inclus = [], nonInclus = [],
+    places, badge,
   } = state.voyage;
 
-  const handleReserver = () => {
+  const gallery = buildGallery(image, destination || pays);
+
+  const handleReserver = () =>
     navigate(`/VoyagesOrganise/Reserver/${id}`, { state: { voyage: state.voyage } });
-  };
+
+  const prevPhoto = () => setLightbox(i => (i - 1 + gallery.length) % gallery.length);
+  const nextPhoto = () => setLightbox(i => (i + 1) % gallery.length);
 
   return (
-    <div className="omra-details">
+    <div className="detail-page">
       <Navbar />
 
-      {/* ── Hero banner ── */}
-      <div className="omra-details__hero">
-        <img src={image} alt={titre} />
-        <div className="omra-details__hero-overlay" />
-
-        <div className="omra-details__hero-content">
+      {/* ════════════ HERO ════════════ */}
+      <section className="detail-hero">
+        <img src={image} alt={titre} className="detail-hero__img" />
+        <div className="detail-hero__overlay" />
+        <div className="detail-hero__content">
           <div className="container">
             {/* Breadcrumb */}
-            <div className="omra-page-breadcrumb">
-              <button onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')}>← Voyages organisés</button>
-              <span>/</span>
-              <span>{pays}</span>
+            <div className="detail-breadcrumb">
+              <button className="detail-breadcrumb__btn"
+                onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')}>
+                ← Voyages organisés
+              </button>
+              <span className="detail-breadcrumb__sep">/</span>
+              <span className="detail-breadcrumb__current">{pays}</span>
             </div>
 
-            {badge && <span className="omra-details__badge">{badge}</span>}
-            <h1 className="omra-details__title">{titre}</h1>
-            <p className="omra-details__subtitle">
-              ⭐ {rating} ({avis} avis)&nbsp;&nbsp;·&nbsp;&nbsp;
-              🕐 {duree}&nbsp;&nbsp;·&nbsp;&nbsp;
-              ✈️ Départ depuis {depart}&nbsp;&nbsp;·&nbsp;&nbsp;
-              👥 {places} places restantes
-            </p>
+            {badge && <div className="detail-hero__badge">{badge}</div>}
+            <h1 className="detail-hero__title">{titre}</h1>
+
+            <div className="detail-hero__meta">
+              {[
+                { icon: '⭐', text: `${rating} (${avis} avis)` },
+                { icon: '🕐', text: duree },
+                { icon: '✈️', text: `Départ ${depart}` },
+                { icon: '👥', text: `${places} places restantes` },
+              ].map((pill, i) => (
+                <span className="detail-hero__pill" key={i}>
+                  <i>{pill.icon}</i> {pill.text}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════ STATS STRIP ════════════ */}
+      <div className="detail-stats">
+        <div className="container">
+          <div className="detail-stats__grid">
+            {[
+              { icon: '🌍', label: 'Destination',   value: `${pays} — ${destination}` },
+              { icon: '📅', label: 'Durée',          value: duree },
+              { icon: '✈️', label: 'Départ',         value: depart },
+              { icon: '👥', label: 'Places restantes', value: `${places} places` },
+            ].map((s, i) => (
+              <div className="detail-stats__item" key={i}>
+                <div className="detail-stats__icon">{s.icon}</div>
+                <div>
+                  <div className="detail-stats__label">{s.label}</div>
+                  <div className="detail-stats__value">{s.value}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* ── Body ── */}
-      <div className="omra-details__body">
+      {/* ════════════ BODY ════════════ */}
+      <div className="detail-body">
         <div className="container">
-          <div className="omra-details__layout">
+          <div className="detail-layout">
 
-            {/* ── Left: main content ── */}
+            {/* ══ LEFT column ══ */}
             <div>
 
-              {/* Highlights */}
-              <div className="omra-details__card">
-                <div className={`omra-details__meta-grid omra-details__meta-grid--4`}>
-                  {[
-                    { icon: '🌍', label: 'Destination', value: pays },
-                    { icon: '📅', label: 'Durée',       value: duree },
-                    { icon: '✈️', label: 'Départ',      value: depart },
-                    { icon: '👥', label: 'Places',      value: `${places} restantes` },
-                  ].map((m, i) => (
-                    <div className="omra-details__meta-item" key={i}>
-                      <div className="omra-details__meta-label">
-                        {m.icon} {m.label}
-                      </div>
-                      <div className="omra-details__meta-value">{m.value}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               {/* Description */}
-              <div className="omra-details__card">
-                <h3 className="omra-details__card-title">📖 À propos de ce voyage</h3>
-                <p className="omra-details__desc">{description}</p>
+              <div className="detail-card">
+                <div className="detail-card__head">
+                  <div className="detail-card__accent" />
+                  <h3 className="detail-card__title">📖 À propos de ce voyage</h3>
+                </div>
+                <p className="detail-desc">{description}</p>
               </div>
 
               {/* Programme */}
               {programme.length > 0 && (
-                <div className="omra-details__card">
-                  <h3 className="omra-details__card-title">🗓️ Programme jour par jour</h3>
-                  <div className="omra-details__programme">
+                <div className="detail-card">
+                  <div className="detail-card__head">
+                    <div className="detail-card__accent" />
+                    <h3 className="detail-card__title">🗓️ Programme jour par jour</h3>
+                  </div>
+                  <div className="detail-programme">
                     {programme.map((item, i) => (
-                      <div className="omra-details__programme-item" key={i}>
-                        <span className="omra-details__day-badge">Jour {i + 1}</span>
-                        <span>{item}</span>
+                      <div className="detail-prog-item" key={i}>
+                        <div className="detail-prog-circle">J{i + 1}</div>
+                        <div className="detail-prog-body">
+                          <div className="detail-prog-label">Jour {i + 1}</div>
+                          <div className="detail-prog-text">{item}</div>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
+              {/* Galerie */}
+              <div className="detail-card">
+                <div className="detail-card__head">
+                  <div className="detail-card__accent" />
+                  <h3 className="detail-card__title">📸 Galerie photos</h3>
+                </div>
+                <div className="detail-gallery-grid">
+                  {gallery.slice(0, 5).map((src, i) => (
+                    <div
+                      key={i}
+                      className={`detail-gal-item ${i === 0 ? 'detail-gal-item--main' : ''}`}
+                      onClick={() => setLightbox(i)}
+                    >
+                      <img src={src} alt={`${titre} ${i + 1}`} />
+                      <div className="detail-gal-overlay">
+                        {i === 4 && gallery.length > 5 ? (
+                          <div className="detail-gal-more">
+                            <span>+{gallery.length - 5}</span>
+                            <span>photos</span>
+                          </div>
+                        ) : (
+                          <span>🔍</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Inclus */}
               {inclus.length > 0 && (
-                <div className="omra-details__card">
-                  <h3 className="omra-details__card-title">✅ Ce qui est inclus</h3>
-                  <div className="omra-details__includes">
+                <div className="detail-card">
+                  <div className="detail-card__head">
+                    <div className="detail-card__accent" />
+                    <h3 className="detail-card__title">✅ Ce qui est inclus</h3>
+                  </div>
+                  <div className="detail-includes-grid">
                     {inclus.map((item, i) => (
-                      <span key={i} className="omra-details__include-tag">✓ {item}</span>
+                      <div key={i} className="detail-inc-tag">
+                        <div className="detail-inc-icon">✓</div>
+                        {item}
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -131,64 +210,74 @@ const Details = () => {
 
               {/* Non inclus */}
               {nonInclus.length > 0 && (
-                <div className="omra-details__card">
-                  <h3 className="omra-details__card-title">❌ Non inclus</h3>
-                  <div className="omra-details__includes">
+                <div className="detail-card">
+                  <div className="detail-card__head">
+                    <div className="detail-card__accent" />
+                    <h3 className="detail-card__title">❌ Non inclus</h3>
+                  </div>
+                  <div className="detail-includes-grid">
                     {nonInclus.map((item, i) => (
-                      <span key={i} className="omra-details__include-tag omra-details__include-tag--excluded">
-                        ✕ {item}
-                      </span>
+                      <div key={i} className="detail-inc-tag detail-inc-tag--excl">
+                        <div className="detail-inc-icon">✕</div>
+                        {item}
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
+
             </div>
 
-            {/* ── Right: sticky sidebar ── */}
-            <aside className="omra-details__sidebar">
-              <div className="omra-details__price-card">
+            {/* ══ RIGHT sidebar ══ */}
+            <aside className="detail-sidebar">
+              <div className="detail-price-card">
 
-                <div className="omra-details__price-row">
-                  <span className="omra-details__price-amount">
-                    {prix.toLocaleString('fr-FR')}
-                  </span>
-                  <span className="omra-details__price-currency">TND</span>
+                {/* Price */}
+                <div className="detail-price-main">
+                  <span className="detail-price-amount">{prix.toLocaleString('fr-FR')}</span>
+                  <span className="detail-price-curr">TND</span>
                 </div>
-                <span className="omra-details__price-unit">par personne · taxes incluses</span>
+                <div className="detail-price-unit">par personne · taxes incluses</div>
 
-                <div className="omra-details__divider" />
+                <div className="detail-price-divider" />
 
-                <div className="omra-details__rating-row">
-                  <div className="omra-details__stars">
-                    {[1, 2, 3, 4, 5].map(s => (
-                      <span key={s} style={{ color: s <= Math.round(rating) ? '#fbbf24' : 'var(--gray-200)', fontSize: 16 }}>★</span>
+                {/* Rating */}
+                <div className="detail-rating-row">
+                  <div className="detail-stars">
+                    {[1,2,3,4,5].map(s => (
+                      <span key={s} className={`detail-star ${s <= Math.round(rating) ? 'detail-star--on' : 'detail-star--off'}`}>★</span>
                     ))}
                   </div>
-                  <span style={{ fontSize: 13, color: 'var(--gray-500)', fontWeight: 600 }}>
-                    {rating} ({avis} avis)
-                  </span>
+                  <span className="detail-rating-txt">{rating} ({avis} avis)</span>
                 </div>
 
-                <ul className="omra-details__sidebar-perks">
-                  <li>✓ Annulation gratuite sous 48h</li>
-                  <li>✓ Guide francophone inclus</li>
-                  <li>✓ Assistance 24h/7j</li>
-                  <li>✓ Transferts aéroport inclus</li>
+                {/* Perks */}
+                <ul className="detail-perks">
+                  {[
+                    'Annulation gratuite sous 48h',
+                    'Guide francophone inclus',
+                    'Assistance 24h/7j',
+                    'Transferts aéroport inclus',
+                  ].map((perk, i) => (
+                    <li key={i}>
+                      <div className="detail-perk-check">✓</div>
+                      {perk}
+                    </li>
+                  ))}
                 </ul>
 
-                <button className="omra-details__reserve-btn" onClick={handleReserver}>
+                {/* CTA */}
+                <button className="detail-reserve-btn" onClick={handleReserver}>
                   Réserver ce voyage →
                 </button>
-
-                <button className="omra-details__contact-btn" onClick={() => navigate(-1)}>
+                <button className="detail-back-btn" onClick={() => navigate(-1)}>
                   ← Retour à la liste
                 </button>
 
-                <p className="omra-details__sidebar-note">
-                  Aucun paiement immédiat. Un conseiller vous contactera sous 24h pour finaliser votre dossier.
+                <p className="detail-sidebar-note">
+                  Aucun paiement immédiat. Un conseiller vous contactera sous 24h.
                 </p>
-
-                <div className="omra-details__spots">
+                <div className="detail-spots-badge">
                   🔥 Plus que {places} places disponibles !
                 </div>
 
@@ -198,6 +287,17 @@ const Details = () => {
           </div>
         </div>
       </div>
+
+      {/* ════════════ LIGHTBOX ════════════ */}
+      {lightbox !== null && (
+        <div className="detail-lightbox" onClick={() => setLightbox(null)}>
+          <button className="detail-lb-close" onClick={e => { e.stopPropagation(); setLightbox(null); }}>✕</button>
+          <button className="detail-lb-nav detail-lb-prev" onClick={e => { e.stopPropagation(); prevPhoto(); }}>‹</button>
+          <img src={gallery[lightbox]} alt={`Photo ${lightbox + 1}`} onClick={e => e.stopPropagation()} />
+          <button className="detail-lb-nav detail-lb-next" onClick={e => { e.stopPropagation(); nextPhoto(); }}>›</button>
+          <div className="detail-lb-counter">{lightbox + 1} / {gallery.length}</div>
+        </div>
+      )}
 
       <Footer />
     </div>

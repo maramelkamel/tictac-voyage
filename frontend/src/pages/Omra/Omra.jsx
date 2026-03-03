@@ -166,12 +166,12 @@ const OmraPage = () => {
 
   // Navigate to the Details page, passing the pkg via router state
   const handleDetails = (pkg) => {
-    navigate('/Omra/details', { state: { pkg } });
+    navigate('/Omra/details/${id}', { state: { pkg } });
   };
 
   // Navigate directly to the Reserve page, passing the pkg via router state
   const handleReserve = (pkg) => {
-    navigate('/Omra/Reserve', { state: { pkg } });
+    navigate('/Omra/Reserve/${id}', { state: { pkg } });
   };
 
   const handleSearch = (params) => {
