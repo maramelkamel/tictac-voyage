@@ -1036,7 +1036,7 @@ const HotelDetails = () => {
                 <button
                   className="hd-pay-btn"
                   disabled={nights <= 0}
-                  onClick={() => navigate('/VoyagesOrganise/Payment/:id', { state: { hotel, form, nights, total } })}
+                  onClick={() => navigate('/PaymentHotel', { state: { hotel, form, nights, total } })}
                 >
                   💳 Aller au paiement
                 </button>

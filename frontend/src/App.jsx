@@ -16,6 +16,7 @@ import OmraPayment from './pages/Omra/OmraPayment';
 import Billeterie from './pages/billeterie/Billeterie';
 import Payment from './pages/VoyagesOrganise/Payment';
 import CustomTripAbroad from './pages/CustomTripAbroad';
+import PaymentHotel from './pages/PaymentHotel';
 
 
 
@@ -39,6 +40,7 @@ function App() {
          <Route path="/billeterie/Billeterie" element={<Billeterie/>} />
          <Route path="/VoyagesOrganise/Payment/:id" element={<Payment />} />
          <Route path="/CustomTripAbroad" element={<CustomTripAbroad/>} />
+         <Route path="/PaymentHotel" element={<PaymentHotel/>}/>
       </Routes>
       
     </Router>
