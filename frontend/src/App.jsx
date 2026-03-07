@@ -20,6 +20,7 @@ import PaymentHotel from './pages/PaymentHotel';
 import TransportAdmin from './pages/admin/transport/TransportAdmin';
 import RequestsAdmin    from './pages/admin/transport/RequestsAdmin';
 import Dashboard        from './pages/admin/dashboard/Dashboard';
+import SurMesureAdmin   from './pages/admin/surMesure/SurMesureAdmin';
 
 
 
@@ -47,6 +48,7 @@ function App() {
          <Route path="/admin/transport" element={<TransportAdmin/>}/>
            <Route path="/admin/transport/requests"      element={<RequestsAdmin />} /> 
            <Route path="/admin"                           element={<Dashboard />} />
+           <Route path="/admin/sur-mesure"            element={<SurMesureAdmin />} />
 
       </Routes>
       

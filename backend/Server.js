@@ -5,6 +5,7 @@ const cors    = require('cors');
 
 const transportRoutes = require('./routes/transportRoutes');
 const requestRoutes   = require('./routes/requestRoutes');
+const customTripRoutes = require('./routes/customTripRoutes');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -18,6 +19,7 @@ app.use(express.json());
 // ─── Routes ─────────────────────────────────────────────────────
 app.use('/api/transports', transportRoutes);  // Catalogue véhicules
 app.use('/api/requests',   requestRoutes);    // Demandes clients
+app.use('/api/custom-trips', customTripRoutes);  // Voyages sur mesure
 
 // ─── Route test ─────────────────────────────────────────────────
 app.get('/', (req, res) => {
