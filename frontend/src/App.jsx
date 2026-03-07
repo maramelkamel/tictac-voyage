@@ -17,6 +17,10 @@ import Billeterie from './pages/billeterie/Billeterie';
 import Payment from './pages/VoyagesOrganise/Payment';
 import CustomTripAbroad from './pages/CustomTripAbroad';
 import PaymentHotel from './pages/PaymentHotel';
+import TransportAdmin from './pages/admin/transport/TransportAdmin';
+import TransportForm from './pages/admin/transport/TransportForm';
+import TransportTable from './pages/admin/transport/TransportTable';
+import RequestsAdmin    from './pages/admin/transport/RequestsAdmin';
 
 
 
@@ -41,6 +45,11 @@ function App() {
          <Route path="/VoyagesOrganise/Payment/:id" element={<Payment />} />
          <Route path="/CustomTripAbroad" element={<CustomTripAbroad/>} />
          <Route path="/PaymentHotel" element={<PaymentHotel/>}/>
+         <Route path="/admin/transport" element={<TransportAdmin/>}/>
+          <Route path="/admin/transport/form" element={<TransportForm/>}/>
+           <Route path="/admin/transport/table" element={<TransportTable/>}/>
+           <Route path="/admin/transport/requests"      element={<RequestsAdmin />} /> 
+
       </Routes>
       
     </Router>
