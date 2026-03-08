@@ -10,10 +10,27 @@ const ContactPage = () => {
   const [loading, setLoading]     = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => { setLoading(false); setSubmitted(true); }, 1200);
+    try {
+      const res = await fetch('http://localhost:5000/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubmitted(true);
+        setForm({ nom: '', email: '', telephone: '', sujet: '', message: '' });
+      } else {
+        alert(data.message || "Erreur lors de l'envoi");
+      }
+    } catch {
+      alert('Impossible de contacter le serveur.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const contactCards = [

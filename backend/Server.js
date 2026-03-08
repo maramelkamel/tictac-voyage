@@ -20,6 +20,8 @@ app.use(express.json());
 app.use('/api/transports', transportRoutes);  // Catalogue véhicules
 app.use('/api/requests',   requestRoutes);    // Demandes clients
 app.use('/api/custom-trips', customTripRoutes);  // Voyages sur mesure
+app.use('/api/contact',      contactRoutes);     // Messages de contact
+
 
 // ─── Route test ─────────────────────────────────────────────────
 app.get('/', (req, res) => {

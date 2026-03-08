@@ -26,7 +26,11 @@ const MODULES = [
     ]},
   { title: 'Voyage sur Mesure',  color: 'orange', desc: 'Demandes de voyages personnalisés à traiter.',
     links: [
-      { label: 'Demandes', path: '/admin/sur-mesure', sk: null },
+      { label: 'Demandes', path: '/admin/sur-mesure', sk: 'surMesure', badge: true },
+    ]},
+  { title: 'Contact',            color: 'red',    desc: 'Messages reçus via le formulaire de contact du site.',
+    links: [
+      { label: 'Messages', path: '/admin/contact', sk: 'contactNew', badge: true },
     ]},
 ];
 
@@ -36,6 +40,7 @@ const DashIcon = ({ c }) => ({
   violet: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>,
   blue:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>,
   orange: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>,
+  red:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
 }[c]);
 
 const Dashboard = () => {
@@ -46,9 +51,13 @@ const Dashboard = () => {
     Promise.all([
       fetch('http://localhost:5000/api/transports').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/requests').then(r => r.json()).catch(() => ({})),
-    ]).then(([v, r]) => setSt({
-      vehicles: v.data?.length || 0,
-      pending:  r.data?.filter(x => x.status === 'pending').length || 0,
+      fetch('http://localhost:5000/api/custom-trips').then(r => r.json()).catch(() => ({})),
+      fetch('http://localhost:5000/api/contact/stats').then(r => r.json()).catch(() => ({})),
+    ]).then(([v, r, ct, cs]) => setSt({
+      vehicles:   v.data?.length  || 0,
+      pending:    r.data?.filter(x => x.status === 'pending').length || 0,
+      surMesure:  ct.data?.filter(x => x.status === 'pending').length || 0,
+      contactNew: parseInt(cs.data?.nouveaux) || 0,
     }));
   }, []);
 
