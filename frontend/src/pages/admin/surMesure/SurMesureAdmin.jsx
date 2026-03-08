@@ -93,6 +93,17 @@ const DetailPanel = ({ req, onClose, onStatusChange }) => {
       {/* Body */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
+        {/* Contact client */}
+        {(req.full_name || req.email || req.phone) && (
+          <Section title="Contact client">
+            <Grid>
+              {req.full_name && <Item label="Nom"       value={req.full_name} full/>}
+              {req.email     && <Item label="E-mail"    value={req.email}/>}
+              {req.phone     && <Item label="Téléphone" value={req.phone}/>}
+            </Grid>
+          </Section>
+        )}
+
         {/* Infos principales */}
         <Section title="Voyage">
           <Grid>

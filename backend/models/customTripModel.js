@@ -21,6 +21,7 @@ const getById = async (id) => {
 /* ── Créer une demande ── */
 const create = async (data) => {
   const {
+    full_name, email, phone,
     destination, departure_date, return_date, number_of_persons, max_budget,
     include_hotel, hotel_category, room_type, pension,
     include_transport, transport_type, departure_city, luggage,
@@ -29,17 +30,20 @@ const create = async (data) => {
 
   const { rows } = await db.query(
     `INSERT INTO custom_trips (
+      full_name, email, phone,
       destination, departure_date, return_date, number_of_persons, max_budget,
       include_hotel, hotel_category, room_type, pension,
       include_transport, transport_type, departure_city, luggage,
       include_guide, guide_language, guide_duration
     ) VALUES (
-      $1,$2,$3,$4,$5,
-      $6,$7,$8,$9,
-      $10,$11,$12,$13,
-      $14,$15,$16
+      $1,$2,$3,
+      $4,$5,$6,$7,$8,
+      $9,$10,$11,$12,
+      $13,$14,$15,$16,
+      $17,$18,$19
     ) RETURNING *`,
     [
+      full_name || null, email || null, phone || null,
       destination, departure_date, return_date, number_of_persons, max_budget || null,
       include_hotel || false, hotel_category || null, room_type || null, pension || null,
       include_transport || false, transport_type || null, departure_city || null, luggage || null,

@@ -1,437 +1,186 @@
+// src/pages/Contact.jsx
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import '../styles/Contact.css';
 
 const ContactPage = () => {
-  const [form, setForm] = useState({ nom: '', email: '', telephone: '', sujet: '', message: '' });
+  const [form, setForm]           = useState({ nom: '', email: '', telephone: '', sujet: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]     = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
     setTimeout(() => { setLoading(false); setSubmitted(true); }, 1200);
   };
 
-  const stats = [
-    { icon: '✈️', value: '50+',     label: 'Destinations' },
-    { icon: '👥', value: '12 000+', label: 'Voyageurs satisfaits' },
-    { icon: '⭐', value: '4.9/5',   label: 'Note moyenne' },
-    { icon: '🏆', value: '15 ans',  label: "D'expertise" },
-  ];
-
   const contactCards = [
-    { icon: '📞', title: 'Téléphone',  value: '+216 36 149 885',         sub: 'Lun – Sam · 9h à 18h',  color: '#e3f2fd', accent: '#1e88e5' },
-    { icon: '📧', title: 'Email',      value: 'tictacvoyages@gmail.com', sub: 'Réponse sous 24h',       color: '#fce4ec', accent: '#D81B60' },
-    { icon: '📍', title: 'Adresse',    value: 'Nouvelle Medina, Tunis',  sub: 'Tunisie',                color: '#e8f5e9', accent: '#43a047' },
-    { icon: '💬', title: 'WhatsApp',   value: '+216 36 149 885',         sub: 'Disponible 7j/7',        color: '#fff3e0', accent: '#fb8c00' },
-  ];
-
-  const team = [
-    { name: 'Sami Ben Ali',   role: 'Directeur Général',     emoji: '👨‍💼' },
-    { name: 'Rania Chaabane', role: 'Responsable Voyages',   emoji: '👩‍✈️' },
-    { name: 'Karim Tlili',    role: 'Conseiller Transport',  emoji: '🚌' },
-    { name: 'Nour Hamdi',     role: 'Chargée de Clientèle', emoji: '👩‍💻' },
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 015.19 12.9a19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+        </svg>
+      ),
+      title: 'Téléphone',
+      value: '+216 36 149 885',
+      sub:   'Lun – Sam · 9h à 18h',
+      href:  'tel:+21636149885',
+      cta:   'Appeler maintenant',
+      color: 'teal',
+    },
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="M22 7l-10 7L2 7"/>
+        </svg>
+      ),
+      title: 'Email',
+      value: 'tictacvoyages@gmail.com',
+      sub:   'Réponse sous 24h',
+      href:  'mailto:tictacvoyages@gmail.com',
+      cta:   'Envoyer un email',
+      color: 'accent',
+    },
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+        </svg>
+      ),
+      title: 'WhatsApp',
+      value: '+216 36 149 885',
+      sub:   'Disponible 7j/7',
+      href:  'https://wa.me/21636149885',
+      cta:   'Ouvrir WhatsApp',
+      color: 'green',
+    },
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+      ),
+      title: 'Adresse',
+      value: 'Nouvelle Medina, Tunis',
+      sub:   'Tunisie',
+      href:  'https://maps.google.com/?q=Nouvelle+Medina+Tunis',
+      cta:   'Voir sur la carte',
+      color: 'indigo',
+    },
   ];
 
   const values = [
-    { icon: '💎', title: 'Excellence', desc: 'Des prestations soigneusement sélectionnées pour chaque budget.' },
-    { icon: '🤝', title: 'Confiance',  desc: 'Plus de 15 ans de transparence et de fiabilité avec nos clients.' },
-    { icon: '🌍', title: 'Passion',    desc: "Une équipe de voyageurs passionnés qui connaissent chaque destination." },
+    { icon: '💎', title: 'Excellence',  desc: 'Des prestations soigneusement sélectionnées pour chaque budget et chaque envie.' },
+    { icon: '🤝', title: 'Confiance',   desc: 'Plus de 15 ans de transparence et de fiabilité avec nos clients à travers la Tunisie.' },
+    { icon: '🌍', title: 'Passion',     desc: "Une équipe de voyageurs passionnés qui connaissent chaque destination sur le bout des doigts." },
   ];
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', sans-serif", background: '#f0f6ff' }}>
+    <div className="ct-page">
       <Navbar />
 
-      <style>{`
-        .contact-hero {
-          position: relative;
-          min-height: 420px;
-          display: flex;
-          align-items: center;
-          overflow: visible;
-        }
-        .hero-photo {
-          position: absolute;
-          inset: 0;
-          background-image: url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1600&q=80');
-          background-size: cover;
-          background-position: center;
-          border-radius: 0;
-        }
-        .hero-overlay {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(
-            135deg,
-            rgba(13,71,161,0.82) 0%,
-            rgba(30,136,229,0.72) 45%,
-            rgba(216,27,96,0.68) 100%
-          );
-        }
-        .hero-content {
-          position: relative;
-          z-index: 2;
-          width: 100%;
-          padding: 80px 0 80px;
-        }
-
-        .badge-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: rgba(255,255,255,0.18);
-          border: 1px solid rgba(255,255,255,0.3);
-          border-radius: 50px;
-          padding: 6px 16px;
-          font-size: 13px;
-          font-weight: 600;
-          color: #fff;
-          margin-bottom: 16px;
-        }
-
-        .section-tag {
-          display: inline-block;
-          background: linear-gradient(135deg, #bbdefb, #f8bbd0);
-          color: #1565C0;
-          font-weight: 700;
-          font-size: 12px;
-          padding: 6px 18px;
-          border-radius: 50px;
-          margin-bottom: 12px;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-        }
-
-        .contact-card {
-          background: #fff;
-          border-radius: 20px;
-          padding: 26px 20px;
-          display: flex;
-          align-items: flex-start;
-          gap: 16px;
-          box-shadow: 0 2px 14px rgba(21,101,192,0.07);
-          border: 1px solid #e3f2fd;
-          transition: all 0.3s ease;
-        }
-        .contact-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 14px 36px rgba(216,27,96,0.11);
-          border-color: rgba(216,27,96,0.18);
-        }
-
-        .form-card {
-          background: #fff;
-          border-radius: 24px;
-          padding: 40px;
-          box-shadow: 0 4px 28px rgba(21,101,192,0.08);
-          border: 1px solid #e3f2fd;
-        }
-
-        .form-field label {
-          display: block;
-          font-size: 12px;
-          font-weight: 700;
-          color: #1e88e5;
-          margin-bottom: 8px;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-        }
-        .form-field input,
-        .form-field select,
-        .form-field textarea {
-          width: 100%;
-          padding: 13px 16px;
-          border: 2px solid #e3f2fd;
-          border-radius: 12px;
-          font-size: 14px;
-          color: #1a1a2e;
-          background: #f5faff;
-          outline: none;
-          transition: all 0.3s ease;
-          box-sizing: border-box;
-          font-family: inherit;
-        }
-        .form-field input:focus,
-        .form-field select:focus,
-        .form-field textarea:focus {
-          border-color: #D81B60;
-          background: #fff;
-          box-shadow: 0 0 0 4px rgba(216,27,96,0.07);
-        }
-        .form-field textarea { resize: vertical; }
-
-        .submit-btn {
-          width: 100%;
-          padding: 16px;
-          background: linear-gradient(135deg, #D81B60, #ad1457);
-          color: #fff;
-          border: none;
-          border-radius: 14px;
-          font-size: 15px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-        .submit-btn:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 28px rgba(216,27,96,0.35);
-        }
-        .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
-
-        .about-card {
-          background: linear-gradient(135deg, #1565C0 0%, #1e88e5 100%);
-          border-radius: 24px;
-          padding: 38px;
-          color: #fff;
-          position: relative;
-          overflow: hidden;
-        }
-        .about-card::before {
-          content: '✈️';
-          position: absolute;
-          right: 24px; bottom: 8px;
-          font-size: 110px;
-          opacity: 0.07;
-          pointer-events: none;
-        }
-
-        .hours-card {
-          background: #fff;
-          border-radius: 20px;
-          padding: 28px;
-          box-shadow: 0 2px 14px rgba(21,101,192,0.07);
-          border: 1px solid #e3f2fd;
-        }
-
-        .value-card {
-          background: #fff;
-          border-radius: 18px;
-          padding: 28px 22px;
-          border: 1px solid #e3f2fd;
-          box-shadow: 0 2px 12px rgba(21,101,192,0.06);
-          transition: all 0.3s ease;
-        }
-        .value-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 12px 30px rgba(21,101,192,0.11);
-          border-color: #bbdefb;
-        }
-
-        .team-card {
-          background: #fff;
-          border-radius: 18px;
-          padding: 28px 18px;
-          text-align: center;
-          box-shadow: 0 2px 12px rgba(21,101,192,0.06);
-          border: 1px solid #e3f2fd;
-          transition: all 0.3s ease;
-        }
-        .team-card:hover {
-          transform: translateY(-6px);
-          box-shadow: 0 16px 36px rgba(216,27,96,0.13);
-          border-color: rgba(216,27,96,0.2);
-        }
-        .team-avatar {
-          width: 70px; height: 70px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #e3f2fd, #fce4ec);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 28px;
-          margin: 0 auto 14px;
-          box-shadow: 0 4px 14px rgba(21,101,192,0.12);
-        }
-
-        .stat-card {
-          background: #fff;
-          border-radius: 18px;
-          padding: 22px 18px;
-          text-align: center;
-          box-shadow: 0 8px 30px rgba(21,101,192,0.13);
-          border: 1px solid #e3f2fd;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .stat-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 16px 40px rgba(216,27,96,0.13);
-        }
-
-        @media (max-width: 1024px) {
-          .contact-layout { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 768px) {
-          .stats-grid    { grid-template-columns: 1fr 1fr !important; }
-          .contact-cards { grid-template-columns: 1fr 1fr !important; }
-          .team-grid     { grid-template-columns: 1fr 1fr !important; }
-          .values-grid   { grid-template-columns: 1fr !important; }
-          .form-card     { padding: 24px 18px !important; }
-        }
-        @media (max-width: 480px) {
-          .contact-cards { grid-template-columns: 1fr !important; }
-          .team-grid     { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
-
-      {/* ── HERO WITH PHOTO ── */}
-      <section className="contact-hero">
-        <div className="hero-photo" />
-        <div className="hero-overlay" />
-        <div className="hero-content">
-          <div className="container" style={{ textAlign: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <div className="badge-pill">📍 Tunis, Tunisie — Agence de voyage</div>
-            </div>
-            <h1 style={{
-              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-              fontWeight: 900,
-              color: '#fff',
-              marginBottom: '16px',
-              lineHeight: 1.15,
-              textShadow: '0 2px 20px rgba(0,0,0,0.25)',
-            }}>
-              Contactez <span style={{ color: '#f48fb1' }}>Tictac Voyages</span>
-            </h1>
-            <p style={{
-              fontSize: '17px',
-              color: 'rgba(255,255,255,0.88)',
-              maxWidth: '520px',
-              margin: '0 auto',
-              lineHeight: 1.75,
-              textShadow: '0 1px 8px rgba(0,0,0,0.2)',
-            }}>
-              Notre équipe de passionnés est là pour transformer votre rêve de voyage en réalité.
-            </p>
-          </div>
+      {/* ══ HERO ══ */}
+      <section className="ct-hero">
+        <div className="ct-hero__bg" />
+        <div className="ct-hero__overlay" />
+        <div className="ct-hero__content">
+          <span className="ct-hero__tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            Tunis, Tunisie — Agence de voyage
+          </span>
+          <h1 className="ct-hero__title">
+            Contactez<br/>
+            <span className="ct-hero__accent">Tictac Voyages</span>
+          </h1>
+          <p className="ct-hero__sub">
+            Notre équipe de passionnés est là pour transformer
+            votre rêve de voyage en réalité.
+          </p>
         </div>
       </section>
 
-      {/* ── STATS OVERLAPPING HERO BOTTOM ── */}
-      <div style={{ position: 'relative', zIndex: 10, marginTop: '-50px', marginBottom: '30px' }}>
-        <div className="container">
-          <div
-            className="stats-grid"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4,1fr)',
-              gap: '16px',
-              maxWidth: '860px',
-              margin: '0 auto',
-            }}
-          >
-            {stats.map((s, i) => (
-              <div className="stat-card" key={i}>
-                <div style={{ fontSize: '28px', marginBottom: '10px' }}>{s.icon}</div>
-                <div style={{ fontSize: '22px', fontWeight: 800, color: '#1565C0', lineHeight: 1 }}>{s.value}</div>
-                <div style={{ fontSize: '12px', color: '#aaa', fontWeight: 500, marginTop: '5px' }}>{s.label}</div>
-              </div>
-            ))}
+      {/* ══ COMMENT NOUS REJOINDRE ══ */}
+      <section className="ct-section ct-section--cards">
+        <div className="ct-container">
+          <div className="ct-section__head">
+            <span className="ct-badge">Nos coordonnées</span>
+            <h2 className="ct-section__title">Comment nous rejoindre</h2>
+            <p className="ct-section__sub">Cliquez sur la carte de votre choix pour nous contacter directement.</p>
           </div>
-        </div>
-      </div>
-
-      {/* ── CONTACT CARDS ── */}
-      <section style={{ padding: '20px 0 60px' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-            <div className="section-tag">Nos coordonnées</div>
-            <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#1a1a2e' }}>Comment nous joindre</h2>
-          </div>
-          <div
-            className="contact-cards"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '20px' }}
-          >
-            {contactCards.map((card, i) => (
-              <div className="contact-card" key={i}>
-                <div style={{
-                  width: '50px', height: '50px',
-                  borderRadius: '14px',
-                  background: card.color,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '22px', flexShrink: 0,
-                }}>
-                  {card.icon}
+          <div className="ct-cards">
+            {contactCards.map((c, i) => (
+              <a
+                key={i}
+                href={c.href}
+                target={c.href.startsWith('http') ? '_blank' : undefined}
+                rel={c.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                className={`ct-card ct-card--${c.color}`}
+              >
+                <div className="ct-card__icon">{c.icon}</div>
+                <div className="ct-card__body">
+                  <p className="ct-card__label">{c.title}</p>
+                  <p className="ct-card__value">{c.value}</p>
+                  <p className="ct-card__sub">{c.sub}</p>
                 </div>
-                <div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: card.accent, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
-                    {card.title}
-                  </div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#1a1a2e', marginBottom: '3px' }}>
-                    {card.value}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#aaa' }}>{card.sub}</div>
-                </div>
-              </div>
+                <span className="ct-card__cta">
+                  {c.cta}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </span>
+              </a>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── FORM + RIGHT COLUMN ── */}
-      <section style={{ padding: '0 0 70px' }}>
-        <div className="container">
-          <div
-            className="contact-layout"
-            style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '28px', alignItems: 'start' }}
-          >
-            {/* ── FORM ── */}
-            <div className="form-card">
+      {/* ══ FORMULAIRE + SIDEBAR ══ */}
+      <section className="ct-section ct-section--form">
+        <div className="ct-container">
+          <div className="ct-layout">
+
+            {/* Formulaire */}
+            <div className="ct-form-wrap">
               {submitted ? (
-                <div style={{ textAlign: 'center', padding: '50px 20px' }}>
-                  <div style={{
-                    width: '80px', height: '80px',
-                    background: 'linear-gradient(135deg,#D81B60,#ad1457)',
-                    borderRadius: '50%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '36px', margin: '0 auto 24px',
-                    boxShadow: '0 8px 24px rgba(216,27,96,0.35)',
-                  }}>✓</div>
-                  <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#1a1a2e', marginBottom: '12px' }}>
-                    Message envoyé !
-                  </h2>
-                  <p style={{ color: '#888', lineHeight: 1.7, marginBottom: '28px' }}>
-                    Merci de nous avoir contactés. Un conseiller vous répondra sous 24h.
-                  </p>
-                  <button
-                    onClick={() => setSubmitted(false)}
-                    style={{
-                      padding: '12px 28px',
-                      background: 'linear-gradient(135deg,#1e88e5,#1565C0)',
-                      color: '#fff', border: 'none', borderRadius: '12px',
-                      fontWeight: 600, fontSize: '15px', cursor: 'pointer',
-                    }}
-                  >
+                <div className="ct-success">
+                  <div className="ct-success__icon">✓</div>
+                  <h2>Message envoyé !</h2>
+                  <p>Merci de nous avoir contactés.<br/>Un conseiller vous répondra sous 24h.</p>
+                  <button className="ct-btn ct-btn--outline" onClick={() => setSubmitted(false)}>
                     Envoyer un autre message
                   </button>
                 </div>
               ) : (
                 <>
-                  <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#1a1a2e', marginBottom: '6px' }}>
-                    ✉️ Envoyez-nous un message
-                  </h2>
-                  <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '28px' }}>
-                    Réponse garantie sous 24h ouvrables.
-                  </p>
-                  <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                      <div className="form-field">
-                        <label>Nom complet *</label>
-                        <input name="nom" type="text" placeholder="Votre nom" required value={form.nom} onChange={handleChange} />
+                  <div className="ct-form-head">
+                    <h2>Envoyez-nous un message</h2>
+                    <p>Réponse garantie sous 24h ouvrables.</p>
+                  </div>
+                  <form onSubmit={handleSubmit} className="ct-form">
+                    <div className="ct-form__row">
+                      <div className="ct-field">
+                        <label>Nom complet <span>*</span></label>
+                        <input name="nom" type="text" placeholder="Votre nom" required value={form.nom} onChange={handleChange}/>
                       </div>
-                      <div className="form-field">
-                        <label>Email *</label>
-                        <input name="email" type="email" placeholder="votre@email.com" required value={form.email} onChange={handleChange} />
+                      <div className="ct-field">
+                        <label>Email <span>*</span></label>
+                        <input name="email" type="email" placeholder="votre@email.com" required value={form.email} onChange={handleChange}/>
                       </div>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                      <div className="form-field">
+                    <div className="ct-form__row">
+                      <div className="ct-field">
                         <label>Téléphone</label>
-                        <input name="telephone" type="tel" placeholder="+216 XX XXX XXX" value={form.telephone} onChange={handleChange} />
+                        <input name="telephone" type="tel" placeholder="+216 XX XXX XXX" value={form.telephone} onChange={handleChange}/>
                       </div>
-                      <div className="form-field">
-                        <label>Sujet *</label>
+                      <div className="ct-field">
+                        <label>Sujet <span>*</span></label>
                         <select name="sujet" required value={form.sujet} onChange={handleChange}>
                           <option value="">Choisir...</option>
                           <option value="omra">Omra</option>
@@ -443,109 +192,88 @@ const ContactPage = () => {
                         </select>
                       </div>
                     </div>
-                    <div className="form-field">
-                      <label>Message *</label>
-                      <textarea
-                        name="message"
-                        rows={5}
-                        placeholder="Décrivez votre projet, vos dates, votre budget…"
-                        required
-                        value={form.message}
-                        onChange={handleChange}
-                      />
+                    <div className="ct-field">
+                      <label>Message <span>*</span></label>
+                      <textarea name="message" rows={5} placeholder="Décrivez votre projet, vos dates, votre budget…" required value={form.message} onChange={handleChange}/>
                     </div>
-                    <button type="submit" className="submit-btn" disabled={loading}>
-                      {loading ? '⏳ Envoi en cours…' : 'Envoyer mon message →'}
+                    <button type="submit" className="ct-btn ct-btn--primary" disabled={loading}>
+                      {loading
+                        ? <><span className="ct-spinner"/> Envoi en cours…</>
+                        : <>Envoyer mon message
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                          </>
+                      }
                     </button>
-                    <p style={{ fontSize: '12px', color: '#ccc', textAlign: 'center', margin: 0 }}>
-                      🔒 Vos données sont confidentielles et ne seront jamais partagées.
-                    </p>
+                    <p className="ct-form__note">🔒 Vos données sont confidentielles et ne seront jamais partagées.</p>
                   </form>
                 </>
               )}
             </div>
 
-            {/* ── RIGHT COLUMN ── */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+            {/* Sidebar */}
+            <div className="ct-sidebar">
 
-              {/* About */}
-              <div className="about-card">
-                <div className="badge-pill">🏆 Fondée en 2010</div>
-                <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '14px', lineHeight: 1.3 }}>
-                  À propos de<br />Tictac Voyages
-                </h2>
-                <p style={{ color: 'rgba(255,255,255,0.88)', lineHeight: 1.8, fontSize: '14px', marginBottom: '20px' }}>
-                  Depuis 2010, <strong>Tictac Voyages</strong> accompagne plus de <strong>12 000 voyageurs</strong>. Spécialisés en voyages organisés, Omra, transport et séjours sur mesure, nous mettons notre expertise à votre service avec passion et professionnalisme.
+              {/* À propos */}
+              <div className="ct-about">
+                <div className="ct-about__deco" aria-hidden="true">✈</div>
+                <span className="ct-about__badge">🏆 Fondée en 2010</span>
+                <h3>À propos de<br/><strong>Tictac Voyages</strong></h3>
+                <p>
+                  Depuis 2010, <strong>Tictac Voyages</strong> accompagne plus de{' '}
+                  <strong>12 000 voyageurs</strong>. Spécialisés en voyages organisés,
+                  Omra, transport et séjours sur mesure, nous mettons notre expertise
+                  à votre service avec passion et professionnalisme.
                 </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {['Voyages Organisés', 'Omra & Hajj', 'Transport', 'Hôtels', 'Sur Mesure', 'Billetterie'].map((tag, i) => (
-                    <span key={i} style={{
-                      background: 'rgba(255,255,255,0.16)',
-                      border: '1px solid rgba(255,255,255,0.25)',
-                      borderRadius: '50px',
-                      padding: '5px 13px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#fff',
-                    }}>
-                      {tag}
-                    </span>
+                <div className="ct-about__tags">
+                  {['Voyages Organisés','Omra & Hajj','Transport','Hôtels','Sur Mesure','Billetterie'].map((t, i) => (
+                    <span key={i} className="ct-about__tag">{t}</span>
                   ))}
                 </div>
               </div>
 
-              {/* Hours */}
-              <div className="hours-card">
-                <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#1a1a2e', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  🕐 Horaires d'ouverture
+              {/* Horaires */}
+              <div className="ct-hours">
+                <h3>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                  </svg>
+                  Horaires d'ouverture
                 </h3>
-                {[
-                  { day: 'Lundi – Vendredi', hours: '09:00 – 18:00', open: true },
-                  { day: 'Samedi',           hours: '09:00 – 14:00', open: true },
-                  { day: 'Dimanche',         hours: 'Fermé',         open: false },
-                ].map((row, i, arr) => (
-                  <div key={i} style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '11px 0',
-                    borderBottom: i < arr.length - 1 ? '1px solid #f0f4ff' : 'none',
-                  }}>
-                    <span style={{ fontSize: '14px', color: '#555', fontWeight: 500 }}>{row.day}</span>
-                    <span style={{
-                      fontSize: '13px', fontWeight: 700,
-                      color: row.open ? '#1e88e5' : '#D81B60',
-                      background: row.open ? '#e3f2fd' : '#fce4ec',
-                      padding: '4px 12px', borderRadius: '50px',
-                    }}>
-                      {row.hours}
-                    </span>
-                  </div>
-                ))}
+                <div className="ct-hours__list">
+                  {[
+                    { day: 'Lundi – Vendredi', hours: '09:00 – 18:00', open: true  },
+                    { day: 'Samedi',           hours: '09:00 – 14:00', open: true  },
+                    { day: 'Dimanche',         hours: 'Fermé',         open: false },
+                  ].map((r, i) => (
+                    <div key={i} className="ct-hours__row">
+                      <span className="ct-hours__day">{r.day}</span>
+                      <span className={`ct-hours__pill ${r.open ? 'ct-hours__pill--open' : 'ct-hours__pill--closed'}`}>
+                        {r.hours}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Map */}
-              <div style={{
-                background: '#fff',
-                borderRadius: '20px',
-                overflow: 'hidden',
-                border: '1px solid #e3f2fd',
-                boxShadow: '0 2px 14px rgba(21,101,192,0.07)',
-              }}>
+              {/* Carte Google Maps */}
+              <div className="ct-map">
                 <iframe
-                  title="Tictac Voyages"
+                  title="Tictac Voyages Tunis"
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3194.5!2d10.1815!3d36.8065!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzbCsDQ4JzIzLjQiTiAxMMKwMTAnNTMuNCJF!5e0!3m2!1sfr!2stn!4v1600000000000!5m2!1sfr!2stn"
-                  width="100%"
-                  height="175"
+                  width="100%" height="170"
                   style={{ border: 0, display: 'block' }}
-                  allowFullScreen=""
-                  loading="lazy"
+                  allowFullScreen="" loading="lazy"
                 />
-                <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '18px' }}>📍</span>
+                <div className="ct-map__footer">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#1a1a2e' }}>Nouvelle Medina, Tunis</div>
-                    <div style={{ fontSize: '12px', color: '#aaa' }}>Tunisie</div>
+                    <p>Nouvelle Medina, Tunis</p>
+                    <span>Tunisie</span>
                   </div>
                 </div>
               </div>
@@ -554,65 +282,19 @@ const ContactPage = () => {
         </div>
       </section>
 
-      {/* ── VALUES ── */}
-      <section style={{ padding: '0 0 70px' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-            <div className="section-tag">Nos valeurs</div>
-            <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#1a1a2e' }}>Pourquoi nous choisir ?</h2>
+      {/* ══ VALEURS ══ */}
+      <section className="ct-section ct-section--values">
+        <div className="ct-container">
+          <div className="ct-section__head">
+            <span className="ct-badge ct-badge--light">Nos valeurs</span>
+            <h2 className="ct-section__title ct-section__title--light">Pourquoi nous choisir ?</h2>
           </div>
-          <div
-            className="values-grid"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '20px' }}
-          >
+          <div className="ct-values">
             {values.map((v, i) => (
-              <div className="value-card" key={i}>
-                <div style={{
-                  width: '54px', height: '54px',
-                  borderRadius: '16px',
-                  background: 'linear-gradient(135deg,#e3f2fd,#fce4ec)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '26px', marginBottom: '18px',
-                }}>
-                  {v.icon}
-                </div>
-                <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#1a1a2e', marginBottom: '10px' }}>{v.title}</h3>
-                <p style={{ fontSize: '14px', color: '#888', lineHeight: 1.7 }}>{v.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TEAM ── */}
-      <section style={{ padding: '0 0 80px' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-            <div className="section-tag">Notre équipe</div>
-            <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#1a1a2e', marginBottom: '8px' }}>
-              Des experts à votre service
-            </h2>
-            <p style={{ color: '#aaa', fontSize: '15px' }}>
-              Une équipe passionnée prête à construire le voyage de vos rêves.
-            </p>
-          </div>
-          <div
-            className="team-grid"
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '20px' }}
-          >
-            {team.map((member, i) => (
-              <div className="team-card" key={i}>
-                <div className="team-avatar">{member.emoji}</div>
-                <div style={{ fontWeight: 700, fontSize: '15px', color: '#1a1a2e', marginBottom: '8px' }}>
-                  {member.name}
-                </div>
-                <span style={{
-                  fontSize: '12px', fontWeight: 700,
-                  color: '#D81B60', background: '#fce4ec',
-                  padding: '4px 12px', borderRadius: '50px',
-                }}>
-                  {member.role}
-                </span>
+              <div key={i} className="ct-value">
+                <div className="ct-value__icon">{v.icon}</div>
+                <h3>{v.title}</h3>
+                <p>{v.desc}</p>
               </div>
             ))}
           </div>
