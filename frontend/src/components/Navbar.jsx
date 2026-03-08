@@ -48,6 +48,11 @@ const navLinks = [
     label: 'Contact',
     href: '/Contact',
   },
+  {
+    id: 7,
+    label: 'Circuit',
+    href: '/circuits',
+  },
 ];
 
 const Navbar = () => {

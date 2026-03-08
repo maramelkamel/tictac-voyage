@@ -22,6 +22,7 @@ import RequestsAdmin    from './pages/admin/transport/RequestsAdmin';
 import Dashboard        from './pages/admin/dashboard/Dashboard';
 import SurMesureAdmin   from './pages/admin/surMesure/SurMesureAdmin';
 import ContactAdmin     from './pages/admin/contact/ContactAdmin';
+import Circuits        from './pages/Circuits';
 
 
 
@@ -51,6 +52,7 @@ function App() {
            <Route path="/admin"                           element={<Dashboard />} />
            <Route path="/admin/sur-mesure"            element={<SurMesureAdmin />} />
            <Route path="/admin/contact"                 element={<ContactAdmin />} />
+           <Route path="/circuits"                          element={<Circuits />} />
 
       </Routes>
       
