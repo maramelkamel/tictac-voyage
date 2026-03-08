@@ -6,6 +6,7 @@ const cors    = require('cors');
 const transportRoutes = require('./routes/transportRoutes');
 const requestRoutes   = require('./routes/requestRoutes');
 const customTripRoutes = require('./routes/customTripRoutes');
+const contactRoutes    = require('./routes/contactRoutes');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
