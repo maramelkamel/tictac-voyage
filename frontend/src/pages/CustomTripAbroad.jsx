@@ -107,17 +107,54 @@ const CustomTripAbroad = () => {
 
       {/* ══ HERO réduit et centré ══ */}
       <section className="hero-section">
-        <div className="hero__bg"></div>
-        <div className="hero__pattern"></div>
-        <div className="hero__overlay"></div>
-        <div className="hero-content">
-          <div className="hero__tag">Voyage sur mesure</div>
-          <h1>Crée ton voyage<br/>à l'étranger</h1>
-          <p className="hero-subtitle">
-            Compose ton séjour librement selon ton budget.<br/>
-            Aucun forfait imposé, uniquement ce que tu veux.
-          </p>
-          <a href="#trip-form" className="btn-cta">Commencer mon voyage</a>
+        {/* ── Fond photo avec clip diagonal ── */}
+        <div className="hero__photo-wrap">
+          <div className="hero__photo" />
+          <div className="hero__photo-grad" />
+        </div>
+
+        {/* ── Fond gauche solide ── */}
+        <div className="hero__solid" />
+
+        {/* ── Contenu ── */}
+        <div className="hero__inner">
+
+          {/* Colonne gauche — texte */}
+          <div className="hero__left">
+            <span className="hero__eyebrow">
+              <span className="hero__eyebrow-dot" />
+              Voyage sur mesure
+            </span>
+
+            <h1 className="hero__title">
+              Crée ton voyage<br/>
+              <span className="hero__title-em">à l'étranger</span>
+            </h1>
+
+            <p className="hero__desc">
+              Compose ton séjour librement selon ton budget.
+              Aucun forfait imposé — uniquement ce que <em>tu</em> veux.
+            </p>
+
+
+
+            <a href="#trip-form" className="hero__cta">
+              Commencer mon voyage
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+
+
+
+        </div>
+
+        {/* Vague de transition */}
+        <div className="hero__wave">
+          <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+            <path d="M0,80 C360,0 1080,80 1440,20 L1440,80 Z" fill="#F8FAFB"/>
+          </svg>
         </div>
       </section>
 
