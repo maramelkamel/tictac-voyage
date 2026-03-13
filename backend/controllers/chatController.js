@@ -1,17 +1,9 @@
 // backend/controllers/chatController.js
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const db = require('../config/db');
+const Groq = require('groq-sdk');
+const db   = require('../config/db');
 
-// ── Init Gemini ────────────────────────────────────────────────────
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({
-  model: 'gemini-1.5-flash',
-  generationConfig: {
-    maxOutputTokens: 800,
-    temperature:     0.70,
-    topP:            0.92,
-  },
-});
+// ── Init Groq ─────────────────────────────────────────────────────
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 /* ================================================================
    MÉMOIRE DE CONVERSATION
@@ -165,20 +157,6 @@ const getQuickActions = (intent) => ({
 }[intent] || []);
 
 /* ================================================================
-   CONVERTIR historique → format Gemini (user/model, pas user/assistant)
-   ================================================================ */
-const toGeminiHistory = (messages) => {
-  const result = [];
-  for (const m of messages) {
-    const role = m.role === 'user' ? 'user' : 'model';
-    // Gemini n'accepte pas 2 messages du même rôle consécutifs
-    if (result.length > 0 && result[result.length - 1].role === role) continue;
-    result.push({ role, parts: [{ text: String(m.content || '').slice(0, 1500) }] });
-  }
-  return result;
-};
-
-/* ================================================================
    CONTROLLER PRINCIPAL
    ================================================================ */
 exports.chat = async (req, res) => {
@@ -195,28 +173,26 @@ exports.chat = async (req, res) => {
     const profile      = extractProfile(messages);
     const systemPrompt = buildSystemPrompt(profile, dbContext);
 
-    // Séparer historique et dernier message utilisateur
-    const trimmed    = messages.slice(-14);
-    const lastMsg    = trimmed[trimmed.length - 1];
-    const historyRaw = trimmed.slice(0, -1);
+    const history = messages.slice(-14).map(m => ({
+      role:    m.role === 'user' ? 'user' : 'assistant',
+      content: String(m.content || '').slice(0, 1500),
+    }));
 
-    // Démarrer session Gemini
-    const chat = model.startChat({
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      history:           toGeminiHistory(historyRaw),
+    const completion = await groq.chat.completions.create({
+      model:       'llama-3.3-70b-versatile',
+      messages:    [{ role: 'system', content: systemPrompt }, ...history],
+      max_tokens:  800,
+      temperature: 0.70,
+      top_p:       0.92,
     });
 
-    // Envoyer dernier message
-    const result = await chat.sendMessage(
-      String(lastMsg?.content || '').slice(0, 1500)
-    );
-
-    const reply = result.response.text() || "Désolée, je n'ai pas pu répondre.";
+    const reply = completion.choices[0]?.message?.content
+      || "Désolée, je n'ai pas pu répondre.";
 
     res.json({ success: true, reply, intent, quickActions });
 
   } catch (err) {
-    console.error('[Tika Gemini Error]', err.message);
+    console.error('[Tika Groq Error]', err.message);
     res.status(500).json({
       success:      false,
       reply:        'عندي مشكل تقني 😔\n📞 **+216 36 149 885**\n✉️ tictacvoyages@gmail.com',
@@ -226,9 +202,6 @@ exports.chat = async (req, res) => {
   }
 };
 
-/* ================================================================
-   SUGGESTIONS D'ACCUEIL
-   ================================================================ */
 exports.getSuggestions = (_req, res) => {
   res.json({
     success: true,
