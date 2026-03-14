@@ -8,6 +8,9 @@ const requestRoutes   = require('./routes/requestRoutes');
 const customTripRoutes = require('./routes/customTripRoutes');
 const contactRoutes    = require('./routes/contactRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const omraRoutes = require('./routes/omraRoutes ');
+const omraReservationRoutes = require('./routes/omraReservationRoutes ');
+const clientRoutes = require('./routes/clientRoutes');
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
@@ -22,7 +25,10 @@ app.use('/api/transports', transportRoutes);  // Catalogue véhicules
 app.use('/api/requests',   requestRoutes);    // Demandes clients
 app.use('/api/custom-trips', customTripRoutes);  // Voyages sur mesure
 app.use('/api/contact',      contactRoutes);     // Messages de contact
-  app.use('/api/chat', chatRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/omra/packages', omraRoutes);
+app.use('/api/omra/reservations/stats', omraReservationRoutes);
+app.use('/api/clients/register', clientRoutes);
 
 
 // ─── Route test ─────────────────────────────────────────────────

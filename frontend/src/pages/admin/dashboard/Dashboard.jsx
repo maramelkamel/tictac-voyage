@@ -16,8 +16,8 @@ const MODULES = [
     ]},
   { title: 'Omra',               color: 'violet', desc: 'Offres de pèlerinage Omra et suivi des réservations.',
     links: [
-      { label: 'Offres',       path: '/admin/omra',              sk: null },
-      { label: 'Réservations', path: '/admin/omra/reservations', sk: null },
+      { label: 'Offres',       path: '/admin/Omra/Omraadmin',              sk: null },
+      { label: 'Réservations', path: '/admin/Omra/Omraadmin', sk: null },
     ]},
   { title: 'Billeterie / Vols',  color: 'blue',   desc: 'Gestion des vols disponibles et demandes de billets.',
     links: [
