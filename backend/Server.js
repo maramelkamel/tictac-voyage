@@ -11,6 +11,7 @@ const chatRoutes = require('./routes/chatRoutes');
 const omraRoutes = require('./routes/omraRoutes ');
 const omraReservationRoutes = require('./routes/omraReservationRoutes ');
 const clientRoutes = require('./routes/clientRoutes');
+const authRoutes = require('./routes/authRoutes');
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
@@ -29,6 +30,8 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/omra/packages', omraRoutes);
 app.use('/api/omra/reservations/stats', omraReservationRoutes);
 app.use('/api/clients/register', clientRoutes);
+app.use('/api/auth', authRoutes);
+
 
 
 // ─── Route test ─────────────────────────────────────────────────
