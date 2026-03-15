@@ -4,37 +4,37 @@ import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../layout/AdminLayout';
 
 const MODULES = [
-  { title: 'Transport',          color: 'teal',   desc: 'Véhicules et demandes de transfert / mise à disposition.',
+  { title: 'Transport', color: 'teal', desc: 'Véhicules et demandes de transfert / mise à disposition.',
     links: [
       { label: 'Véhicules', path: '/admin/transport',          sk: 'vehicles', badge: false },
       { label: 'Demandes',  path: '/admin/transport/requests', sk: 'pending',  badge: true  },
     ]},
-  { title: 'Voyages Organisés',  color: 'indigo', desc: 'Offres de voyages organisés et réservations clients.',
+  { title: 'Voyages Organisés', color: 'indigo', desc: 'Offres de voyages organisés et réservations clients.',
     links: [
       { label: 'Catalogue',    path: '/admin/voyages',              sk: null },
       { label: 'Réservations', path: '/admin/voyages/reservations', sk: null },
     ]},
-  { title: 'Omra',               color: 'violet', desc: 'Offres de pèlerinage Omra et suivi des réservations.',
+  { title: 'Omra', color: 'violet', desc: 'Offres de pèlerinage Omra et suivi des réservations.',
     links: [
-      { label: 'Offres',       path: '/admin/omra/Omraadmin', sk: null },
-      { label: 'Réservations', path: '/admin/omra/Omraadmin', sk: 'omraPending', badge: true },
+      { label: 'Forfaits',     path: '/admin/omra/packages',     sk: null },
+      { label: 'Réservations', path: '/admin/omra/reservations', sk: 'omraPending', badge: true },
     ]},
-  { title: 'Billeterie / Vols',  color: 'blue',   desc: 'Gestion des vols disponibles et demandes de billets.',
+  { title: 'Billeterie / Vols', color: 'blue', desc: 'Gestion des vols disponibles et demandes de billets.',
     links: [
       { label: 'Vols',     path: '/admin/billeterie',          sk: null },
       { label: 'Demandes', path: '/admin/billeterie/demandes', sk: null },
     ]},
-  { title: 'Voyage sur Mesure',  color: 'orange', desc: 'Demandes de voyages personnalisés à traiter.',
+  { title: 'Voyage sur Mesure', color: 'orange', desc: 'Demandes de voyages personnalisés à traiter.',
     links: [
       { label: 'Demandes', path: '/admin/sur-mesure', sk: 'surMesure', badge: true },
     ]},
-  { title: 'Contact',            color: 'red',    desc: 'Messages reçus via le formulaire de contact du site.',
+  { title: 'Contact', color: 'red', desc: 'Messages reçus via le formulaire de contact du site.',
     links: [
       { label: 'Messages', path: '/admin/contact', sk: 'contactNew', badge: true },
     ]},
-  { title: 'Clients',            color: 'green',  desc: 'Liste des clients inscrits et historique de leurs réservations.',
+  { title: 'Clients', color: 'green', desc: 'Liste des clients inscrits et historique de leurs réservations.',
     links: [
-      { label: 'Tous les clients', path: '/admin/clients/ClientsAdmin', sk: 'totalClients', badge: false },
+      { label: 'Tous les clients', path: '/admin/clients', sk: 'totalClients', badge: false },
     ]},
 ];
 
@@ -59,7 +59,7 @@ const Dashboard = () => {
       fetch('http://localhost:5000/api/custom-trips').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/contact/stats').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/omra/reservations').then(r => r.json()).catch(() => ({})),
-      fetch('http://localhost:5000/api/clients/ClientsAdmin').then(r => r.json()).catch(() => ({})),
+      fetch('http://localhost:5000/api/clients').then(r => r.json()).catch(() => ({})),
     ]).then(([v, r, ct, cs, omra, clients]) => setSt({
       vehicles:     v.data?.length || 0,
       pending:      r.data?.filter(x => x.status === 'pending').length || 0,
@@ -77,7 +77,6 @@ const Dashboard = () => {
       badges={{ transportRequests: st.pending, omraPending: st.omraPending, surMesure: st.surMesure, contactNew: st.contactNew }}
     >
       <div className="dash-page">
-
         <div className="dash-banner">
           <div>
             <span className="dash-banner__eyebrow">Bienvenue dans votre espace</span>
@@ -96,16 +95,13 @@ const Dashboard = () => {
             </button>
           )}
         </div>
-
         <div>
           <p className="dash-section-lbl">Modules</p>
           <div className="dash-grid">
             {MODULES.map(mod => (
               <div key={mod.title} className={`dash-card dash-card--${mod.color}`}>
                 <div className="dash-card__head">
-                  <div className="dash-card__icon">
-                    <DashIcon c={mod.color}/>
-                  </div>
+                  <div className="dash-card__icon"><DashIcon c={mod.color}/></div>
                   <div>
                     <p className="dash-card__title">{mod.title}</p>
                     <p className="dash-card__desc">{mod.desc}</p>
@@ -115,11 +111,7 @@ const Dashboard = () => {
                   {mod.links.map(link => {
                     const count = link.sk ? st[link.sk] : null;
                     return (
-                      <button
-                        key={link.path}
-                        className="dash-link"
-                        onClick={() => navigate(link.path)}
-                      >
+                      <button key={link.path} className="dash-link" onClick={() => navigate(link.path)}>
                         <span className="dash-link__label">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="dash-link__arrow">
                             <path d="M9 18l6-6-6-6"/>
@@ -139,7 +131,6 @@ const Dashboard = () => {
             ))}
           </div>
         </div>
-
       </div>
     </AdminLayout>
   );

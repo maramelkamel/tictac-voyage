@@ -23,7 +23,8 @@ import Dashboard        from './pages/admin/dashboard/Dashboard';
 import SurMesureAdmin   from './pages/admin/surMesure/SurMesureAdmin';
 import ContactAdmin     from './pages/admin/contact/ContactAdmin';
 import Circuits        from './pages/Circuits';
-import OmraAdmin   from './pages/admin/Omra/OmraAdmin';
+import OmraPackages      from './pages/admin/Omra/OmraPackages';
+import OmraReservations  from './pages/admin/Omra/OmraReservations';
 import ClientsAdmin from './pages/admin/clients/ClientsAdmin';
 
 
@@ -56,7 +57,8 @@ function App() {
            <Route path="/admin/sur-mesure"element={<SurMesureAdmin />} />
            <Route path="/admin/contact"element={<ContactAdmin />} />
            <Route path="/circuits"element={<Circuits />} />
-           <Route path="/admin/Omra/Omraadmin" element={<OmraAdmin />} />
+           <Route path="/admin/omra/packages"     element={<OmraPackages />} />
+          <Route path="/admin/omra/reservations" element={<OmraReservations />} />
            <Route path="/admin/clients/ClientsAdmin" element={<ClientsAdmin />} />
            
 

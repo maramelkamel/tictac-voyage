@@ -8,7 +8,7 @@ import Chatbot from '../../components/Chatbot';
 import { statsData } from '../../data/OmraData';
 import '../../styles/omrastyle.css';
 
-const API = 'http://localhost:5000/api/omra/packages';
+const API = 'http://localhost:5000/api/omra/packages?public=true';
 
 const Omra = () => {
   const navigate = useNavigate();

@@ -7,7 +7,6 @@ const Icon = ({ name }) => {
   const paths = {
     dashboard: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
     transport: <><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M8 9v5M13 9v5M18 9v5"/><circle cx="7" cy="21" r="1.5"/><circle cx="17" cy="21" r="1.5"/></>,
-    requests:  <><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></>,
     omra:      <><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></>,
     voyages:   <><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></>,
     billets:   <><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></>,
@@ -40,7 +39,8 @@ const NAV = [
           { label: 'Réservations', path: '/admin/voyages/reservations' },
       ]},
       { label: 'Omra', icon: 'omra', sub: [
-          { label: 'Offres & Réservations', path: '/admin/omra/Omraadmin', badgeKey: 'omraPending' },
+          { label: 'Forfaits',     path: '/admin/omra/packages',     badgeKey: null },
+          { label: 'Réservations', path: '/admin/omra/reservations', badgeKey: 'omraPending' },
       ]},
       { label: 'Billeterie / Vols', icon: 'billets', sub: [
           { label: 'Vols',     path: '/admin/billeterie' },
@@ -50,7 +50,7 @@ const NAV = [
           { label: 'Demandes', path: '/admin/sur-mesure', badgeKey: 'surMesure' },
       ]},
       { label: 'Contact', icon: 'contact', sub: [
-          { label: 'Messages', path: '/admin/contact/ClientsAdmin', badgeKey: 'contactNew' },
+          { label: 'Messages', path: '/admin/contact', badgeKey: 'contactNew' },
       ]},
       { label: 'Clients', icon: 'clients', sub: [
           { label: 'Tous les clients', path: '/admin/clients', badgeKey: null },
@@ -76,7 +76,6 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
 
   return (
     <div className="al-root">
-
       {toast && (
         <div className={`al-toast al-toast--${toast.type}`}>
           <span className="al-toast__icon">
@@ -88,7 +87,6 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
         </div>
       )}
 
-      {/* SIDEBAR */}
       <aside className="al-sidebar">
         <div className="al-brand">
           <div className="al-brand__logo"><Icon name="logo"/></div>
@@ -110,7 +108,6 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
                     <Icon name={item.icon}/>{item.label}
                   </button>
                 );
-
                 const isOpen = openMenu === item.label;
                 const hasActiveSub = item.sub.some(s => isSubActive(s.path));
                 return (
@@ -162,7 +159,6 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
         </div>
       </aside>
 
-      {/* MAIN */}
       <main className="al-main">
         <header className="al-topbar">
           <div className="al-topbar__left">
@@ -183,10 +179,8 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
           </div>
           {actions && <div className="al-topbar__actions">{actions}</div>}
         </header>
-
         <div className="al-content">{children}</div>
       </main>
-
     </div>
   );
 };

@@ -1,34 +1,47 @@
 // backend/models/omraModel.js
 const pool = require('../config/db');
 
-/* GET all packages + reservation count per package */
+// ── Shared SQL fragment with available_spots ──────────────────────
+// available_spots = total spots - confirmed reservations (min 0)
+const SPOTS_QUERY = `
+  SELECT p.*,
+    COALESCE(COUNT(r.id), 0)::int AS reservation_count,
+    GREATEST(
+      p.spots - COALESCE(COUNT(r.id) FILTER (WHERE r.status = 'confirmed'), 0),
+      0
+    )::int AS available_spots
+  FROM public.omra_packages p
+  LEFT JOIN public.omra_reservations r ON r.package_id = p.id
+`;
+
+/* GET all packages (admin — includes inactive) */
 const getAllPackages = async () => {
   const { rows } = await pool.query(`
-    SELECT p.*,
-      COALESCE(COUNT(r.id), 0)::int AS reservation_count
-    FROM public.omra_packages p
-    LEFT JOIN public.omra_reservations r ON r.package_id = p.id
+    ${SPOTS_QUERY}
     GROUP BY p.id
     ORDER BY p.created_at DESC
   `);
   return rows;
 };
 
-/* GET active packages only (for public frontend) */
+/* GET active packages only (public frontend) */
 const getActivePackages = async () => {
   const { rows } = await pool.query(`
-    SELECT * FROM public.omra_packages
-    WHERE is_active = true
-    ORDER BY created_at DESC
+    ${SPOTS_QUERY}
+    WHERE p.is_active = true
+    GROUP BY p.id
+    ORDER BY p.created_at DESC
   `);
   return rows;
 };
 
 /* GET one package by id */
 const getPackageById = async (id) => {
-  const { rows } = await pool.query(
-    'SELECT * FROM public.omra_packages WHERE id = $1', [id]
-  );
+  const { rows } = await pool.query(`
+    ${SPOTS_QUERY}
+    WHERE p.id = $1
+    GROUP BY p.id
+  `, [id]);
   return rows[0] || null;
 };
 
