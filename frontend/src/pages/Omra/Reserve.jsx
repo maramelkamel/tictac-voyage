@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import '../../styles/omrastyle.css';
 
 const Reserve = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const pkg = location.state?.pkg;
+  const navigate   = useNavigate();
+  const location   = useLocation();
+  const { id }     = useParams();
+  const pkg        = location.state?.pkg;
 
   const [form, setForm] = useState({
     firstName:      '',
@@ -24,9 +25,12 @@ const Reserve = () => {
   const [loading, setLoading] = useState(false);
 
   const set = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
-  const totalPrice = pkg ? pkg.price * Number(form.persons) : 0;
 
-  /* ── Fallback ── */
+  // ── Normalize price (DB uses snake_case) ─────────────────────
+  const price      = pkg ? (pkg.price || pkg.prix || 0) : 0;
+  const totalPrice = price * Number(form.persons);
+
+  // ── Fallback ─────────────────────────────────────────────────
   if (!pkg) {
     return (
       <>
@@ -36,7 +40,7 @@ const Reserve = () => {
           <h2 style={{ color: 'var(--gray-600)', marginBottom: 12 }}>Aucun forfait sélectionné</h2>
           <p style={{ color: 'var(--gray-400)', marginBottom: 28 }}>Veuillez choisir un forfait depuis la page Omra.</p>
           <button
-            onClick={() => navigate('/omra')}
+            onClick={() => navigate('/Omra/Omra')}
             style={{ padding: '14px 32px', background: 'var(--secondary)', color: 'var(--white)', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
           >
             <i className="fas fa-arrow-left" /> Retour aux forfaits
@@ -47,20 +51,27 @@ const Reserve = () => {
     );
   }
 
-  /* ── Submit → navigate to Payment ── */
+  const image    = pkg.image_url || pkg.image   || '';
+  const duration = pkg.duration  || pkg.duree   || 0;
+  const departure= pkg.departure || pkg.depart  || '';
+  const rating   = pkg.rating    || 5;
+  const reviews  = pkg.reviews   || 0;
+  const oldPrice = pkg.old_price || pkg.oldPrice || null;
+
+  // ── Submit → navigate to OmraPayment ─────────────────────────
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Build a "voyage-like" object so Payment.jsx can consume it uniformly
+    // Pass both the raw form AND a voyage-shaped object for the payment UI
     const voyageForPayment = {
       titre:       pkg.title,
-      image:       pkg.image,
+      image:       image,
       pays:        'Arabie Saoudite',
       destination: 'La Mecque & Médine',
-      prix:        pkg.price,
-      duree:       `${pkg.duration} jours`,
-      depart:      pkg.departure,
+      prix:        price,
+      duree:       `${duration} jours`,
+      depart:      departure,
       places:      pkg.spots ?? '—',
     };
 
@@ -76,13 +87,28 @@ const Reserve = () => {
 
     setTimeout(() => {
       setLoading(false);
-      navigate('/Omra/OmraPayment/${id}', {
+      // ✅ Fixed: use template literal with backticks
+      navigate(`/Omra/OmraPayment/${pkg.id}`, {
         state: {
-          voyage:    voyageForPayment,
-          booking:   bookingForPayment,
-          totalPrix: totalPrice,
-          // keep original pkg in case Payment needs extra info
+          voyage:      voyageForPayment,
+          booking:     bookingForPayment,
+          totalPrix:   totalPrice,
           pkg,
+          // raw form data for API call in OmraPayment
+          reservationData: {
+            package_id:        pkg.id,
+            first_name:        form.firstName,
+            last_name:         form.lastName,
+            email:             form.email,
+            phone:             form.phone,
+            gender:            form.gender,
+            has_mahram:        form.hasMahram || null,
+            passport_number:   form.passportNumber,
+            chambre_type:      form.chambre,
+            number_of_persons: Number(form.persons),
+            total_price:       totalPrice,
+            notes:             form.note || null,
+          },
         },
       });
     }, 800);
@@ -97,11 +123,11 @@ const Reserve = () => {
 
           {/* Breadcrumb */}
           <div className="omra-page-breadcrumb" style={{ paddingTop: 8 }}>
-            <button onClick={() => navigate('/omra')}>
+            <button onClick={() => navigate('/Omra/Omra')}>
               <i className="fas fa-arrow-left" /> Omra
             </button>
             <i className="fas fa-chevron-right" style={{ fontSize: 10, color: 'var(--gray-400)' }} />
-            <button onClick={() => navigate('/omra/details', { state: { pkg } })} style={{ color: 'var(--gray-500)' }}>
+            <button onClick={() => navigate(`/Omra/Details/${pkg.id}`, { state: { pkg } })} style={{ color: 'var(--gray-500)' }}>
               {pkg.title}
             </button>
             <i className="fas fa-chevron-right" style={{ fontSize: 10, color: 'var(--gray-400)' }} />
@@ -110,7 +136,7 @@ const Reserve = () => {
 
           <div className="omra-reserve__layout">
 
-            {/* ── Left: Form ── */}
+            {/* Left: Form */}
             <div>
               <div className="omra-reserve__form-card">
                 <div className="omra-reserve__form-header">
@@ -125,7 +151,7 @@ const Reserve = () => {
 
                 <form className="omra-reserve__form-body" onSubmit={handleSubmit}>
 
-                  {/* ── Identité ── */}
+                  {/* Identité */}
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>
                       <i className="fas fa-user" style={{ marginRight: 8 }} />Informations personnelles
@@ -158,7 +184,7 @@ const Reserve = () => {
 
                   <div style={{ height: 1, background: 'var(--gray-100)' }} />
 
-                  {/* ── Contact ── */}
+                  {/* Contact */}
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>
                       <i className="fas fa-address-book" style={{ marginRight: 8 }} />Contact
@@ -177,7 +203,7 @@ const Reserve = () => {
 
                   <div style={{ height: 1, background: 'var(--gray-100)' }} />
 
-                  {/* ── Voyage ── */}
+                  {/* Voyage */}
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>
                       <i className="fas fa-plane" style={{ marginRight: 8 }} />Détails du voyage
@@ -197,7 +223,6 @@ const Reserve = () => {
                           {[1,2,3,4,5,6,7,8,9,10].map(n => (
                             <option key={n} value={n}>{n} personne{n > 1 ? 's' : ''}</option>
                           ))}
-                          <option value="10+">10+ personnes</option>
                         </select>
                       </div>
                     </div>
@@ -215,7 +240,7 @@ const Reserve = () => {
 
                   <div style={{ height: 1, background: 'var(--gray-100)' }} />
 
-                  {/* ── Remarques ── */}
+                  {/* Remarques */}
                   <div className="omra-reserve__field">
                     <label>Remarques / Besoins spéciaux (optionnel)</label>
                     <textarea
@@ -226,7 +251,7 @@ const Reserve = () => {
                     />
                   </div>
 
-                  {/* ── Terms ── */}
+                  {/* Terms */}
                   <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                     <input type="checkbox" id="terms" required style={{ marginTop: 3, accentColor: 'var(--secondary)', width: 16, height: 16, flexShrink: 0, cursor: 'pointer' }} />
                     <label htmlFor="terms" style={{ fontSize: 13, color: 'var(--gray-500)', lineHeight: 1.6, cursor: 'pointer' }}>
@@ -235,7 +260,7 @@ const Reserve = () => {
                     </label>
                   </div>
 
-                  {/* ── Submit ── */}
+                  {/* Submit */}
                   <button type="submit" className="omra-reserve__submit" disabled={loading}>
                     {loading
                       ? 'Chargement…'
@@ -252,18 +277,17 @@ const Reserve = () => {
               </div>
             </div>
 
-            {/* ── Right: Package summary ── */}
+            {/* Right: Package summary */}
             <div className="omra-details__sidebar">
-
               <div className="omra-reserve__pkg-card">
-                <img className="omra-reserve__pkg-img" src={pkg.image} alt={pkg.title} />
+                <img className="omra-reserve__pkg-img" src={image} alt={pkg.title} />
                 <div className="omra-reserve__pkg-info">
                   <h3 className="omra-reserve__pkg-title">{pkg.title}</h3>
                   <p className="omra-reserve__pkg-subtitle">{pkg.subtitle}</p>
                   <div className="omra-reserve__pkg-meta">
-                    <div className="omra-reserve__pkg-meta-item"><i className="fas fa-calendar-alt" /> {pkg.duration} jours</div>
-                    <div className="omra-reserve__pkg-meta-item"><i className="fas fa-plane-departure" /> Départ : {pkg.departure}</div>
-                    <div className="omra-reserve__pkg-meta-item"><i className="fas fa-star" style={{ color: '#D4A017' }} /> {pkg.rating} / 5 — {pkg.reviews} avis</div>
+                    <div className="omra-reserve__pkg-meta-item"><i className="fas fa-calendar-alt" /> {duration} jours</div>
+                    <div className="omra-reserve__pkg-meta-item"><i className="fas fa-plane-departure" /> Départ : {departure}</div>
+                    <div className="omra-reserve__pkg-meta-item"><i className="fas fa-star" style={{ color: '#D4A017' }} /> {rating} / 5 — {reviews} avis</div>
                   </div>
                 </div>
               </div>
@@ -272,17 +296,17 @@ const Reserve = () => {
                 <p className="omra-reserve__summary-title">Résumé du prix</p>
                 <div className="omra-reserve__summary-row">
                   <span>Prix par personne</span>
-                  <span style={{ fontWeight: 700, color: 'var(--white)' }}>{pkg.price.toLocaleString('fr-TN')} TND</span>
+                  <span style={{ fontWeight: 700, color: 'var(--white)' }}>{Number(price).toLocaleString('fr-TN')} TND</span>
                 </div>
                 <div className="omra-reserve__summary-row">
                   <span>Nombre de personnes</span>
                   <span style={{ fontWeight: 700, color: 'var(--white)' }}>× {form.persons}</span>
                 </div>
-                {pkg.oldPrice && (
+                {oldPrice && (
                   <div className="omra-reserve__summary-row">
                     <span>Économie</span>
                     <span style={{ color: '#D4A017', fontWeight: 700 }}>
-                      −{((pkg.oldPrice - pkg.price) * Number(form.persons)).toLocaleString('fr-TN')} TND
+                      −{((Number(oldPrice) - Number(price)) * Number(form.persons)).toLocaleString('fr-TN')} TND
                     </span>
                   </div>
                 )}
@@ -292,7 +316,6 @@ const Reserve = () => {
                 </div>
               </div>
 
-              {/* Help box */}
               <div style={{ marginTop: 20, background: 'var(--white)', borderRadius: 16, padding: '20px', border: '1px solid var(--gray-100)' }}>
                 <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--gray-700)', marginBottom: 14 }}>
                   <i className="fas fa-headset" style={{ color: 'var(--secondary)', marginRight: 8 }} />Besoin d'aide ?
@@ -304,7 +327,6 @@ const Reserve = () => {
                   <i className="fas fa-phone" /> +216 36 149 885
                 </a>
               </div>
-
             </div>
           </div>
         </div>

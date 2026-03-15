@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import '../../styles/detail.css'; // shared stylesheet
+import '../../styles/detail.css';
 
-/* ── build gallery from hero image + unsplash extras ── */
-const buildGallery = (mainImage, keyword = 'mecca') => {
+const API = 'http://localhost:5000/api/omra/packages';
+
+const buildGallery = (mainImage) => {
   const tags = ['mecca kaaba', 'medina mosque', 'islam pilgrimage', 'saudi arabia'];
   const seeds = [11, 22, 33, 44];
   const extras = seeds.map((s, i) =>
@@ -15,12 +16,41 @@ const buildGallery = (mainImage, keyword = 'mecca') => {
 };
 
 const Details = () => {
-  const navigate            = useNavigate();
-  const { state }           = useLocation();
-  const pkg                 = state?.pkg;
+  const navigate        = useNavigate();
+  const { state }       = useLocation();
+  const { id }          = useParams();
+  const [pkg, setPkg]   = useState(state?.pkg || null);
+  const [loading, setLoading] = useState(!state?.pkg);
   const [lightbox, setLightbox] = useState(null);
 
-  /* ── Fallback ── */
+  // ── Fetch from API if no state was passed ────────────────────
+  useEffect(() => {
+    if (!state?.pkg && id) {
+      fetch(`${API}/${id}`)
+        .then(r => r.json())
+        .then(json => {
+          setPkg(json.data || null);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }
+  }, [id, state]);
+
+  // ── Loading ──────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="detail-page">
+        <Navbar />
+        <div style={{ textAlign: 'center', padding: '160px 24px' }}>
+          <div style={{ width: 40, height: 40, border: '3px solid #e2e8f0', borderTopColor: '#e8306a', borderRadius: '50%', animation: 'spin .7s linear infinite', margin: '0 auto 16px' }} />
+          <p style={{ color: '#94a3b8' }}>Chargement du forfait...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // ── Fallback ─────────────────────────────────────────────────
   if (!pkg) {
     return (
       <div className="detail-page">
@@ -31,7 +61,7 @@ const Details = () => {
             Forfait introuvable.
           </p>
           <button
-            onClick={() => navigate('/omra')}
+            onClick={() => navigate('/Omra/Omra')}
             style={{ padding: '14px 28px', background: 'linear-gradient(135deg,#e8306a,#b72754)', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, cursor: 'pointer' }}
           >
             ← Retour aux forfaits Omra
@@ -42,7 +72,12 @@ const Details = () => {
     );
   }
 
-  const gallery = buildGallery(pkg.image, 'mecca');
+  // ── Normalize includes (can be array of strings or objects) ──
+  const includesList = Array.isArray(pkg.includes)
+    ? pkg.includes.map(i => typeof i === 'string' ? { label: i } : i)
+    : [];
+
+  const gallery = buildGallery(pkg.image_url || pkg.image);
 
   const programme = [
     { title: 'Départ & Arrivée à Médine',      desc: "Vol depuis Tunis-Carthage. Accueil et transfert à l'hôtel. Repos et première prière à la Mosquée du Prophète." },
@@ -56,43 +91,49 @@ const Details = () => {
     'Le passeport doit être valide au moins 6 mois après la date de retour.',
     "Des photos d'identité récentes sont requises pour le visa Omra.",
     'Le pèlerinage est ouvert aux personnes en bonne santé physique.',
-    'Les femmes de moins de 45 ans doivent être accompagnées d\'un mahram.',
+    "Les femmes de moins de 45 ans doivent être accompagnées d'un mahram.",
   ];
 
   const prevPhoto = () => setLightbox(i => (i - 1 + gallery.length) % gallery.length);
   const nextPhoto = () => setLightbox(i => (i + 1) % gallery.length);
 
-  const handleReserve = () => navigate('/omra/reserve/${id}', { state: { pkg } });
+  // ── Normalize price fields (DB uses snake_case) ──────────────
+  const price    = pkg.price    || pkg.prix    || 0;
+  const oldPrice = pkg.old_price || pkg.oldPrice || null;
+  const duration = pkg.duration || pkg.duree   || 0;
+  const departure= pkg.departure|| pkg.depart  || '';
+  const spots    = pkg.spots    || 0;
+  const rating   = pkg.rating   || 5;
+  const reviews  = pkg.reviews  || 0;
+  const image    = pkg.image_url|| pkg.image   || '';
+
+  const handleReserve = () => navigate(`/Omra/Reserve/${pkg.id}`, { state: { pkg } });
 
   return (
     <div className="detail-page">
       <Navbar />
 
-      {/* ════════════ HERO ════════════ */}
+      {/* HERO */}
       <section className="detail-hero">
-        <img src={pkg.image} alt={pkg.title} className="detail-hero__img" />
+        <img src={image} alt={pkg.title} className="detail-hero__img" />
         <div className="detail-hero__overlay" />
         <div className="detail-hero__content">
           <div className="container">
-
-            {/* Breadcrumb */}
             <div className="detail-breadcrumb">
-              <button className="detail-breadcrumb__btn" onClick={() => navigate('/omra')}>
+              <button className="detail-breadcrumb__btn" onClick={() => navigate('/Omra/Omra')}>
                 ← Omra
               </button>
               <span className="detail-breadcrumb__sep">/</span>
               <span className="detail-breadcrumb__current">{pkg.title}</span>
             </div>
-
             {pkg.badge && <div className="detail-hero__badge">{pkg.badge}</div>}
             <h1 className="detail-hero__title">{pkg.title}</h1>
-
             <div className="detail-hero__meta">
               {[
-                { icon: '⭐', text: `${pkg.rating} (${pkg.reviews} avis)` },
-                { icon: '🕐', text: `${pkg.duration} jours` },
-                { icon: '✈️', text: `Départ ${pkg.departure}` },
-                pkg.spots <= 10 && { icon: '🔥', text: `${pkg.spots} places restantes` },
+                { icon: '⭐', text: `${rating} (${reviews} avis)` },
+                { icon: '🕐', text: `${duration} jours` },
+                { icon: '✈️', text: `Départ ${departure}` },
+                spots <= 10 && spots > 0 && { icon: '🔥', text: `${spots} places restantes` },
               ].filter(Boolean).map((pill, i) => (
                 <span className="detail-hero__pill" key={i}>
                   <i>{pill.icon}</i> {pill.text}
@@ -103,15 +144,15 @@ const Details = () => {
         </div>
       </section>
 
-      {/* ════════════ STATS STRIP ════════════ */}
+      {/* STATS STRIP */}
       <div className="detail-stats">
         <div className="container">
           <div className="detail-stats__grid">
             {[
-              { icon: '🕌', label: 'Destinations',  value: 'Médine & La Mecque' },
-              { icon: '📅', label: 'Durée',          value: `${pkg.duration} jours` },
-              { icon: '✈️', label: 'Départ',         value: pkg.departure },
-              { icon: '🛡️', label: 'Visa Omra',      value: 'Inclus' },
+              { icon: '🕌', label: 'Destinations', value: 'Médine & La Mecque' },
+              { icon: '📅', label: 'Durée',         value: `${duration} jours` },
+              { icon: '✈️', label: 'Départ',        value: departure },
+              { icon: '🛡️', label: 'Visa Omra',     value: 'Inclus' },
             ].map((s, i) => (
               <div className="detail-stats__item" key={i}>
                 <div className="detail-stats__icon">{s.icon}</div>
@@ -125,12 +166,12 @@ const Details = () => {
         </div>
       </div>
 
-      {/* ════════════ BODY ════════════ */}
+      {/* BODY */}
       <div className="detail-body">
         <div className="container">
           <div className="detail-layout">
 
-            {/* ══ LEFT column ══ */}
+            {/* LEFT column */}
             <div>
 
               {/* Description */}
@@ -142,8 +183,7 @@ const Details = () => {
                 <p className="detail-desc">{pkg.description}</p>
                 <p className="detail-desc" style={{ marginTop: 16 }}>
                   Nos guides expérimentés vous accompagneront tout au long de votre séjour pour vous expliquer les
-                  rites de l'Omra et vous aider à accomplir votre pèlerinage dans les meilleures conditions
-                  spirituelles et matérielles.
+                  rites de l'Omra et vous aider à accomplir votre pèlerinage dans les meilleures conditions.
                 </p>
                 <p className="detail-desc" style={{ marginTop: 16 }}>
                   L'agence <strong>TICTAC VOYAGES</strong> gère toutes les formalités administratives (visa,
@@ -151,7 +191,7 @@ const Details = () => {
                 </p>
               </div>
 
-              {/* Programme — timeline */}
+              {/* Programme */}
               <div className="detail-card">
                 <div className="detail-card__head">
                   <div className="detail-card__accent" />
@@ -164,9 +204,7 @@ const Details = () => {
                       <div className="detail-prog-body">
                         <div className="detail-prog-label">Jour {i + 1}</div>
                         <div className="detail-prog-text">
-                          <strong>{step.title}</strong>
-                          <br />
-                          {step.desc}
+                          <strong>{step.title}</strong><br />{step.desc}
                         </div>
                       </div>
                     </div>
@@ -190,10 +228,7 @@ const Details = () => {
                       <img src={src} alt={`${pkg.title} ${i + 1}`} />
                       <div className="detail-gal-overlay">
                         {i === 4 && gallery.length > 5 ? (
-                          <div className="detail-gal-more">
-                            <span>+{gallery.length - 5}</span>
-                            <span>photos</span>
-                          </div>
+                          <div className="detail-gal-more"><span>+{gallery.length - 5}</span><span>photos</span></div>
                         ) : (
                           <span>🔍</span>
                         )}
@@ -204,20 +239,22 @@ const Details = () => {
               </div>
 
               {/* Ce qui est inclus */}
-              <div className="detail-card">
-                <div className="detail-card__head">
-                  <div className="detail-card__accent" />
-                  <h3 className="detail-card__title">✅ Ce forfait comprend</h3>
+              {includesList.length > 0 && (
+                <div className="detail-card">
+                  <div className="detail-card__head">
+                    <div className="detail-card__accent" />
+                    <h3 className="detail-card__title">✅ Ce forfait comprend</h3>
+                  </div>
+                  <div className="detail-includes-grid">
+                    {includesList.map((inc, i) => (
+                      <div key={i} className="detail-inc-tag">
+                        <div className="detail-inc-icon">✓</div>
+                        {inc.label || inc}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="detail-includes-grid">
-                  {pkg.includes.map((inc, i) => (
-                    <div key={i} className="detail-inc-tag">
-                      <div className="detail-inc-icon">✓</div>
-                      {inc.label}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              )}
 
               {/* À noter */}
               <div className="detail-card" style={{ background: 'rgba(232,48,106,0.03)', border: '1px solid rgba(232,48,106,0.12)' }}>
@@ -237,72 +274,54 @@ const Details = () => {
 
             </div>
 
-            {/* ══ RIGHT sidebar ══ */}
+            {/* RIGHT sidebar */}
             <aside className="detail-sidebar">
               <div className="detail-price-card">
-
-                {/* Old price */}
-                {pkg.oldPrice && (
+                {oldPrice && (
                   <div style={{ fontSize: 14, color: '#6b9aa5', textDecoration: 'line-through', marginBottom: 4 }}>
-                    {pkg.oldPrice.toLocaleString('fr-TN')} TND
+                    {Number(oldPrice).toLocaleString('fr-TN')} TND
                   </div>
                 )}
-
-                {/* Price */}
                 <div className="detail-price-main">
-                  <span className="detail-price-amount">{pkg.price.toLocaleString('fr-TN')}</span>
+                  <span className="detail-price-amount">{Number(price).toLocaleString('fr-TN')}</span>
                   <span className="detail-price-curr">TND</span>
                 </div>
                 <div className="detail-price-unit">/ personne · taxes incluses</div>
-
                 <div className="detail-price-divider" />
-
-                {/* Rating */}
                 <div className="detail-rating-row">
                   <div className="detail-stars">
                     {[1,2,3,4,5].map(s => (
-                      <span key={s} className={`detail-star ${s <= Math.round(pkg.rating) ? 'detail-star--on' : 'detail-star--off'}`}>★</span>
+                      <span key={s} className={`detail-star ${s <= Math.round(rating) ? 'detail-star--on' : 'detail-star--off'}`}>★</span>
                     ))}
                   </div>
-                  <span className="detail-rating-txt">{pkg.rating} ({pkg.reviews} avis)</span>
+                  <span className="detail-rating-txt">{rating} ({reviews} avis)</span>
                 </div>
-
-                {/* Quick info perks */}
                 <ul className="detail-perks">
                   {[
-                    `${pkg.duration} jours de séjour`,
-                    `Départ : ${pkg.departure}`,
+                    `${duration} jours de séjour`,
+                    `Départ : ${departure}`,
                     'Visa Omra inclus',
                     'Assurance voyage incluse',
                     'Guide francophone',
                     'Transferts aéroport inclus',
                   ].map((perk, i) => (
-                    <li key={i}>
-                      <div className="detail-perk-check">✓</div>
-                      {perk}
-                    </li>
+                    <li key={i}><div className="detail-perk-check">✓</div>{perk}</li>
                   ))}
                 </ul>
-
-                {/* CTA */}
                 <button className="detail-reserve-btn" onClick={handleReserve}>
                   🕌 Réserver ce forfait →
                 </button>
-
                 <a href="tel:+21636149885" className="detail-back-btn" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   📞 Nous appeler
                 </a>
-
                 <p className="detail-sidebar-note">
-                  Aucun paiement immédiat. Un conseiller vous contactera sous 24h pour finaliser votre dossier.
+                  Aucun paiement immédiat. Un conseiller vous contactera sous 24h.
                 </p>
-
-                {pkg.spots <= 10 && (
+                {spots > 0 && spots <= 10 && (
                   <div className="detail-spots-badge">
-                    🔥 Plus que {pkg.spots} place{pkg.spots > 1 ? 's' : ''} disponible{pkg.spots > 1 ? 's' : ''} !
+                    🔥 Plus que {spots} place{spots > 1 ? 's' : ''} disponible{spots > 1 ? 's' : ''} !
                   </div>
                 )}
-
               </div>
             </aside>
 
@@ -310,7 +329,7 @@ const Details = () => {
         </div>
       </div>
 
-      {/* ════════════ LIGHTBOX ════════════ */}
+      {/* LIGHTBOX */}
       {lightbox !== null && (
         <div className="detail-lightbox" onClick={() => setLightbox(null)}>
           <button className="detail-lb-close" onClick={e => { e.stopPropagation(); setLightbox(null); }}>✕</button>
