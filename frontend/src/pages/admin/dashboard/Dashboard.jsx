@@ -16,8 +16,8 @@ const MODULES = [
     ]},
   { title: 'Omra',               color: 'violet', desc: 'Offres de pèlerinage Omra et suivi des réservations.',
     links: [
-      { label: 'Offres',       path: '/admin/Omra/Omraadmin',              sk: null },
-      { label: 'Réservations', path: '/admin/Omra/Omraadmin', sk: null },
+      { label: 'Offres',       path: '/admin/Omra',              sk: null },
+      {  label: 'Réservations', path: '/admin/omra', sk: 'omraPending', badge: true },
     ]},
   { title: 'Billeterie / Vols',  color: 'blue',   desc: 'Gestion des vols disponibles et demandes de billets.',
     links: [
@@ -53,11 +53,13 @@ const Dashboard = () => {
       fetch('http://localhost:5000/api/requests').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/custom-trips').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/contact/stats').then(r => r.json()).catch(() => ({})),
-    ]).then(([v, r, ct, cs]) => setSt({
+      fetch('http://localhost:5000/api/omra/reservations').then(r => r.json()).catch(() => ({})), // ← ADD
+    ]).then(([v, r, ct, cs, omra]) => setSt({
       vehicles:   v.data?.length  || 0,
       pending:    r.data?.filter(x => x.status === 'pending').length || 0,
       surMesure:  ct.data?.filter(x => x.status === 'pending').length || 0,
       contactNew: parseInt(cs.data?.nouveaux) || 0,
+       omraPending: omra.data?.filter(x => x.status === 'pending').length || 0, // ← ADD
     }));
   }, []);
 
