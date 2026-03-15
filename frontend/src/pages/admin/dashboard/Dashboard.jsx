@@ -16,8 +16,8 @@ const MODULES = [
     ]},
   { title: 'Omra',               color: 'violet', desc: 'Offres de pèlerinage Omra et suivi des réservations.',
     links: [
-      { label: 'Offres',       path: '/admin/Omra',              sk: null },
-      {  label: 'Réservations', path: '/admin/omra', sk: 'omraPending', badge: true },
+      { label: 'Offres',       path: '/admin/omra/Omraadmin', sk: null },
+      { label: 'Réservations', path: '/admin/omra/Omraadmin', sk: 'omraPending', badge: true },
     ]},
   { title: 'Billeterie / Vols',  color: 'blue',   desc: 'Gestion des vols disponibles et demandes de billets.',
     links: [
@@ -32,6 +32,10 @@ const MODULES = [
     links: [
       { label: 'Messages', path: '/admin/contact', sk: 'contactNew', badge: true },
     ]},
+  { title: 'Clients',            color: 'green',  desc: 'Liste des clients inscrits et historique de leurs réservations.',
+    links: [
+      { label: 'Tous les clients', path: '/admin/clients/ClientsAdmin', sk: 'totalClients', badge: false },
+    ]},
 ];
 
 const DashIcon = ({ c }) => ({
@@ -41,11 +45,12 @@ const DashIcon = ({ c }) => ({
   blue:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>,
   orange: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>,
   red:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
+  green:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,
 }[c]);
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [st, setSt] = useState({ vehicles: 0, pending: 0 });
+  const [st, setSt] = useState({ vehicles: 0, pending: 0, surMesure: 0, contactNew: 0, omraPending: 0, totalClients: 0 });
 
   useEffect(() => {
     Promise.all([
@@ -53,13 +58,15 @@ const Dashboard = () => {
       fetch('http://localhost:5000/api/requests').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/custom-trips').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/contact/stats').then(r => r.json()).catch(() => ({})),
-      fetch('http://localhost:5000/api/omra/reservations').then(r => r.json()).catch(() => ({})), // ← ADD
-    ]).then(([v, r, ct, cs, omra]) => setSt({
-      vehicles:   v.data?.length  || 0,
-      pending:    r.data?.filter(x => x.status === 'pending').length || 0,
-      surMesure:  ct.data?.filter(x => x.status === 'pending').length || 0,
-      contactNew: parseInt(cs.data?.nouveaux) || 0,
-       omraPending: omra.data?.filter(x => x.status === 'pending').length || 0, // ← ADD
+      fetch('http://localhost:5000/api/omra/reservations').then(r => r.json()).catch(() => ({})),
+      fetch('http://localhost:5000/api/clients/ClientsAdmin').then(r => r.json()).catch(() => ({})),
+    ]).then(([v, r, ct, cs, omra, clients]) => setSt({
+      vehicles:     v.data?.length || 0,
+      pending:      r.data?.filter(x => x.status === 'pending').length || 0,
+      surMesure:    ct.data?.filter(x => x.status === 'pending').length || 0,
+      contactNew:   parseInt(cs.data?.nouveaux) || 0,
+      omraPending:  omra.data?.filter(x => x.status === 'pending').length || 0,
+      totalClients: clients.data?.length || 0,
     }));
   }, []);
 
@@ -67,7 +74,7 @@ const Dashboard = () => {
     <AdminLayout
       title="Dashboard"
       breadcrumb={[{ label: 'Dashboard', active: true }]}
-      badges={{ transportRequests: st.pending }}
+      badges={{ transportRequests: st.pending, omraPending: st.omraPending, surMesure: st.surMesure, contactNew: st.contactNew }}
     >
       <div className="dash-page">
 

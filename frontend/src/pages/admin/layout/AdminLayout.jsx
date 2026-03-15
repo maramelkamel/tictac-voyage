@@ -13,6 +13,7 @@ const Icon = ({ name }) => {
     billets:   <><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></>,
     surMesure: <><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></>,
     contact:   <><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></>,
+    clients:   <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></>,
     logo:      <><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></>,
   };
   return (
@@ -39,8 +40,7 @@ const NAV = [
           { label: 'Réservations', path: '/admin/voyages/reservations' },
       ]},
       { label: 'Omra', icon: 'omra', sub: [
-          { label: 'Offres',       path: '/admin/omra' },
-          { label: 'Réservations', path: '/admin/omra/reservations' },
+          { label: 'Offres & Réservations', path: '/admin/omra/Omraadmin', badgeKey: 'omraPending' },
       ]},
       { label: 'Billeterie / Vols', icon: 'billets', sub: [
           { label: 'Vols',     path: '/admin/billeterie' },
@@ -49,8 +49,11 @@ const NAV = [
       { label: 'Voyage sur Mesure', icon: 'surMesure', sub: [
           { label: 'Demandes', path: '/admin/sur-mesure', badgeKey: 'surMesure' },
       ]},
-      { label: 'Contact',          icon: 'contact',   sub: [
-          { label: 'Messages', path: '/admin/contact', badgeKey: 'contactNew' },
+      { label: 'Contact', icon: 'contact', sub: [
+          { label: 'Messages', path: '/admin/contact/ClientsAdmin', badgeKey: 'contactNew' },
+      ]},
+      { label: 'Clients', icon: 'clients', sub: [
+          { label: 'Tous les clients', path: '/admin/clients', badgeKey: null },
       ]},
     ],
   },
@@ -67,9 +70,9 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
   };
 
   const [openMenu, setOpenMenu] = useState(getInitialOpen);
-  const toggleMenu = (label) => setOpenMenu(prev => prev === label ? null : label);
-  const isActive    = (path) => pathname === path;
-  const isSubActive = (path) => pathname.startsWith(path) && path !== '/admin';
+  const toggleMenu  = (label) => setOpenMenu(prev => prev === label ? null : label);
+  const isActive    = (path)  => pathname === path;
+  const isSubActive = (path)  => pathname.startsWith(path) && path !== '/admin';
 
   return (
     <div className="al-root">

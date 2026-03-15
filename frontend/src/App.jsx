@@ -24,6 +24,7 @@ import SurMesureAdmin   from './pages/admin/surMesure/SurMesureAdmin';
 import ContactAdmin     from './pages/admin/contact/ContactAdmin';
 import Circuits        from './pages/Circuits';
 import OmraAdmin   from './pages/admin/Omra/OmraAdmin';
+import ClientsAdmin from './pages/admin/clients/ClientsAdmin';
 
 
 
@@ -56,6 +57,7 @@ function App() {
            <Route path="/admin/contact"element={<ContactAdmin />} />
            <Route path="/circuits"element={<Circuits />} />
            <Route path="/admin/Omra/Omraadmin" element={<OmraAdmin />} />
+           <Route path="/admin/clients/ClientsAdmin" element={<ClientsAdmin />} />
            
 
       </Routes>
