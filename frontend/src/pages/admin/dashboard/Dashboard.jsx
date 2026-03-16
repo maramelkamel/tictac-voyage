@@ -34,7 +34,7 @@ const MODULES = [
     ]},
   { title: 'Clients', color: 'green', desc: 'Liste des clients inscrits et historique de leurs réservations.',
     links: [
-      { label: 'Tous les clients', path: '/admin/clients', sk: 'totalClients', badge: false },
+      { label: 'Tous les clients', path: '/admin/clients/ClientsAdmin', sk: 'totalClients', badge: false },
     ]},
 ];
 

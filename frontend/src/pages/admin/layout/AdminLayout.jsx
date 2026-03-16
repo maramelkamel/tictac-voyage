@@ -53,7 +53,7 @@ const NAV = [
           { label: 'Messages', path: '/admin/contact', badgeKey: 'contactNew' },
       ]},
       { label: 'Clients', icon: 'clients', sub: [
-          { label: 'Tous les clients', path: '/admin/clients', badgeKey: null },
+          { label: 'Tous les clients', path: '/admin/clients/ClientsAdmin', badgeKey: null },
       ]},
     ],
   },
