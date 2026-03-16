@@ -1,24 +1,30 @@
 // backend/models/customTripModel.js
 const db = require('../config/db');
 
-/* ── Récupérer toutes les demandes ── */
-const getAll = async () => {
-  const { rows } = await db.query(
-    `SELECT * FROM custom_trips ORDER BY created_at DESC`
-  );
+/* GET all — supports optional email filter for client profile */
+const getAll = async ({ email } = {}) => {
+  let q = `SELECT * FROM custom_trips WHERE 1=1`;
+  const vals = [];
+
+  if (email) {
+    vals.push(email);
+    q += ` AND LOWER(email) = LOWER($${vals.length})`;
+  }
+
+  q += ` ORDER BY created_at DESC`;
+  const { rows } = await db.query(q, vals);
   return rows;
 };
 
-/* ── Récupérer une demande par ID ── */
+/* GET one by id */
 const getById = async (id) => {
   const { rows } = await db.query(
-    `SELECT * FROM custom_trips WHERE id = $1`,
-    [id]
+    `SELECT * FROM custom_trips WHERE id = $1`, [id]
   );
   return rows[0] || null;
 };
 
-/* ── Créer une demande ── */
+/* CREATE */
 const create = async (data) => {
   const {
     full_name, email, phone,
@@ -36,8 +42,7 @@ const create = async (data) => {
       include_transport, transport_type, departure_city, luggage,
       include_guide, guide_language, guide_duration
     ) VALUES (
-      $1,$2,$3,
-      $4,$5,$6,$7,$8,
+      $1,$2,$3,$4,$5,$6,$7,$8,
       $9,$10,$11,$12,
       $13,$14,$15,$16,
       $17,$18,$19
@@ -53,21 +58,20 @@ const create = async (data) => {
   return rows[0];
 };
 
-/* ── Mettre à jour le statut ── */
+/* UPDATE status */
 const updateStatus = async (id, status, admin_notes) => {
   const { rows } = await db.query(
-    `UPDATE custom_trips SET status = $1, admin_notes = COALESCE($2, admin_notes)
-     WHERE id = $3 RETURNING *`,
+    `UPDATE custom_trips SET status=$1, admin_notes=COALESCE($2, admin_notes)
+     WHERE id=$3 RETURNING *`,
     [status, admin_notes || null, id]
   );
   return rows[0] || null;
 };
 
-/* ── Supprimer une demande ── */
+/* DELETE */
 const remove = async (id) => {
   const { rowCount } = await db.query(
-    `DELETE FROM custom_trips WHERE id = $1`,
-    [id]
+    `DELETE FROM custom_trips WHERE id=$1`, [id]
   );
   return rowCount > 0;
 };

@@ -2,11 +2,11 @@
 const pool = require('../config/db');
 
 /* GET all reservations with optional filters */
-const getAllReservations = async ({ status, payment_method, search } = {}) => {
+const getAllReservations = async ({ status, payment_method, search, email } = {}) => {
   let q = `
     SELECT r.*,
-      p.title    AS package_title,
-      p.duration AS package_duration,
+      p.title     AS package_title,
+      p.duration  AS package_duration,
       p.departure AS package_departure
     FROM public.omra_reservations r
     LEFT JOIN public.omra_packages p ON p.id = r.package_id
@@ -15,6 +15,11 @@ const getAllReservations = async ({ status, payment_method, search } = {}) => {
   const vals = [];
   let i = 1;
 
+  // ── email filter (client profile) ──────────────────────────────
+  if (email) {
+    q += ` AND LOWER(r.email) = LOWER($${i++})`;
+    vals.push(email);
+  }
   if (status && status !== 'all') {
     q += ` AND r.status = $${i++}`;
     vals.push(status);
@@ -45,7 +50,7 @@ const getReservationById = async (id) => {
   return rows[0] || null;
 };
 
-/* CREATE reservation (submitted from client form) */
+/* CREATE reservation */
 const createReservation = async (data) => {
   const {
     package_id, first_name, last_name, email, phone,
@@ -63,27 +68,21 @@ const createReservation = async (data) => {
     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
     RETURNING *
   `, [
-    package_id        || null,
-    first_name,
-    last_name,
-    email,
-    phone,
-    gender,
-    has_mahram        || null,
-    passport_number,
-    chambre_type      || 'double',
+    package_id || null,
+    first_name, last_name, email, phone, gender,
+    has_mahram || null, passport_number,
+    chambre_type || 'double',
     number_of_persons || 1,
     total_price,
-    payment_method    || 'agency',
-    notes             || null,
+    payment_method || 'agency',
+    notes || null,
   ]);
   return rows[0];
 };
 
-/* UPDATE reservation status (admin) */
+/* UPDATE reservation status */
 const updateStatus = async (id, status, payment_status) => {
   let q, vals;
-
   if (payment_status) {
     q    = 'UPDATE public.omra_reservations SET status=$1, payment_status=$2, updated_at=NOW() WHERE id=$3 RETURNING *';
     vals = [status, payment_status, id];
@@ -91,7 +90,6 @@ const updateStatus = async (id, status, payment_status) => {
     q    = 'UPDATE public.omra_reservations SET status=$1, updated_at=NOW() WHERE id=$2 RETURNING *';
     vals = [status, id];
   }
-
   const { rows } = await pool.query(q, vals);
   return rows[0] || null;
 };
@@ -122,10 +120,6 @@ const getStats = async () => {
 };
 
 module.exports = {
-  getAllReservations,
-  getReservationById,
-  createReservation,
-  updateStatus,
-  deleteReservation,
-  getStats,
+  getAllReservations, getReservationById, createReservation,
+  updateStatus, deleteReservation, getStats,
 };

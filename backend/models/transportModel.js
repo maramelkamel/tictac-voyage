@@ -11,8 +11,7 @@ const getAllTransports = async () => {
 
 const getTransportById = async (id) => {
   const { rows } = await pool.query(
-    'SELECT * FROM transports WHERE id = $1',
-    [id]
+    'SELECT * FROM transports WHERE id = $1', [id]
   );
   return rows[0];
 };
@@ -24,15 +23,13 @@ const createTransport = async (data) => {
     price_per_km, price_halfday, price_fullday,
     image_url, is_available
   } = data;
-
   const { rows } = await pool.query(
     `INSERT INTO transports
       (transport_name, transport_type, description,
        capacity_min, capacity_max,
        price_per_km, price_halfday, price_fullday,
        image_url, is_available)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-     RETURNING *`,
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
     [transport_name, transport_type, description,
      capacity_min, capacity_max,
      price_per_km, price_halfday, price_fullday,
@@ -48,7 +45,6 @@ const updateTransport = async (id, data) => {
     price_per_km, price_halfday, price_fullday,
     image_url, is_available
   } = data;
-
   const { rows } = await pool.query(
     `UPDATE transports SET
       transport_name=$1, transport_type=$2, description=$3,
@@ -66,24 +62,30 @@ const updateTransport = async (id, data) => {
 
 const deleteTransport = async (id) => {
   const { rows } = await pool.query(
-    'DELETE FROM transports WHERE id=$1 RETURNING *',
-    [id]
+    'DELETE FROM transports WHERE id=$1 RETURNING *', [id]
   );
   return rows[0];
 };
 
 // ─── DEMANDES CLIENTS ───────────────────────────────────────────
-const getAllRequests = async () => {
-  const { rows } = await pool.query(
-    'SELECT * FROM transport_requests ORDER BY created_at DESC'
-  );
+// Supports optional email filter for client profile page
+const getAllRequests = async ({ email } = {}) => {
+  let q    = `SELECT * FROM transport_requests WHERE 1=1`;
+  const vals = [];
+
+  if (email) {
+    vals.push(email);
+    q += ` AND LOWER(email) = LOWER($${vals.length})`;
+  }
+
+  q += ` ORDER BY created_at DESC`;
+  const { rows } = await pool.query(q, vals);
   return rows;
 };
 
 const getRequestById = async (id) => {
   const { rows } = await pool.query(
-    'SELECT * FROM transport_requests WHERE id=$1',
-    [id]
+    'SELECT * FROM transport_requests WHERE id=$1', [id]
   );
   return rows[0];
 };
@@ -97,7 +99,6 @@ const createRequest = async (data) => {
     vehicle_type, passengers, luggage, child_seat, accessibility,
     full_name, email, phone, free_text
   } = data;
-
   const { rows } = await pool.query(
     `INSERT INTO transport_requests
       (service_type, trip_type, duration_type, number_of_days,
@@ -128,8 +129,7 @@ const updateRequestStatus = async (id, status, admin_notes) => {
 
 const deleteRequest = async (id) => {
   const { rows } = await pool.query(
-    'DELETE FROM transport_requests WHERE id=$1 RETURNING *',
-    [id]
+    'DELETE FROM transport_requests WHERE id=$1 RETURNING *', [id]
   );
   return rows[0];
 };
