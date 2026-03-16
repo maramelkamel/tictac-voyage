@@ -6,15 +6,25 @@ import '../styles/CustomTripAbroad.css';
 
 const API = 'http://localhost:5000/api/custom-trips';
 
-const EMPTY = {
-  fullName: '', email: '', phone: '',
-  destination: '', departureDate: '', returnDate: '', numberOfPersons: 1, maxBudget: '',
-  includeHotel: false, hotelCategory: '', roomType: '', pension: '',
-  includeTransport: false, transportType: '', departureCity: '', luggage: '',
-  includeGuide: false, guideLanguage: '', guideDuration: '',
-};
-
 const CustomTripAbroad = () => {
+  // ── Pre-fill from logged-in client ───────────────────────────
+  const clientData  = (() => { try { return JSON.parse(localStorage.getItem('client') || '{}'); } catch { return {}; } })();
+  const clientEmail = clientData?.email || '';
+  const clientName  = [
+    clientData?.firstName || clientData?.first_name || '',
+    clientData?.lastName  || clientData?.last_name  || '',
+  ].filter(Boolean).join(' ');
+
+  const EMPTY = {
+    fullName: clientName,   // ← pre-filled
+    email:    clientEmail,  // ← pre-filled + locked
+    phone:    clientData?.phone || '',  // ← pre-filled
+    destination: '', departureDate: '', returnDate: '', numberOfPersons: 1, maxBudget: '',
+    includeHotel: false, hotelCategory: '', roomType: '', pension: '',
+    includeTransport: false, transportType: '', departureCity: '', luggage: '',
+    includeGuide: false, guideLanguage: '', guideDuration: '',
+  };
+
   const [formData, setFormData]         = useState(EMPTY);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess]   = useState(false);
@@ -22,6 +32,8 @@ const CustomTripAbroad = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    // Block email change if logged in
+    if (name === 'email' && clientEmail) return;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
@@ -49,24 +61,28 @@ const CustomTripAbroad = () => {
       full_name: formData.fullName, email: formData.email, phone: formData.phone,
       destination: formData.destination, departure_date: formData.departureDate, return_date: formData.returnDate,
       number_of_persons: Number(formData.numberOfPersons), max_budget: formData.maxBudget ? Number(formData.maxBudget) : null,
-      include_hotel: formData.includeHotel,
-      hotel_category: formData.includeHotel ? formData.hotelCategory : null,
-      room_type:      formData.includeHotel ? formData.roomType      : null,
-      pension:        formData.includeHotel ? formData.pension        : null,
+      include_hotel:    formData.includeHotel,
+      hotel_category:   formData.includeHotel ? formData.hotelCategory : null,
+      room_type:        formData.includeHotel ? formData.roomType      : null,
+      pension:          formData.includeHotel ? formData.pension        : null,
       include_transport: formData.includeTransport,
-      transport_type: formData.includeTransport ? formData.transportType : null,
-      departure_city: formData.includeTransport ? formData.departureCity : null,
-      luggage:        formData.includeTransport ? formData.luggage       : null,
-      include_guide: formData.includeGuide,
-      guide_language: formData.includeGuide ? formData.guideLanguage : null,
-      guide_duration: formData.includeGuide ? formData.guideDuration : null,
+      transport_type:   formData.includeTransport ? formData.transportType : null,
+      departure_city:   formData.includeTransport ? formData.departureCity : null,
+      luggage:          formData.includeTransport ? formData.luggage       : null,
+      include_guide:    formData.includeGuide,
+      guide_language:   formData.includeGuide ? formData.guideLanguage : null,
+      guide_duration:   formData.includeGuide ? formData.guideDuration : null,
     };
 
     try {
       const res  = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const json = await res.json();
-      if (json.success) { setShowSuccess(true); setFormData(EMPTY); setTimeout(() => setShowSuccess(false), 6000); }
-      else setError(json.message || 'Une erreur est survenue.');
+      if (json.success) {
+        setShowSuccess(true);
+        // Reset to pre-filled state (keep client info)
+        setFormData({ ...EMPTY, destination: '', departureDate: '', returnDate: '', numberOfPersons: 1, maxBudget: '' });
+        setTimeout(() => setShowSuccess(false), 6000);
+      } else setError(json.message || 'Une erreur est survenue.');
     } catch { setError('Impossible de contacter le serveur. Vérifiez que le backend est démarré.'); }
     finally { setIsSubmitting(false); }
   };
@@ -76,9 +92,9 @@ const CustomTripAbroad = () => {
     dates: formData.departureDate && formData.returnDate
       ? `${new Date(formData.departureDate).toLocaleDateString('fr-FR')} - ${new Date(formData.returnDate).toLocaleDateString('fr-FR')}`
       : 'Non spécifiées',
-    nights: calculateNights(),
+    nights:  calculateNights(),
     persons: `${formData.numberOfPersons} personne${formData.numberOfPersons > 1 ? 's' : ''}`,
-    budget: formData.maxBudget ? `${parseInt(formData.maxBudget).toLocaleString('fr-FR')} €/pers` : null,
+    budget:  formData.maxBudget ? `${parseInt(formData.maxBudget).toLocaleString('fr-FR')} €/pers` : null,
     hotel:     formData.includeHotel && formData.hotelCategory     ? { category: `${formData.hotelCategory} étoiles`, room: formData.roomType, pension: formData.pension } : null,
     transport: formData.includeTransport && formData.transportType ? { type: formData.transportType, departure: formData.departureCity, luggage: formData.luggage }       : null,
     guide:     formData.includeGuide && formData.guideLanguage     ? { language: formData.guideLanguage, duration: formData.guideDuration }                               : null,
@@ -101,56 +117,38 @@ const CustomTripAbroad = () => {
     return `À partir de ${base.toLocaleString('fr-FR')} €`;
   };
 
+  // Locked email style
+  const lockedStyle = { background: '#f8fafc', cursor: 'not-allowed', color: '#64748b', borderColor: '#e2e8f0' };
+
   return (
     <div className="page-container">
       <Navbar />
 
-      {/* ══ HERO réduit et centré ══ */}
+      {/* ══ HERO ══ */}
       <section className="hero-section">
-        {/* ── Fond photo avec clip diagonal ── */}
         <div className="hero__photo-wrap">
           <div className="hero__photo" />
           <div className="hero__photo-grad" />
         </div>
-
-        {/* ── Fond gauche solide ── */}
         <div className="hero__solid" />
-
-        {/* ── Contenu ── */}
         <div className="hero__inner">
-
-          {/* Colonne gauche — texte */}
           <div className="hero__left">
             <span className="hero__eyebrow">
-              <span className="hero__eyebrow-dot" />
-              Voyage sur mesure
+              <span className="hero__eyebrow-dot" />Voyage sur mesure
             </span>
-
             <h1 className="hero__title">
-              Crée ton voyage<br/>
-              <span className="hero__title-em">à l'étranger</span>
+              Crée ton voyage<br/><span className="hero__title-em">à l'étranger</span>
             </h1>
-
             <p className="hero__desc">
               Compose ton séjour librement selon ton budget.
               Aucun forfait imposé — uniquement ce que <em>tu</em> veux.
             </p>
-
-
-
             <a href="#trip-form" className="hero__cta">
               Commencer mon voyage
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
           </div>
-
-
-
         </div>
-
-        {/* Vague de transition */}
         <div className="hero__wave">
           <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
             <path d="M0,80 C360,0 1080,80 1440,20 L1440,80 Z" fill="#F8FAFB"/>
@@ -171,6 +169,16 @@ const CustomTripAbroad = () => {
                   <p className="form-subtitle">Tous les champs marqués d'un * sont obligatoires</p>
                 </div>
 
+                {/* Logged-in notice */}
+                {clientEmail && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px', background: '#e0fbfc', border: '1px solid #a5f3fc', borderRadius: 12, marginBottom: 20 }}>
+                    <i className="fas fa-user-check" style={{ color: '#0e7490', fontSize: 14 }} />
+                    <p style={{ fontSize: 13, color: '#0e7490', fontWeight: 600, margin: 0 }}>
+                      Connecté en tant que <strong>{clientEmail}</strong> — vos informations ont été pré-remplies.
+                    </p>
+                  </div>
+                )}
+
                 {/* CONTACT */}
                 <fieldset className="form-section">
                   <legend>Vos coordonnées</legend>
@@ -181,9 +189,24 @@ const CustomTripAbroad = () => {
                   </div>
                   <div className="form-row">
                     <div className="form-group">
-                      <label htmlFor="email">Adresse e-mail <span className="required">*</span></label>
+                      <label htmlFor="email">
+                        Adresse e-mail <span className="required">*</span>
+                        {clientEmail && (
+                          <span style={{ marginLeft: 8, fontSize: 10, background: '#e0fbfc', color: '#0e7490', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>
+                            <i className="fas fa-lock" style={{ marginRight: 3 }} />Lié au compte
+                          </span>
+                        )}
+                      </label>
                       <input type="email" id="email" name="email" value={formData.email}
-                        onChange={handleChange} placeholder="exemple@mail.com" required autoComplete="email"/>
+                        onChange={handleChange} placeholder="exemple@mail.com" required autoComplete="email"
+                        readOnly={!!clientEmail}
+                        style={clientEmail ? lockedStyle : {}} />
+                      {clientEmail && (
+                        <p style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+                          <i className="fas fa-info-circle" style={{ marginRight: 4 }} />
+                          Email lié à votre compte — non modifiable.
+                        </p>
+                      )}
                     </div>
                     <div className="form-group">
                       <label htmlFor="phone">Téléphone <span className="required">*</span></label>
@@ -353,9 +376,7 @@ const CustomTripAbroad = () => {
 
                 {error && (
                   <div className="form-error-box">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
                     {error}
                   </div>
                 )}
@@ -383,8 +404,6 @@ const CustomTripAbroad = () => {
 
             {/* ══ SIDEBAR ══ */}
             <div className="summary-column">
-
-              {/* ─ Récapitulatif sticky ─ */}
               <div className="summary-sticky-wrap">
                 <div className="summary-card">
                   <div className="summary-header">
@@ -392,7 +411,6 @@ const CustomTripAbroad = () => {
                     <span className="live-badge">En direct</span>
                   </div>
                   <div className="summary-content">
-
                     {formData.fullName && (
                       <div className="summary-item">
                         <span className="label">Client</span>
@@ -401,7 +419,6 @@ const CustomTripAbroad = () => {
                         {formData.phone && <span className="summary-sub">{formData.phone}</span>}
                       </div>
                     )}
-
                     <div className="summary-item">
                       <span className="label">Destination</span>
                       <span className="value">{summaryData.destination}</span>
@@ -424,9 +441,7 @@ const CustomTripAbroad = () => {
                         <span className="value" style={{ color: 'var(--color-primary)' }}>{summaryData.budget}</span>
                       </div>
                     )}
-
                     {(summaryData.hotel || summaryData.transport || summaryData.guide) && <div className="summary-divider"/>}
-
                     {summaryData.hotel && (
                       <div className="summary-section">
                         <h4>🏨 Hébergement</h4>
@@ -450,7 +465,6 @@ const CustomTripAbroad = () => {
                         <div className="summary-item"><span className="label">Durée</span><span className="value">{summaryData.guide.duration}</span></div>
                       </div>
                     )}
-
                     <div className="price-estimation">
                       <div className="price-header">
                         <span className="price-label">Estimation du prix</span>
@@ -466,14 +480,9 @@ const CustomTripAbroad = () => {
                 </div>
               </div>
 
-              {/* ─ Conseils (pas sticky, scroll normalement) ─ */}
               <div className="summary-tips">
                 <h4>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="16" x2="12" y2="12"/>
-                    <line x1="12" y1="8" x2="12.01" y2="8"/>
-                  </svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                   Conseils personnalisés
                 </h4>
                 <ul>
@@ -483,13 +492,10 @@ const CustomTripAbroad = () => {
                   <li>Privilégiez les périodes hors saison pour économiser jusqu'à 40%</li>
                 </ul>
                 <div className="trust-badge">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  </svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                   <span>Vos données sont sécurisées</span>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
