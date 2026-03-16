@@ -357,6 +357,9 @@ SELECT setval('public.omra_packages_id_seq', (SELECT MAX(id) FROM public.omra_pa
 
 
 
+
+
+
 maram:
 
 -- ════════════════════════════════════════════════════════════════
@@ -461,3 +464,28 @@ VALUES
 );
 
 SELECT setval('public.omra_reservations_id_seq', (SELECT MAX(id) FROM public.omra_reservations));
+
+
+
+
+
+-- ════════════════════════════════════════════════════════════════
+--  TIC-TAC VOYAGE — favorites table
+--  Run in pgAdmin Query Tool on tictacvoyage database
+-- ════════════════════════════════════════════════════════════════
+
+CREATE TABLE public.favorites (
+    id          SERIAL PRIMARY KEY,
+    client_id   INTEGER NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
+    item_type   VARCHAR(20) NOT NULL,  -- 'omra' | 'hotel' | 'voyage' | 'circuit'
+    item_id     INTEGER NOT NULL,
+    item_data   JSONB DEFAULT '{}'::jsonb,  -- snapshot: title, image, price, etc.
+    created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    CONSTRAINT favorites_type_check CHECK (
+        item_type = ANY(ARRAY['omra','hotel','voyage','circuit'])
+    ),
+    CONSTRAINT favorites_unique UNIQUE (client_id, item_type, item_id)
+);
+
+CREATE INDEX idx_favorites_client ON public.favorites USING btree (client_id);
+CREATE INDEX idx_favorites_type   ON public.favorites USING btree (item_type);
