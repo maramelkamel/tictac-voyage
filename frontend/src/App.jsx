@@ -26,6 +26,7 @@ import Circuits        from './pages/Circuits';
 import OmraPackages      from './pages/admin/Omra/OmraPackages';
 import OmraReservations  from './pages/admin/Omra/OmraReservations';
 import ClientsAdmin from './pages/admin/clients/ClientsAdmin';
+import ClientProfile from './pages/ClientProfile';
 
 
 
@@ -60,6 +61,7 @@ function App() {
            <Route path="/admin/omra/packages"     element={<OmraPackages />} />
           <Route path="/admin/omra/reservations" element={<OmraReservations />} />
            <Route path="/admin/clients/ClientsAdmin" element={<ClientsAdmin />} />
+           <Route path="/mon-compte" element={<ClientProfile />} />
            
 
       </Routes>
