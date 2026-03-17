@@ -11,18 +11,12 @@ const STATUS_MAP = {
   completed: { label: 'Terminée',   bg: '#e0fbfc', color: '#0e7490', dot: '#0e7490' },
 };
 
-const PAY_STATUS_MAP = {
-  pending:  { label: 'En attente', bg: '#fff7ed', color: '#c2410c', dot: '#f97316' },
-  paid:     { label: 'Payé',       bg: '#d1fae5', color: '#065f46', dot: '#10b981' },
-  refunded: { label: 'Remboursé',  bg: '#eff6ff', color: '#1d4ed8', dot: '#3b82f6' },
-};
-
 const fDate  = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
 const fDT    = (d) => d ? new Date(d).toLocaleString('fr-FR')     : '—';
 const fPrice = (p) => p ? Number(p).toLocaleString('fr-TN') + ' TND' : '—';
 
-const Badge = ({ s, map }) => {
-  const m = map[s] || { label: s, bg: 'var(--g100)', color: 'var(--g600)', dot: 'var(--g400)' };
+const StatusBadge = ({ s }) => {
+  const m = STATUS_MAP[s] || { label: s, bg: 'var(--g100)', color: 'var(--g600)', dot: 'var(--g400)' };
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: m.bg, color: m.color, whiteSpace: 'nowrap' }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: m.dot, flexShrink: 0 }}/>
@@ -30,6 +24,25 @@ const Badge = ({ s, map }) => {
     </span>
   );
 };
+
+// ── Payment cell: method only + "✓ Payé" if completed ────────────
+const PaymentCell = ({ method, status }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+      background: method === 'online' ? '#eff6ff' : '#fff7ed',
+      color:      method === 'online' ? '#1d4ed8' : '#c2410c',
+    }}>
+      {method === 'online' ? '💳 En ligne' : '🏪 Agence'}
+    </span>
+    {status === 'completed' && (
+      <span style={{ fontSize: 10, fontWeight: 700, color: '#065f46', paddingLeft: 2 }}>
+        ✓ Payé
+      </span>
+    )}
+  </div>
+);
 
 /* ── Detail Panel ───────────────────────────────────────────── */
 const ResDetail = ({ res, onClose, onStatusChange }) => {
@@ -56,7 +69,6 @@ const ResDetail = ({ res, onClose, onStatusChange }) => {
     </div>
   );
 
-  // ── Agency payment: show a warning if still pending ──────────
   const isAgencyPending = res.payment_method === 'agency' && res.status === 'pending';
 
   return (
@@ -113,16 +125,21 @@ const ResDetail = ({ res, onClose, onStatusChange }) => {
           </div>
         </Section>
 
+        {/* Paiement — method only + Payé if completed */}
         <Section title="Paiement">
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, background: res.payment_method === 'online' ? '#eff6ff' : '#fff7ed', color: res.payment_method === 'online' ? '#1d4ed8' : '#c2410c', fontSize: 12, fontWeight: 600 }}>
               {res.payment_method === 'online' ? '💳 Paiement en ligne' : "🏪 Paiement à l'agence"}
             </span>
-            <Badge s={res.payment_status} map={PAY_STATUS_MAP}/>
+            {res.status === 'completed' && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 8, background: '#d1fae5', color: '#065f46', fontSize: 12, fontWeight: 700 }}>
+                ✓ Payé
+              </span>
+            )}
           </div>
         </Section>
 
-        {/* Status change — agency pending shows confirmation prompt */}
+        {/* Status change */}
         <Section title="Changer le statut">
           {isAgencyPending && (
             <div style={{ padding: '10px 14px', background: '#fff7ed', borderRadius: 8, fontSize: 12, color: '#92400e', marginBottom: 8, lineHeight: 1.5 }}>
@@ -202,7 +219,6 @@ const OmraReservations = () => {
     } catch { notify('Erreur réseau', 'error'); }
   };
 
-  // ── Filtered list ─────────────────────────────────────────────
   const filtered = reservations.filter(r => {
     const q = search.toLowerCase();
     const matchSearch  = !search ||
@@ -215,12 +231,11 @@ const OmraReservations = () => {
   });
 
   const stats = {
-    total:     reservations.length,
-    pending:   reservations.filter(r => r.status === 'pending').length,
-    confirmed: reservations.filter(r => r.status === 'confirmed').length,
-    online:    reservations.filter(r => r.payment_method === 'online').length,
-    agency:    reservations.filter(r => r.payment_method === 'agency').length,
-    // agency pending = waiting for payment at agency
+    total:         reservations.length,
+    pending:       reservations.filter(r => r.status === 'pending').length,
+    confirmed:     reservations.filter(r => r.status === 'confirmed').length,
+    online:        reservations.filter(r => r.payment_method === 'online').length,
+    agency:        reservations.filter(r => r.payment_method === 'agency').length,
     agencyPending: reservations.filter(r => r.payment_method === 'agency' && r.status === 'pending').length,
   };
 
@@ -240,15 +255,15 @@ const OmraReservations = () => {
       {/* Stats */}
       <div className="al-stats">
         {[
-          { label: 'Total',                  value: stats.total,        color: 'blue',
+          { label: 'Total',                value: stats.total,     color: 'blue',
             icon: <><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></> },
-          { label: 'En attente',             value: stats.pending,      color: 'orange',
+          { label: 'En attente',           value: stats.pending,   color: 'orange',
             icon: <><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></> },
-          { label: 'Confirmées',             value: stats.confirmed,    color: 'green',
+          { label: 'Confirmées',           value: stats.confirmed, color: 'green',
             icon: <><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></> },
-          { label: '💳 Paiement en ligne',   value: stats.online,       color: 'indigo',
+          { label: '💳 Paiement en ligne', value: stats.online,    color: 'indigo',
             icon: <><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></> },
-          { label: "🏪 À l'agence",          value: stats.agency,       color: 'teal',
+          { label: "🏪 À l'agence",        value: stats.agency,    color: 'teal',
             icon: <><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></> },
         ].map(s => (
           <div key={s.label} className={`al-stat al-stat--${s.color}`}>
@@ -260,7 +275,7 @@ const OmraReservations = () => {
         ))}
       </div>
 
-      {/* Agency pending alert banner */}
+      {/* Agency pending alert */}
       {stats.agencyPending > 0 && (
         <div style={{ margin: '0 32px 16px', padding: '14px 20px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ fontSize: 22 }}>🏪</span>
@@ -275,10 +290,9 @@ const OmraReservations = () => {
         </div>
       )}
 
-      {/* Table + Detail layout */}
+      {/* Table + Detail */}
       <div style={{ display: 'grid', gridTemplateColumns: selectedRes ? '1fr 380px' : '1fr', gap: 0, margin: '0 0 32px', transition: 'grid-template-columns .3s' }}>
 
-        {/* Table */}
         <div style={{ margin: '0 0 0 32px', background: '#fff', borderRadius: 16, border: '1px solid var(--g200)', boxShadow: 'var(--shadow-md)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
           {/* Toolbar */}
@@ -292,7 +306,6 @@ const OmraReservations = () => {
                 </button>
               )}
             </div>
-            {/* Payment filter */}
             <div className="al-filter-tabs">
               {[
                 { v: 'all',    l: 'Tous les paiements' },
@@ -307,7 +320,6 @@ const OmraReservations = () => {
                 </button>
               ))}
             </div>
-            {/* Status filter */}
             <div className="al-filter-tabs">
               {[
                 { v: 'all',       l: 'Tous' },
@@ -326,7 +338,6 @@ const OmraReservations = () => {
             </div>
           </div>
 
-          {/* Content */}
           {loading ? (
             <div className="al-loading">
               <div className="al-spinner-wrap"><div className="al-spinner"/></div>
@@ -357,7 +368,7 @@ const OmraReservations = () => {
                 </thead>
                 <tbody>
                   {filtered.map(r => {
-                    const isSel = selectedRes?.id === r.id;
+                    const isSel           = selectedRes?.id === r.id;
                     const isAgencyPending = r.payment_method === 'agency' && r.status === 'pending';
                     return (
                       <tr key={r.id} className="al-row"
@@ -391,29 +402,25 @@ const OmraReservations = () => {
 
                         {/* Paiement */}
                         <td>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 999, background: r.payment_method === 'online' ? '#eff6ff' : '#fff7ed', color: r.payment_method === 'online' ? '#1d4ed8' : '#c2410c', fontSize: 11, fontWeight: 600 }}>
-                              {r.payment_method === 'online' ? '💳 En ligne' : '🏪 Agence'}
-                            </span>
-                            <Badge s={r.payment_status} map={PAY_STATUS_MAP}/>
-                          </div>
+                          <PaymentCell method={r.payment_method} status={r.status} />
                         </td>
 
                         {/* Statut */}
-                        <td><Badge s={r.status} map={STATUS_MAP}/></td>
+                        <td><StatusBadge s={r.status} /></td>
 
                         {/* Date */}
                         <td><span style={{ fontSize: 12, color: 'var(--g500)' }}>{fDate(r.created_at)}</span></td>
 
-                        {/* Action rapide — confirm agency pending */}
+                        {/* ── Action rapide — always show dropdown + confirm shortcut for agency pending ── */}
                         <td onClick={e => e.stopPropagation()}>
-                          {isAgencyPending ? (
-                            <button
-                              onClick={() => handleStatusChange(r.id, 'confirmed')}
-                              style={{ padding: '5px 12px', borderRadius: 8, border: '1.5px solid #10b981', background: '#d1fae5', color: '#065f46', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-                              ✅ Confirmer
-                            </button>
-                          ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                            {isAgencyPending && (
+                              <button
+                                onClick={() => handleStatusChange(r.id, 'confirmed')}
+                                style={{ padding: '4px 10px', borderRadius: 7, border: '1.5px solid #10b981', background: '#d1fae5', color: '#065f46', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                                ✅ Confirmer
+                              </button>
+                            )}
                             <select
                               value={r.status}
                               onChange={e => handleStatusChange(r.id, e.target.value)}
@@ -423,8 +430,9 @@ const OmraReservations = () => {
                               <option value="completed">Terminer</option>
                               <option value="cancelled">Annuler</option>
                             </select>
-                          )}
+                          </div>
                         </td>
+
                       </tr>
                     );
                   })}
@@ -451,7 +459,6 @@ const OmraReservations = () => {
             />
           </div>
         )}
-
       </div>
 
       {!selectedRes && !loading && filtered.length > 0 && (
