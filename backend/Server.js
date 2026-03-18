@@ -13,6 +13,8 @@ const omraReservationRoutes = require('./routes/omraReservationRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 const authRoutes = require('./routes/authRoutes');
 const favoritesRoutes = require('./routes/favoritesRoutes');
+const voyageOrganiseRoutes    = require('./routes/voyageOrganiseRoutes');
+const voyageReservationRoutes = require('./routes/voyageReservationRoutes');
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
@@ -33,6 +35,8 @@ app.use('/api/omra/reservations', omraReservationRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/favorites', favoritesRoutes);
+app.use('/api/voyages-organises',    voyageOrganiseRoutes);
+app.use('/api/voyage-reservations',  voyageReservationRoutes);
 
 
 

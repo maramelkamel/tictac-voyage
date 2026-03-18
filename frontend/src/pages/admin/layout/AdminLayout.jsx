@@ -16,9 +16,7 @@ const Icon = ({ name }) => {
     logo:      <><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></>,
   };
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      {paths[name]}
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">{paths[name]}</svg>
   );
 };
 
@@ -35,8 +33,8 @@ const NAV = [
           { label: 'Demandes clients', path: '/admin/transport/requests', badgeKey: 'transportRequests' },
       ]},
       { label: 'Voyages Organisés', icon: 'voyages', sub: [
-          { label: 'Catalogue',    path: '/admin/voyages' },
-          { label: 'Réservations', path: '/admin/voyages/reservations' },
+          { label: 'Catalogue',    path: '/admin/voyages/VoyagePackages',              badgeKey: null },
+          { label: 'Réservations', path: '/admin/voyages/VoyageReservations', badgeKey: 'voyagesPending' },
       ]},
       { label: 'Omra', icon: 'omra', sub: [
           { label: 'Forfaits',     path: '/admin/omra/packages',     badgeKey: null },
@@ -102,9 +100,7 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
               <span className="al-nav__section">{group.section}</span>
               {group.items.map((item) => {
                 if (!item.sub) return (
-                  <button key={item.label}
-                    className={`al-nav__item ${isActive(item.path) ? 'active' : ''}`}
-                    onClick={() => navigate(item.path)}>
+                  <button key={item.label} className={`al-nav__item ${isActive(item.path) ? 'active' : ''}`} onClick={() => navigate(item.path)}>
                     <Icon name={item.icon}/>{item.label}
                   </button>
                 );
@@ -112,9 +108,7 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
                 const hasActiveSub = item.sub.some(s => isSubActive(s.path));
                 return (
                   <React.Fragment key={item.label}>
-                    <button
-                      className={`al-nav__item ${hasActiveSub ? 'active' : ''} ${isOpen ? 'open' : ''}`}
-                      onClick={() => toggleMenu(item.label)}>
+                    <button className={`al-nav__item ${hasActiveSub ? 'active' : ''} ${isOpen ? 'open' : ''}`} onClick={() => toggleMenu(item.label)}>
                       <Icon name={item.icon}/>
                       {item.label}
                       {item.sub.some(s => s.badgeKey && badges[s.badgeKey] > 0) && (
@@ -122,20 +116,14 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
                           {item.sub.reduce((a, s) => a + (s.badgeKey ? (badges[s.badgeKey] || 0) : 0), 0)}
                         </span>
                       )}
-                      <svg className="al-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M6 9l6 6 6-6"/>
-                      </svg>
+                      <svg className="al-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
                     </button>
                     <div className={`al-nav__sub ${isOpen ? 'open' : ''}`}>
                       {item.sub.map((sub) => (
-                        <button key={sub.path}
-                          className={`al-nav__subitem ${isSubActive(sub.path) ? 'active' : ''}`}
-                          onClick={() => navigate(sub.path)}>
+                        <button key={sub.path} className={`al-nav__subitem ${isSubActive(sub.path) ? 'active' : ''}`} onClick={() => navigate(sub.path)}>
                           {sub.label}
                           {sub.badgeKey && badges[sub.badgeKey] > 0 && (
-                            <span className="al-badge" style={{ marginLeft: 'auto' }}>
-                              {badges[sub.badgeKey]}
-                            </span>
+                            <span className="al-badge" style={{ marginLeft: 'auto' }}>{badges[sub.badgeKey]}</span>
                           )}
                         </button>
                       ))}
@@ -149,11 +137,7 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
 
         <div className="al-sidebar__footer">
           <button className="al-sidebar__footer-btn" onClick={() => navigate('/')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             Retour au site
           </button>
         </div>
@@ -168,9 +152,7 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
                 <span>Admin</span>
                 {breadcrumb.map((c, i) => (
                   <React.Fragment key={i}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 18l6-6-6-6"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
                     <span className={c.active ? 'al-topbar__breadcrumb--active' : ''}>{c.label}</span>
                   </React.Fragment>
                 ))}
