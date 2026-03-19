@@ -27,6 +27,8 @@ import OmraPackages      from './pages/admin/Omra/OmraPackages';
 import OmraReservations  from './pages/admin/Omra/OmraReservations';
 import ClientsAdmin from './pages/admin/clients/ClientsAdmin';
 import ClientProfile from './pages/ClientProfile';
+import VoyagePackages    from './pages/admin/voyages/VoyagePackages';
+import VoyageReservations from './pages/admin/voyages/VoyageReservations';
 
 
 
@@ -62,6 +64,8 @@ function App() {
           <Route path="/admin/omra/reservations" element={<OmraReservations />} />
            <Route path="/admin/clients/ClientsAdmin" element={<ClientsAdmin />} />
            <Route path="/mon-compte" element={<ClientProfile />} />
+           <Route path="/admin/voyages/VoyagePackages"              element={<VoyagePackages />} />
+           <Route path="/admin/voyages/VoyageReservations" element={<VoyageReservations />} />
            
 
       </Routes>

@@ -489,3 +489,178 @@ CREATE TABLE public.favorites (
 
 CREATE INDEX idx_favorites_client ON public.favorites USING btree (client_id);
 CREATE INDEX idx_favorites_type   ON public.favorites USING btree (item_type);
+
+
+
+
+
+maram
+
+
+
+
+
+
+
+
+-- ════════════════════════════════════════════════════════════════
+--  TIC-TAC VOYAGE — Voyages Organisés tables + sample data
+--  Run in pgAdmin Query Tool on tictacvoyage database
+-- ════════════════════════════════════════════════════════════════
+
+-- ─── TABLE: voyages_organises ────────────────────────────────────
+CREATE TABLE public.voyages_organises (
+    id           SERIAL PRIMARY KEY,
+    title        VARCHAR(200)  NOT NULL,
+    subtitle     VARCHAR(300),
+    description  TEXT,
+    image_url    TEXT,
+    price        NUMERIC(10,2) NOT NULL,
+    old_price    NUMERIC(10,2),
+    duration     INTEGER       NOT NULL,        -- days
+    departure    VARCHAR(100),                  -- "Tunis" or "15 Mars 2026"
+    spots        INTEGER DEFAULT 30,
+    rating       NUMERIC(3,1)  DEFAULT 5.0,
+    reviews      INTEGER       DEFAULT 0,
+    badge        VARCHAR(50),                   -- 'Populaire' | 'Nouveau' | 'Promo' | 'VIP'
+    -- Filter fields (match VoyageCard/VoyagesOrganise.jsx expectations)
+    pays         VARCHAR(100),
+    destination  VARCHAR(200),
+    continent    VARCHAR(50),                   -- 'europe' | 'asie' | 'afrique' | 'amerique' | 'ocean'
+    saison       VARCHAR(30),                   -- 'ete' | 'hiver' | 'printemps' | 'automne' | 'toute-annee'
+    budget       VARCHAR(20),                   -- 'economique' | 'standard' | 'premium' | 'luxe'
+    categorie    VARCHAR(100),                  -- for simple filter buttons e.g. 'Famille' | 'Culture' | etc.
+    -- Rich content
+    programme    JSONB DEFAULT '[]'::jsonb,     -- array of strings (day by day)
+    inclus       JSONB DEFAULT '[]'::jsonb,     -- array of strings
+    non_inclus   JSONB DEFAULT '[]'::jsonb,     -- array of strings
+    is_active    BOOLEAN DEFAULT true,
+    created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_vo_active    ON public.voyages_organises (is_active);
+CREATE INDEX idx_vo_continent ON public.voyages_organises (continent);
+
+-- ─── TABLE: voyage_reservations ──────────────────────────────────
+CREATE TABLE public.voyage_reservations (
+    id                 SERIAL PRIMARY KEY,
+    voyage_id          INTEGER REFERENCES public.voyages_organises(id) ON DELETE SET NULL,
+    first_name         VARCHAR(100) NOT NULL,
+    last_name          VARCHAR(100) NOT NULL,
+    email              VARCHAR(200) NOT NULL,
+    phone              VARCHAR(30),
+    chambre_type       VARCHAR(30)  DEFAULT 'double',
+    number_of_persons  INTEGER      DEFAULT 1,
+    total_price        NUMERIC(10,2),
+    payment_method     VARCHAR(20)  DEFAULT 'agency'  CHECK (payment_method IN ('online','agency')),
+    payment_status     VARCHAR(20)  DEFAULT 'pending' CHECK (payment_status IN ('pending','paid','refunded')),
+    status             VARCHAR(20)  DEFAULT 'pending' CHECK (status IN ('pending','confirmed','cancelled','completed')),
+    notes              TEXT,
+    created_at         TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at         TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_vr_voyage_id ON public.voyage_reservations (voyage_id);
+CREATE INDEX idx_vr_email     ON public.voyage_reservations (email);
+CREATE INDEX idx_vr_status    ON public.voyage_reservations (status);
+
+-- ─── TRIGGER: auto-update updated_at ─────────────────────────────
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_voyages_organises_updated_at
+    BEFORE UPDATE ON public.voyages_organises
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_voyage_reservations_updated_at
+    BEFORE UPDATE ON public.voyage_reservations
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ════════════════════════════════════════════════════════════════
+--  SAMPLE DATA — 6 voyages organisés
+-- ════════════════════════════════════════════════════════════════
+
+INSERT INTO public.voyages_organises
+  (title, subtitle, description, image_url, price, old_price, duration, departure, spots, rating, reviews, badge, pays, destination, continent, saison, budget, categorie, programme, inclus, non_inclus)
+VALUES
+
+-- 1. Istanbul
+(
+  'Istanbul l''Éternelle',
+  'Hôtel 4★ · Vol inclus · 7 jours',
+  'Plongez dans l''âme de la Turquie : bazars millénaires, mosquées somptueuses et gastronomie envoûtante. Un voyage entre Orient et Occident inoubliable.',
+  'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=80',
+  1890.00, 2200.00, 7, 'Tunis', 25, 4.8, 312, 'Populaire',
+  'Turquie', 'Istanbul', 'europe', 'toute-annee', 'standard', 'Culture',
+  '["Arrivée à Istanbul, transfert hôtel, visite du quartier Sultanahmet","Mosquée Bleue, Sainte-Sophie, Palais de Topkapi","Grand Bazar, Bazar aux Épices, croisière sur le Bosphore","Excursion à Princes Islands, journée libre","Galata Tower, quartier Beyoglu, shopping","Visite musée archéologique, soirée hamam turc","Transfert aéroport, retour Tunis"]'::jsonb,
+  '["Vol aller-retour depuis Tunis","Hôtel 4★ en chambre double","Petit-déjeuner buffet inclus","Guide francophone","Transferts aéroport","Visites selon programme"]'::jsonb,
+  '["Déjeuners et dîners","Dépenses personnelles","Pourboires","Assurance voyage"]'::jsonb
+),
+
+-- 2. Paris
+(
+  'Paris, Ville Lumière',
+  'Hôtel 4★ · Vol inclus · 5 jours',
+  'La magie de Paris vous attend : Tour Eiffel illuminée, Louvre, Montmartre romantique et gastronomie française au rendez-vous. Un classique intemporel.',
+  'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80',
+  2450.00, 2800.00, 5, 'Tunis', 20, 4.9, 487, 'Populaire',
+  'France', 'Paris', 'europe', 'printemps', 'premium', 'Romantique',
+  '["Arrivée CDG, hôtel, croisière Seine","Tour Eiffel, Champs-Élysées, Arc de Triomphe","Louvre, Tuileries, quartier Marais","Versailles, jardins royaux","Montmartre, shopping, retour"]'::jsonb,
+  '["Vol aller-retour","Hôtel 4★ centre-ville","Petit-déjeuner","Guide francophone","Transferts","Ticket Louvre"]'::jsonb,
+  '["Repas midi et soir","Metro/transports locaux","Ticket Tour Eiffel","Dépenses personnelles"]'::jsonb
+),
+
+-- 3. Bali
+(
+  'Bali, Île des Dieux',
+  'Resort 5★ · Vol inclus · 10 jours',
+  'Rizières en terrasses, temples sacrés, plages de rêve et culture balinaise authentique. Bali est une expérience spirituelle et sensorielle unique.',
+  'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80',
+  3990.00, 4500.00, 10, 'Tunis', 15, 4.9, 203, 'VIP',
+  'Indonésie', 'Bali', 'asie', 'ete', 'luxe', 'Détente',
+  '["Arrivée Denpasar, resort 5★, accueil balinais","Temple Tanah Lot, coucher de soleil","Ubud, palais royal, marché artisanal","Forêt des singes, rizières Tegallalang","Plongée Nusa Penida, récifs coralliens","Journée plage Seminyak, spa balinais","Temple Besakih, volcan Batur","Balade à vélo, cours de cuisine","Kuta, shopping souvenirs","Retour Tunis"]'::jsonb,
+  '["Vol aller-retour","Resort 5★ all-inclusive","Tous les repas","Guide local","Transferts","Activités du programme","Cours de cuisine"]'::jsonb,
+  '["Dépenses personnelles","Alcools premium","Excursions optionnelles","Pourboires"]'::jsonb
+),
+
+-- 4. Marrakech
+(
+  'Marrakech Authentique',
+  'Riad 4★ · Vol inclus · 4 jours',
+  'La ville ocre vous envoûte avec ses souks labyrinthiques, ses jardins secrets et sa gastronomie épicée. Un week-end dépaysant à deux heures de Tunis.',
+  'https://images.unsplash.com/photo-1539020140153-e479b8c22e70?w=800&q=80',
+  1190.00, NULL, 4, 'Tunis', 30, 4.7, 156, 'Nouveau',
+  'Maroc', 'Marrakech', 'afrique', 'automne', 'economique', 'Culture',
+  '["Arrivée, riad traditionnel, médina à pied","Majorelle, Bahia, Djemaa el-Fna","Excursion Atlas, villages berbères","Souks, hammam, retour"]'::jsonb,
+  '["Vol aller-retour","Riad 4★ centre médina","Petit-déjeuner marocain","Guide francophone","Transferts"]'::jsonb,
+  '["Repas midi et soir","Entrées musées","Dépenses personnelles","Pourboires"]'::jsonb
+),
+
+-- 5. Dubaï
+(
+  'Dubaï, Entre Ciel et Or',
+  'Hôtel 5★ · Vol inclus · 6 jours',
+  'Le futur est à Dubaï : Burj Khalifa, desert safari, plages de sable blanc et shopping de luxe. Une ville qui ne cesse de vous surprendre.',
+  'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80',
+  2990.00, 3400.00, 6, 'Tunis', 18, 4.8, 278, 'Promo',
+  'Émirats Arabes Unis', 'Dubaï', 'asie', 'hiver', 'luxe', 'Luxe',
+  '["Arrivée, hôtel 5★, Dubai Mall, Burj Khalifa","Vieille ville, Gold Souk, Creek dhow cruise","Desert Safari, dunes, dîner bédouin","Palm Jumeirah, Atlantis, plage","Abu Dhabi, mosquée Sheikh Zayed","Journée libre shopping, retour"]'::jsonb,
+  '["Vol aller-retour","Hôtel 5★","Petit-déjeuner","Guide","Transferts","Desert Safari","Dhow cruise"]'::jsonb,
+  '["Déjeuners et dîners","Alcools","Activités optionnelles","Dépenses personnelles"]'::jsonb
+),
+
+-- 6. Barcelone
+(
+  'Barcelone et la Costa',
+  'Hôtel 4★ · Vol inclus · 6 jours',
+  'Gaudí, plages méditerranéennes, tapas et vie nocturne légendaire. Barcelone est la ville parfaite mêlant culture, soleil et fête.',
+  'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80',
+  1750.00, NULL, 6, 'Tunis', 22, 4.6, 189, NULL,
+  'Espagne', 'Barcelone', 'europe', 'ete', 'standard', 'Famille',
+  '["Arrivée, hôtel, Las Ramblas","Sagrada Familia, Parc Güell","Camp Nou, Tibidabo","Côte, Sitges, plage","Montjuïc, MNAC, journée libre","Shopping, retour"]'::jsonb,
+  '["Vol aller-retour","Hôtel 4★","Petit-déjeuner","Guide","Transferts","Ticket Sagrada Familia"]'::jsonb,
+  '["Repas","Metro local","Dépenses perso","Pourboires"]'::jsonb
+);
