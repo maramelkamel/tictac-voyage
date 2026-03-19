@@ -475,7 +475,8 @@
 /* ================================================================
    REQUESTS (adminLayout.requests.css intégré)
    ================================================================ */
-.rq-layout { display: grid; grid-template-columns: 1fr 420px; gap: 0; height: 100%; min-height: 0; }
+.rq-layout {display: grid;grid-template-columns: 1fr;gap: 0;height: 100%; min-height: 0; transition: grid-template-columns 0.3s ease;}
+.rq-layout--split {grid-template-columns: 1fr 420px; }
 .rq-card-table { margin: 24px 0 24px 32px; background: #fff; border-radius: 16px; border: 1px solid var(--g200); box-shadow: var(--shadow-md); overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
 .rq-client-cell { display: flex; align-items: center; gap: 11px; }
 .rq-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; font-weight: 700; color: #fff; }
@@ -491,9 +492,37 @@
 .rq-detail__item { display: flex; flex-direction: column; gap: 3px; }
 .rq-detail__item-label { font-size: 10px; font-weight: 600; color: var(--g400); text-transform: uppercase; letter-spacing: .05em; }
 .rq-detail__item-value { font-size: 13px; font-weight: 500; color: var(--g700); }
+.rq-detail__row svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  stroke: var(--g500);
+  .rq-detail--empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 40px; gap: 12px; text-align: center;
+  color: var(--g400); flex: 1;
+}
+.rq-detail--empty svg {
+  width: 48px;        /* ← manquait */
+  height: 48px;       /* ← manquait */
+  stroke: var(--g300);
+}
+.rq-detail--empty p {
+  font-size: 13px;
+  color: var(--g400);
+  line-height: 1.6;
+}
+}
+.rq-detail__key {
+  font-size: 10px; font-weight: 600; color: var(--g400);
+  text-transform: uppercase; letter-spacing: .05em; display: block;
+}
+.rq-detail__val {
+  font-size: 13px; font-weight: 500; color: var(--g700); display: block;
+}
 
 .rq-itinerary { display: flex; flex-direction: column; gap: 8px; }
-.rq-itinerary__row { display: flex; align-items: center; gap: 10px; }
+.rq-itinerary__row { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13px; color: var(--g700); }
 .rq-itinerary__dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .rq-itinerary__line { width: 2px; height: 20px; background: var(--g200); margin-left: 4px; }
 .rq-itinerary__label { font-size: 10px; color: var(--g400); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
