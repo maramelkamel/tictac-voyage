@@ -22,15 +22,19 @@ import RequestsAdmin    from './pages/admin/transport/RequestsAdmin';
 import Dashboard        from './pages/admin/dashboard/Dashboard';
 import SurMesureAdmin   from './pages/admin/surMesure/SurMesureAdmin';
 import ContactAdmin     from './pages/admin/contact/ContactAdmin';
-import Circuits        from './pages/Circuits';
+
 import OmraPackages      from './pages/admin/Omra/OmraPackages';
 import OmraReservations  from './pages/admin/Omra/OmraReservations';
 import ClientsAdmin from './pages/admin/clients/ClientsAdmin';
 import ClientProfile from './pages/ClientProfile';
 import VoyagePackages    from './pages/admin/voyages/VoyagePackages';
 import VoyageReservations from './pages/admin/voyages/VoyageReservations';
-
-
+import CircuitDetails    from './pages/circuits/CircuitDetails';
+import CircuitReserver   from './pages/circuits/CircuitReserver';
+import CircuitPayment    from './pages/circuits/CircuitPayment';
+import CircuitPackages   from './pages/admin/circuits/CircuitPackages';
+import CircuitReservations from './pages/admin/circuits/CircuitReservations';
+import Circuit from './pages/circuits/circuit'
 
 
 function App() {
@@ -59,15 +63,20 @@ function App() {
            <Route path="/admin" element={<Dashboard />} />
            <Route path="/admin/sur-mesure"element={<SurMesureAdmin />} />
            <Route path="/admin/contact"element={<ContactAdmin />} />
-           <Route path="/circuits"element={<Circuits />} />
+
            <Route path="/admin/omra/packages"     element={<OmraPackages />} />
           <Route path="/admin/omra/reservations" element={<OmraReservations />} />
            <Route path="/admin/clients/ClientsAdmin" element={<ClientsAdmin />} />
            <Route path="/mon-compte" element={<ClientProfile />} />
            <Route path="/admin/voyages/VoyagePackages"              element={<VoyagePackages />} />
            <Route path="/admin/voyages/VoyageReservations" element={<VoyageReservations />} />
-           
-
+          
+           <Route path="/circuits/CircuitDetails/:id"        element={<CircuitDetails />} />
+            <Route path="/circuits/CircuitReserver/:id"       element={<CircuitReserver />} />
+            <Route path="/circuits/CircuitPayment/:id"       element={<CircuitPayment />} />
+            <Route path="/admin/circuits/CircuitPackages"              element={<CircuitPackages />} />
+            <Route path="/admin/circuits/CircuitReservations" element={<CircuitReservations />} />
+             <Route path="/circuits/circuit" element={<Circuit />} />
       </Routes>
       
     </Router>

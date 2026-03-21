@@ -6,13 +6,18 @@ import AdminLayout from '../layout/AdminLayout';
 const MODULES = [
   { title: 'Transport', color: 'teal', desc: 'Véhicules et demandes de transfert / mise à disposition.',
     links: [
-      { label: 'Véhicules', path: '/admin/transport',          sk: 'vehicles',      badge: false },
-      { label: 'Demandes',  path: '/admin/transport/requests', sk: 'pending',       badge: true  },
+      { label: 'Véhicules', path: '/admin/transport',          sk: 'vehicles', badge: false },
+      { label: 'Demandes',  path: '/admin/transport/requests', sk: 'pending',  badge: true  },
     ]},
   { title: 'Voyages Organisés', color: 'indigo', desc: 'Offres de voyages organisés et réservations clients.',
     links: [
-      { label: 'Catalogue',    path: '/admin/voyages/VoyagePackages',              sk: 'voyagesTotal',  badge: false },
-      { label: 'Réservations', path: '/admin/voyages/VoyageReservations', sk: 'voyagesPending', badge: true },
+      { label: 'Catalogue',    path: '/admin/voyages/VoyagePackages',    sk: 'voyagesTotal',   badge: false },
+      { label: 'Réservations', path: '/admin/voyages/VoyageReservations', sk: 'voyagesPending', badge: true  },
+    ]},
+  { title: 'Circuits', color: 'green', desc: 'Circuits touristiques Nord & Sud Tunisie.',
+    links: [
+      { label: 'Catalogue',    path: '/admin/circuits/CircuitPackages',    sk: 'circuitsTotal',   badge: false },
+      { label: 'Réservations', path: '/admin/circuits/CircuitReservations', sk: 'circuitsPending', badge: true  },
     ]},
   { title: 'Omra', color: 'violet', desc: 'Offres de pèlerinage Omra et suivi des réservations.',
     links: [
@@ -32,7 +37,7 @@ const MODULES = [
     links: [
       { label: 'Messages', path: '/admin/contact', sk: 'contactNew', badge: true },
     ]},
-  { title: 'Clients', color: 'green', desc: 'Liste des clients inscrits et historique de leurs réservations.',
+  { title: 'Clients', color: 'gray', desc: 'Liste des clients inscrits et historique de leurs réservations.',
     links: [
       { label: 'Tous les clients', path: '/admin/clients/ClientsAdmin', sk: 'totalClients', badge: false },
     ]},
@@ -41,18 +46,27 @@ const MODULES = [
 const DashIcon = ({ c }) => ({
   teal:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M8 9v5M13 9v5M18 9v5"/><circle cx="7" cy="21" r="1.5"/><circle cx="17" cy="21" r="1.5"/></svg>,
   indigo: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>,
+  green:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/></svg>,
   violet: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>,
   blue:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>,
   orange: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>,
   red:    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
-  green:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,
-}[c]);
+  gray:   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,
+}[c] || null);
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [st, setSt] = useState({
-    vehicles: 0, pending: 0, surMesure: 0, contactNew: 0,
-    omraPending: 0, totalClients: 0, voyagesTotal: 0, voyagesPending: 0,
+    vehicles:       0,
+    pending:        0,
+    surMesure:      0,
+    contactNew:     0,
+    omraPending:    0,
+    totalClients:   0,
+    voyagesTotal:   0,
+    voyagesPending: 0,
+    circuitsTotal:   0,
+    circuitsPending: 0,
   });
 
   useEffect(() => {
@@ -65,15 +79,19 @@ const Dashboard = () => {
       fetch('http://localhost:5000/api/clients').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/voyages-organises').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/voyage-reservations').then(r => r.json()).catch(() => ({})),
-    ]).then(([v, r, ct, cs, omra, clients, voyages, voyageRes]) => setSt({
-      vehicles:       v.data?.length || 0,
-      pending:        r.data?.filter(x => x.status === 'pending').length || 0,
-      surMesure:      ct.data?.filter(x => x.status === 'pending').length || 0,
-      contactNew:     parseInt(cs.data?.nouveaux) || 0,
-      omraPending:    omra.data?.filter(x => x.status === 'pending').length || 0,
-      totalClients:   clients.data?.length || 0,
-      voyagesTotal:   voyages.data?.length || 0,
-      voyagesPending: voyageRes.data?.filter(x => x.status === 'pending').length || 0,
+      fetch('http://localhost:5000/api/circuits').then(r => r.json()).catch(() => ({})),
+      fetch('http://localhost:5000/api/circuit-reservations').then(r => r.json()).catch(() => ({})),
+    ]).then(([v, r, ct, cs, omra, clients, voyages, voyageRes, circuits, circuitRes]) => setSt({
+      vehicles:        v.data?.length || 0,
+      pending:         r.data?.filter(x => x.status === 'pending').length || 0,
+      surMesure:       ct.data?.filter(x => x.status === 'pending').length || 0,
+      contactNew:      parseInt(cs.data?.nouveaux) || 0,
+      omraPending:     omra.data?.filter(x => x.status === 'pending').length || 0,
+      totalClients:    clients.data?.length || 0,
+      voyagesTotal:    voyages.data?.length || 0,
+      voyagesPending:  voyageRes.data?.filter(x => x.status === 'pending').length || 0,
+      circuitsTotal:   circuits.data?.length || 0,
+      circuitsPending: circuitRes.data?.filter(x => x.status === 'pending').length || 0,
     }));
   }, []);
 
@@ -81,7 +99,14 @@ const Dashboard = () => {
     <AdminLayout
       title="Dashboard"
       breadcrumb={[{ label: 'Dashboard', active: true }]}
-      badges={{ transportRequests: st.pending, omraPending: st.omraPending, surMesure: st.surMesure, contactNew: st.contactNew, voyagesPending: st.voyagesPending }}
+      badges={{
+        transportRequests: st.pending,
+        omraPending:       st.omraPending,
+        surMesure:         st.surMesure,
+        contactNew:        st.contactNew,
+        voyagesPending:    st.voyagesPending,
+        circuitsPending:   st.circuitsPending,
+      }}
     >
       <div className="dash-page">
         <div className="dash-banner">
@@ -100,6 +125,7 @@ const Dashboard = () => {
             </button>
           )}
         </div>
+
         <div>
           <p className="dash-section-lbl">Modules</p>
           <div className="dash-grid">

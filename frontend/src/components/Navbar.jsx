@@ -14,7 +14,7 @@ const navLinks = [
   { id: 4, label: 'Billetterie', href: '/billeterie/Billeterie' },
   { id: 5, label: 'Omra',        href: '/Omra/Omra' },
   { id: 6, label: 'Contact',     href: '/Contact' },
-  { id: 7, label: 'Circuit',     href: '/circuits' },
+  { id: 7, label: 'Circuit',     href: '/circuits/circuit' },
 ];
 
 // ── Loyalty level helper ────────────────────────────────────────

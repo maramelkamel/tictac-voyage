@@ -55,6 +55,22 @@ const Tab = ({ id, label, icon, active, onClick, count }) => (
   </button>
 );
 
+// ── Reservation card ──────────────────────────────────────────────
+const ResCard = ({ children, right }) => (
+  <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2e8f0', padding: '18px 22px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+    <div>{children}</div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>{right}</div>
+  </div>
+);
+
+// ── Section heading ───────────────────────────────────────────────
+const SectionHead = ({ emoji, label, count, color, bg }) => (
+  <h3 style={{ fontSize: 13, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+    {emoji} {label}
+    <span style={{ background: bg, color, padding: '1px 8px', borderRadius: 999, fontSize: 11 }}>{count}</span>
+  </h3>
+);
+
 // ═══════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════
@@ -62,21 +78,22 @@ const ClientProfile = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [client,       setClient]    = useState(null);
-  const [activeTab,    setActiveTab] = useState(searchParams.get('tab') || 'profil');
-  const [loading,      setLoading]   = useState(true);
-  const [toast,        setToast]     = useState(null);
+  const [client,     setClient]     = useState(null);
+  const [activeTab,  setActiveTab]  = useState(searchParams.get('tab') || 'profil');
+  const [loading,    setLoading]    = useState(true);
+  const [toast,      setToast]      = useState(null);
 
-  const [omraRes,      setOmraRes]    = useState([]);
-  const [voyageRes,    setVoyageRes]  = useState([]); // ← NEW
-  const [transRes,     setTransRes]   = useState([]);
-  const [customRes,    setCustomRes]  = useState([]);
-  const [messages,     setMessages]   = useState([]);
-  const [favorites,    setFavorites]  = useState([]);
+  const [omraRes,    setOmraRes]    = useState([]);
+  const [voyageRes,  setVoyageRes]  = useState([]);
+  const [circuitRes, setCircuitRes] = useState([]);
+  const [transRes,   setTransRes]   = useState([]);
+  const [customRes,  setCustomRes]  = useState([]);
+  const [messages,   setMessages]   = useState([]);
+  const [favorites,  setFavorites]  = useState([]);
 
-  const [editMode,  setEditMode]  = useState(false);
-  const [editForm,  setEditForm]  = useState({});
-  const [saving,    setSaving]    = useState(false);
+  const [editMode,   setEditMode]   = useState(false);
+  const [editForm,   setEditForm]   = useState({});
+  const [saving,     setSaving]     = useState(false);
 
   const token = localStorage.getItem('token');
 
@@ -108,21 +125,23 @@ const ClientProfile = () => {
       const headers = { Authorization: `Bearer ${token}` };
       const e = email?.toLowerCase();
 
-      const [omra, voyage, trans, custom, msgs, favs] = await Promise.all([
+      const [omra, voyage, circuit, trans, custom, msgs, favs] = await Promise.all([
         fetch(`${API}/omra/reservations`,    { headers }).then(r => r.json()).catch(() => ({})),
-        fetch(`${API}/voyage-reservations`,  { headers }).then(r => r.json()).catch(() => ({})), // ← NEW
+        fetch(`${API}/voyage-reservations`,  { headers }).then(r => r.json()).catch(() => ({})),
+        fetch(`${API}/circuit-reservations`, { headers }).then(r => r.json()).catch(() => ({})),
         fetch(`${API}/requests`,             { headers }).then(r => r.json()).catch(() => ({})),
         fetch(`${API}/custom-trips`,         { headers }).then(r => r.json()).catch(() => ({})),
         fetch(`${API}/contact`,              { headers }).then(r => r.json()).catch(() => ({})),
         fetch(`${API}/favorites`,            { headers }).then(r => r.json()).catch(() => ({})),
       ]);
 
-      setOmraRes(  (omra.data    || []).filter(r => r.email?.toLowerCase() === e));
-      setVoyageRes((voyage.data  || []).filter(r => r.email?.toLowerCase() === e)); // ← NEW
-      setTransRes( (trans.data   || []).filter(r => r.email?.toLowerCase() === e));
-      setCustomRes((custom.data  || []).filter(r => r.email?.toLowerCase() === e));
-      setMessages( (msgs.data    || []).filter(r => r.email?.toLowerCase() === e));
-      setFavorites(favs.data || []);
+      setOmraRes(   (omra.data    || []).filter(r => r.email?.toLowerCase() === e));
+      setVoyageRes( (voyage.data  || []).filter(r => r.email?.toLowerCase() === e));
+      setCircuitRes((circuit.data || []).filter(r => r.email?.toLowerCase() === e));
+      setTransRes(  (trans.data   || []).filter(r => r.email?.toLowerCase() === e));
+      setCustomRes( (custom.data  || []).filter(r => r.email?.toLowerCase() === e));
+      setMessages(  (msgs.data    || []).filter(r => r.email?.toLowerCase() === e));
+      setFavorites( favs.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -157,8 +176,7 @@ const ClientProfile = () => {
   };
 
   // ── Computed stats ────────────────────────────────────────────
-  // voyageRes included in total
-  const allReservations = [...omraRes, ...voyageRes, ...transRes, ...customRes];
+  const allReservations = [...omraRes, ...voyageRes, ...circuitRes, ...transRes, ...customRes];
   const totalRes        = allReservations.length;
   const loyalty         = getLoyaltyInfo(totalRes);
   const nextDiscount    = getNextDiscount(totalRes);
@@ -201,18 +219,19 @@ const ClientProfile = () => {
               </div>
             </div>
 
-            {/* Stats — now includes Voyages */}
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            {/* Stats */}
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {[
                 { label: 'Réservations', value: totalRes },
                 { label: 'Omra',         value: omraRes.length },
-                { label: 'Voyages',       value: voyageRes.length }, // ← NEW
+                { label: 'Voyages',      value: voyageRes.length },
+                { label: 'Circuits',     value: circuitRes.length },
                 { label: 'Transport',    value: transRes.length },
                 { label: 'Sur Mesure',   value: customRes.length },
               ].map(s => (
-                <div key={s.label} style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: '14px 20px', textAlign: 'center', minWidth: 70 }}>
-                  <p style={{ fontSize: 24, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{s.value}</p>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', marginTop: 4 }}>{s.label}</p>
+                <div key={s.label} style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: '12px 16px', textAlign: 'center', minWidth: 64 }}>
+                  <p style={{ fontSize: 22, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{s.value}</p>
+                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.75)', marginTop: 4 }}>{s.label}</p>
                 </div>
               ))}
             </div>
@@ -317,15 +336,19 @@ const ClientProfile = () => {
                     <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', padding: '60px 24px', textAlign: 'center' }}>
                       <i className="fas fa-suitcase" style={{ fontSize: 48, color: '#cbd5e1', marginBottom: 16, display: 'block' }} />
                       <p style={{ fontSize: 16, fontWeight: 600, color: '#475569', marginBottom: 8 }}>Aucune réservation pour l'instant</p>
-                      <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 20 }}>Explorez nos forfaits et faites votre première réservation !</p>
+                      <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 20 }}>Explorez nos offres et faites votre première réservation !</p>
                       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                         <button onClick={() => navigate('/Omra/Omra')}
-                          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#0F4C5C,#1ECAD3)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                          Voir les forfaits Omra
+                          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#7c3aed,#6d28d9)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                          Forfaits Omra
                         </button>
                         <button onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')}
                           style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#4338ca,#6366f1)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                          Voir les voyages
+                          Voyages Organisés
+                        </button>
+                        <button onClick={() => navigate('/circuits')}
+                          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#059669,#10b981)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                          Circuits Tunisie
                         </button>
                       </div>
                     </div>
@@ -334,25 +357,17 @@ const ClientProfile = () => {
                       {/* ── Omra ── */}
                       {omraRes.length > 0 && (
                         <div>
-                          <h3 style={{ fontSize: 13, fontWeight: 700, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                            🕌 Omra <span style={{ background: '#f5f3ff', color: '#7c3aed', padding: '1px 8px', borderRadius: 999, fontSize: 11 }}>{omraRes.length}</span>
-                          </h3>
+                          <SectionHead emoji="🕌" label="Omra" count={omraRes.length} color="#7c3aed" bg="#f5f3ff"/>
                           {omraRes.map(r => (
-                            <div key={r.id} style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2e8f0', padding: '18px 22px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                              <div>
-                                <p style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>
-                                  {r.package_title || `Forfait Omra #${r.package_id || r.id}`}
-                                </p>
-                                <p style={{ fontSize: 12, color: '#64748b' }}>
-                                  {r.number_of_persons} pers. · Chambre {r.chambre_type} · {r.payment_method === 'online' ? '💳 En ligne' : '🏪 Agence'}
-                                </p>
-                                <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Réservé le {fDate(r.created_at)}</p>
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <ResCard key={r.id}
+                              right={<>
                                 {r.total_price && <span style={{ fontWeight: 800, fontSize: 16, color: '#0F4C5C' }}>{Number(r.total_price).toLocaleString('fr-TN')} TND</span>}
-                                <StatusBadge status={r.status} />
-                              </div>
-                            </div>
+                                <StatusBadge status={r.status}/>
+                              </>}>
+                              <p style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>{r.package_title || `Forfait Omra #${r.package_id || r.id}`}</p>
+                              <p style={{ fontSize: 12, color: '#64748b' }}>{r.number_of_persons} pers. · Chambre {r.chambre_type} · {r.payment_method === 'online' ? '💳 En ligne' : '🏪 Agence'}</p>
+                              <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Réservé le {fDate(r.created_at)}</p>
+                            </ResCard>
                           ))}
                         </div>
                       )}
@@ -360,26 +375,40 @@ const ClientProfile = () => {
                       {/* ── Voyages Organisés ── */}
                       {voyageRes.length > 0 && (
                         <div>
-                          <h3 style={{ fontSize: 13, fontWeight: 700, color: '#4338ca', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                            🏖️ Voyages Organisés <span style={{ background: '#ede9fe', color: '#4338ca', padding: '1px 8px', borderRadius: 999, fontSize: 11 }}>{voyageRes.length}</span>
-                          </h3>
+                          <SectionHead emoji="🏖️" label="Voyages Organisés" count={voyageRes.length} color="#4338ca" bg="#ede9fe"/>
                           {voyageRes.map(r => (
-                            <div key={r.id} style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2e8f0', padding: '18px 22px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                              <div>
-                                <p style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>
-                                  {r.voyage_title || `Voyage #${r.voyage_id || r.id}`}
-                                </p>
-                                <p style={{ fontSize: 12, color: '#64748b' }}>
-                                  {r.pays && `${r.pays}${r.destination ? ` · ${r.destination}` : ''} · `}
-                                  {r.number_of_persons} pers. · Chambre {r.chambre_type} · {r.payment_method === 'online' ? '💳 En ligne' : '🏪 Agence'}
-                                </p>
-                                <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Réservé le {fDate(r.created_at)}</p>
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <ResCard key={r.id}
+                              right={<>
                                 {r.total_price && <span style={{ fontWeight: 800, fontSize: 16, color: '#0F4C5C' }}>{Number(r.total_price).toLocaleString('fr-TN')} TND</span>}
-                                <StatusBadge status={r.status} />
-                              </div>
-                            </div>
+                                <StatusBadge status={r.status}/>
+                              </>}>
+                              <p style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>{r.voyage_title || `Voyage #${r.voyage_id || r.id}`}</p>
+                              <p style={{ fontSize: 12, color: '#64748b' }}>
+                                {r.pays && `${r.pays}${r.destination ? ` · ${r.destination}` : ''} · `}
+                                {r.number_of_persons} pers. · Chambre {r.chambre_type} · {r.payment_method === 'online' ? '💳 En ligne' : '🏪 Agence'}
+                              </p>
+                              <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Réservé le {fDate(r.created_at)}</p>
+                            </ResCard>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* ── Circuits ── */}
+                      {circuitRes.length > 0 && (
+                        <div>
+                          <SectionHead emoji="🗺️" label="Circuits Tunisie" count={circuitRes.length} color="#059669" bg="#d1fae5"/>
+                          {circuitRes.map(r => (
+                            <ResCard key={r.id}
+                              right={<>
+                                {r.total_price && <span style={{ fontWeight: 800, fontSize: 16, color: '#0F4C5C' }}>{Number(r.total_price).toLocaleString('fr-TN')} DT</span>}
+                                <StatusBadge status={r.status}/>
+                              </>}>
+                              <p style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>{r.circuit_title || `Circuit #${r.circuit_id || r.id}`}</p>
+                              <p style={{ fontSize: 12, color: '#64748b' }}>
+                                {r.region === 'nord' ? '🏛️ Circuit Nord' : '🏜️ Circuit Sud'} · {r.number_of_persons} pers. · Chambre {r.chambre_type} · {r.payment_method === 'online' ? '💳 En ligne' : '🏪 Agence'}
+                              </p>
+                              <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Réservé le {fDate(r.created_at)}</p>
+                            </ResCard>
                           ))}
                         </div>
                       )}
@@ -387,21 +416,12 @@ const ClientProfile = () => {
                       {/* ── Transport ── */}
                       {transRes.length > 0 && (
                         <div>
-                          <h3 style={{ fontSize: 13, fontWeight: 700, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                            🚌 Transport <span style={{ background: '#e0fbfc', color: '#0e7490', padding: '1px 8px', borderRadius: 999, fontSize: 11 }}>{transRes.length}</span>
-                          </h3>
+                          <SectionHead emoji="🚌" label="Transport" count={transRes.length} color="#0e7490" bg="#e0fbfc"/>
                           {transRes.map(r => (
-                            <div key={r.id} style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2e8f0', padding: '18px 22px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                              <div>
-                                <p style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>
-                                  {r.departure_location || '—'} → {r.arrival_location || '—'}
-                                </p>
-                                <p style={{ fontSize: 12, color: '#64748b' }}>
-                                  {r.vehicle_type} · {r.passengers} pers. · {fDate(r.departure_date)}
-                                </p>
-                              </div>
-                              <StatusBadge status={r.status} />
-                            </div>
+                            <ResCard key={r.id} right={<StatusBadge status={r.status}/>}>
+                              <p style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>{r.departure_location || '—'} → {r.arrival_location || '—'}</p>
+                              <p style={{ fontSize: 12, color: '#64748b' }}>{r.vehicle_type} · {r.passengers} pers. · {fDate(r.departure_date)}</p>
+                            </ResCard>
                           ))}
                         </div>
                       )}
@@ -409,19 +429,12 @@ const ClientProfile = () => {
                       {/* ── Sur Mesure ── */}
                       {customRes.length > 0 && (
                         <div>
-                          <h3 style={{ fontSize: 13, fontWeight: 700, color: '#c2410c', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                            ✈️ Voyage sur Mesure <span style={{ background: '#fff7ed', color: '#c2410c', padding: '1px 8px', borderRadius: 999, fontSize: 11 }}>{customRes.length}</span>
-                          </h3>
+                          <SectionHead emoji="✈️" label="Voyage sur Mesure" count={customRes.length} color="#c2410c" bg="#fff7ed"/>
                           {customRes.map(r => (
-                            <div key={r.id} style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2e8f0', padding: '18px 22px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                              <div>
-                                <p style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>{r.destination || '—'}</p>
-                                <p style={{ fontSize: 12, color: '#64748b' }}>
-                                  {fDate(r.departure_date)} → {fDate(r.return_date)} · {r.number_of_persons} pers.
-                                </p>
-                              </div>
-                              <StatusBadge status={r.status} />
-                            </div>
+                            <ResCard key={r.id} right={<StatusBadge status={r.status}/>}>
+                              <p style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>{r.destination || '—'}</p>
+                              <p style={{ fontSize: 12, color: '#64748b' }}>{fDate(r.departure_date)} → {fDate(r.return_date)} · {r.number_of_persons} pers.</p>
+                            </ResCard>
                           ))}
                         </div>
                       )}
@@ -446,15 +459,13 @@ const ClientProfile = () => {
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap', gap: 8 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', textTransform: 'capitalize' }}>{msg.sujet}</span>
-                          <StatusBadge status={msg.status} />
+                          <StatusBadge status={msg.status}/>
                         </div>
                         <span style={{ fontSize: 11, color: '#94a3b8' }}>{fDate(msg.created_at)}</span>
                       </div>
                       <div style={{ padding: '16px 20px' }}>
                         <div style={{ display: 'flex', gap: 12, marginBottom: msg.admin_notes ? 16 : 0 }}>
-                          <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#0F4C5C,#1ECAD3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
-                            {initials}
-                          </div>
+                          <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#0F4C5C,#1ECAD3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{initials}</div>
                           <div style={{ background: '#f8fafc', borderRadius: '0 12px 12px 12px', padding: '10px 14px', flex: 1 }}>
                             <p style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', marginBottom: 4 }}>Vous</p>
                             <p style={{ fontSize: 13, color: '#334155', lineHeight: 1.6 }}>{msg.message}</p>
@@ -463,7 +474,7 @@ const ClientProfile = () => {
                         {msg.admin_notes && (
                           <div style={{ display: 'flex', gap: 12, marginTop: 12, flexDirection: 'row-reverse' }}>
                             <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#e92f64,#f43f5e)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, flexShrink: 0 }}>
-                              <i className="fas fa-headset" />
+                              <i className="fas fa-headset"/>
                             </div>
                             <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px 0 12px 12px', padding: '10px 14px', flex: 1 }}>
                               <p style={{ fontSize: 11, fontWeight: 600, color: '#16a34a', marginBottom: 4 }}>Réponse de Tictac Voyages</p>
@@ -490,17 +501,22 @@ const ClientProfile = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
                       {favorites.map(fav => {
                         const data = fav.item_data || {};
+                        const typeMap = {
+                          omra:    { label: '🕌 Omra',    bg: '#f5f3ff', color: '#7c3aed' },
+                          voyage:  { label: '🏖️ Voyage',  bg: '#ede9fe', color: '#4338ca' },
+                          circuit: { label: '🗺️ Circuit', bg: '#d1fae5', color: '#059669' },
+                          hotel:   { label: '🏨 Hôtel',   bg: '#e0fbfc', color: '#0e7490' },
+                        };
+                        const tm = typeMap[fav.item_type] || { label: fav.item_type, bg: '#f1f5f9', color: '#64748b' };
                         return (
                           <div key={fav.id} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,.04)', transition: 'transform .2s', cursor: 'pointer' }}
                             onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
                             onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                            {data.image && <img src={data.image} alt={data.title} style={{ width: '100%', height: 140, objectFit: 'cover' }} />}
+                            {data.image && <img src={data.image} alt={data.title} style={{ width: '100%', height: 140, objectFit: 'cover' }}/>}
                             <div style={{ padding: '14px 16px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: fav.item_type === 'omra' ? '#f5f3ff' : fav.item_type === 'voyage' ? '#ede9fe' : '#e0fbfc', color: fav.item_type === 'omra' ? '#7c3aed' : fav.item_type === 'voyage' ? '#4338ca' : '#0e7490', textTransform: 'uppercase', letterSpacing: '.06em' }}>
-                                  {fav.item_type === 'omra' ? '🕌 Omra' : fav.item_type === 'hotel' ? '🏨 Hôtel' : fav.item_type === 'voyage' ? '🏖️ Voyage' : '🗺️ Circuit'}
-                                </span>
-                                <i className="fas fa-heart" style={{ color: '#e92f64', fontSize: 14 }} />
+                                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: tm.bg, color: tm.color, textTransform: 'uppercase', letterSpacing: '.06em' }}>{tm.label}</span>
+                                <i className="fas fa-heart" style={{ color: '#e92f64', fontSize: 14 }}/>
                               </div>
                               <p style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>{data.title || '—'}</p>
                               {data.price && <p style={{ fontSize: 13, fontWeight: 700, color: '#0F4C5C' }}>{Number(data.price).toLocaleString('fr-TN')} TND</p>}
@@ -527,7 +543,7 @@ const ClientProfile = () => {
                       <div style={{ background: 'rgba(255,255,255,.15)', borderRadius: 12, padding: '16px 24px', minWidth: 200 }}>
                         <p style={{ fontSize: 12, opacity: .85, marginBottom: 8 }}>Progression vers le niveau suivant</p>
                         <div style={{ height: 8, background: 'rgba(255,255,255,.25)', borderRadius: 999, overflow: 'hidden', marginBottom: 6 }}>
-                          <div style={{ height: '100%', width: `${progressPct}%`, background: '#fff', borderRadius: 999, transition: 'width .5s ease' }} />
+                          <div style={{ height: '100%', width: `${progressPct}%`, background: '#fff', borderRadius: 999, transition: 'width .5s ease' }}/>
                         </div>
                         <p style={{ fontSize: 12, opacity: .85 }}>{loyalty.nextLabel}</p>
                       </div>
@@ -536,7 +552,7 @@ const ClientProfile = () => {
 
                   <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e2e8f0', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
                     <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg,#D4A017,#f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <i className="fas fa-tag" style={{ color: '#fff', fontSize: 20 }} />
+                      <i className="fas fa-tag" style={{ color: '#fff', fontSize: 20 }}/>
                     </div>
                     <div>
                       <p style={{ fontWeight: 700, fontSize: 15, color: '#0f172a', marginBottom: 4 }}>
@@ -554,10 +570,10 @@ const ClientProfile = () => {
                     </div>
                     <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
                       {[
-                        { icon: '🌱', level: 'Nouveau client',  rule: '0 réservation — Bienvenue chez Tictac Voyages !' },
-                        { icon: '⭐',   level: 'Niveau 1',     rule: '1 réservation confirmée' },
-                        { icon: '⭐⭐', level: 'Niveau 2',     rule: '2 à 3 réservations confirmées' },
-                        { icon: '⭐⭐⭐', level: 'Niveau 3',  rule: '4 réservations confirmées et plus' },
+                        { icon: '🌱',    level: 'Nouveau client', rule: '0 réservation — Bienvenue chez Tictac Voyages !' },
+                        { icon: '⭐',    level: 'Niveau 1',       rule: '1 réservation confirmée' },
+                        { icon: '⭐⭐',  level: 'Niveau 2',       rule: '2 à 3 réservations confirmées' },
+                        { icon: '⭐⭐⭐', level: 'Niveau 3',      rule: '4 réservations confirmées et plus' },
                       ].map(item => (
                         <div key={item.level} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', borderRadius: 10, background: loyalty.label.includes(item.level) || (item.level === 'Nouveau client' && loyalty.level === 0) ? '#f0fdf4' : '#f8fafc', border: `1px solid ${loyalty.label.includes(item.level) || (item.level === 'Nouveau client' && loyalty.level === 0) ? '#bbf7d0' : '#f1f5f9'}` }}>
                           <span style={{ fontSize: 20, flexShrink: 0 }}>{item.icon}</span>
@@ -575,9 +591,7 @@ const ClientProfile = () => {
                           { at: 'Toutes les 3 ensuite', pct: '5%',  desc: 'Réduction de 5% toutes les 3 réservations après la 10ème' },
                         ].map(r => (
                           <div key={r.at} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: 10, background: '#fff', border: '1.5px solid #fed7aa', fontWeight: 800, fontSize: 13, color: '#d97706', flexShrink: 0 }}>
-                              {r.pct}
-                            </span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: 10, background: '#fff', border: '1.5px solid #fed7aa', fontWeight: 800, fontSize: 13, color: '#d97706', flexShrink: 0 }}>{r.pct}</span>
                             <div>
                               <p style={{ fontWeight: 600, fontSize: 12, color: '#92400e' }}>{r.at}</p>
                               <p style={{ fontSize: 11, color: '#b45309' }}>{r.desc}</p>
@@ -595,7 +609,6 @@ const ClientProfile = () => {
       </main>
 
       <Footer />
-
       <style>{`
         @keyframes spin   { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
