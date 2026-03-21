@@ -1,6 +1,6 @@
 npm install bcryptjs jsonwebtoken
 npm install cors
-
+JWT auth
 
 
 
