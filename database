@@ -1,5 +1,5 @@
 npm install bcryptjs jsonwebtoken
-
+npm install cors
 
 
 
@@ -664,3 +664,183 @@ VALUES
   '["Vol aller-retour","Hôtel 4★","Petit-déjeuner","Guide","Transferts","Ticket Sagrada Familia"]'::jsonb,
   '["Repas","Metro local","Dépenses perso","Pourboires"]'::jsonb
 );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+maram 
+
+
+-- ════════════════════════════════════════════════════════════════
+--  TIC-TAC VOYAGE — Circuits tables + sample data
+--  Run in pgAdmin Query Tool on tictacvoyage database
+-- ════════════════════════════════════════════════════════════════
+
+CREATE TABLE public.circuits (
+    id           SERIAL PRIMARY KEY,
+    title        VARCHAR(200)  NOT NULL,
+    subtitle     VARCHAR(300),
+    description  TEXT,
+    image_url    TEXT,
+    price        NUMERIC(10,2) NOT NULL,
+    old_price    NUMERIC(10,2),
+    duration     INTEGER       NOT NULL,   -- days
+    nights       INTEGER,
+    region       VARCHAR(20)   DEFAULT 'nord' CHECK (region IN ('nord','sud')),
+    departure    VARCHAR(100),
+    spots        INTEGER       DEFAULT 20,
+    rating       NUMERIC(3,1)  DEFAULT 5.0,
+    reviews      INTEGER       DEFAULT 0,
+    badge        VARCHAR(50),
+    tag          VARCHAR(100),
+    tag_color    VARCHAR(20)   DEFAULT 'teal',
+    difficulty   VARCHAR(20)   DEFAULT 'Facile' CHECK (difficulty IN ('Facile','Modéré','Aventure')),
+    group_size   VARCHAR(50),
+    highlights   JSONB         DEFAULT '[]'::jsonb,
+    programme    JSONB         DEFAULT '[]'::jsonb,
+    inclus       JSONB         DEFAULT '[]'::jsonb,
+    non_inclus   JSONB         DEFAULT '[]'::jsonb,
+    is_active    BOOLEAN       DEFAULT true,
+    created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_circuits_active ON public.circuits (is_active);
+CREATE INDEX idx_circuits_region ON public.circuits (region);
+
+CREATE TABLE public.circuit_reservations (
+    id                 SERIAL PRIMARY KEY,
+    circuit_id         INTEGER REFERENCES public.circuits(id) ON DELETE SET NULL,
+    first_name         VARCHAR(100) NOT NULL,
+    last_name          VARCHAR(100) NOT NULL,
+    email              VARCHAR(200) NOT NULL,
+    phone              VARCHAR(30),
+    chambre_type       VARCHAR(30)  DEFAULT 'double',
+    number_of_persons  INTEGER      DEFAULT 1,
+    total_price        NUMERIC(10,2),
+    payment_method     VARCHAR(20)  DEFAULT 'agency' CHECK (payment_method IN ('online','agency')),
+    payment_status     VARCHAR(20)  DEFAULT 'pending' CHECK (payment_status IN ('pending','paid','refunded')),
+    status             VARCHAR(20)  DEFAULT 'pending' CHECK (status IN ('pending','confirmed','cancelled','completed')),
+    notes              TEXT,
+    created_at         TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at         TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_cr_circuit_id ON public.circuit_reservations (circuit_id);
+CREATE INDEX idx_cr_email      ON public.circuit_reservations (email);
+CREATE INDEX idx_cr_status     ON public.circuit_reservations (status);
+
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = NOW(); RETURN NEW; END; $$ language 'plpgsql';
+
+CREATE TRIGGER update_circuits_updated_at
+    BEFORE UPDATE ON public.circuits FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_circuit_reservations_updated_at
+    BEFORE UPDATE ON public.circuit_reservations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ════ SAMPLE DATA ════════════════════════════════════════════════
+INSERT INTO public.circuits
+  (title, subtitle, description, image_url, price, old_price, duration, nights, region, departure, spots, rating, reviews, badge, tag, tag_color, difficulty, group_size, highlights, programme, inclus, non_inclus)
+VALUES
+
+-- NORD 1
+('Tunis Impériale', 'Médina · Carthage · Sidi Bou Saïd · 3 jours',
+ 'Plongez dans la capitale millénaire. De la Médina classée UNESCO aux ruines de Carthage, en passant par les azulejos de Sidi Bou Saïd et le musée du Bardo.',
+ 'https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=800&q=80',
+ 290, 340, 3, 2, 'nord', 'Tunis', 20, 4.8, 147, 'Populaire',
+ 'Patrimoine', 'teal', 'Facile', '2 – 15 personnes',
+ '["Médina de Tunis","Musée du Bardo","Carthage","Sidi Bou Saïd"]'::jsonb,
+ '["Arrivée Tunis, installation, visite Médina et souks historiques","Musée du Bardo, ruines de Carthage, coucher de soleil à Sidi Bou Saïd","Zaytuna, Dار Bach Hamba, marché central, départ"]'::jsonb,
+ '["Transport climatisé","Hôtel 3★ petit-déjeuner inclus","Guide francophone","Entrées sites incluses"]'::jsonb,
+ '["Déjeuners et dîners","Dépenses personnelles","Pourboires"]'::jsonb),
+
+-- NORD 2
+('Côte de Corail', 'Bizerte · Tabarka · Aïn Draham · 4 jours',
+ 'Le Nord sauvage et verdoyant. Forêts de pins et de chênes-lièges, plages préservées au corail rouge et la belle Tabarka face aux îles.',
+ 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
+ 420, NULL, 4, 3, 'nord', 'Tunis', 18, 4.7, 89, NULL,
+ 'Nature & Mer', 'blue', 'Facile', '2 – 20 personnes',
+ '["Bizerte","Cap Serrat","Tabarka","Aïn Draham"]'::jsonb,
+ '["Départ Tunis, Bizerte vieille ville et port","Cap Serrat, plages sauvages, baignade","Tabarka coraux, îles, marché artisanal","Aïn Draham forêt, retour Tunis"]'::jsonb,
+ '["Transport","Hébergement 3★ ou maison d''hôtes","Petit-déjeuner","Guide"]'::jsonb,
+ '["Repas midi/soir","Activités nautiques optionnelles","Dépenses perso"]'::jsonb),
+
+-- NORD 3
+('Cap Bon & Vignobles', 'Nabeul · Kelibia · El Haouaria · 2 jours',
+ 'La péninsule de Cap Bon entre céramiques artisanales, vignobles parfumés, forteresses médiévales et falaises calcaires spectaculaires.',
+ 'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&q=80',
+ 195, NULL, 2, 1, 'nord', 'Tunis', 25, 4.6, 63, 'Nouveau',
+ 'Découverte', 'green', 'Facile', '2 – 12 personnes',
+ '["Nabeul céramiques","Hammamet médina","Kelibia forteresse","El Haouaria falaises"]'::jsonb,
+ '["Nabeul marché poteries, Hammamet plage et médina","Kelibia château, El Haouaria fauconnerie, retour"]'::jsonb,
+ '["Transport","Hôtel 3★","Petit-déjeuner","Guide"]'::jsonb,
+ '["Repas","Entrées musées","Dépenses perso"]'::jsonb),
+
+-- NORD 4
+('Vallées du Tell', 'Le Kef · Dougga · Bulla Regia · 3 jours',
+ 'Immersion dans le Tell tunisien. Sites romains de Dougga et Bulla Regia, marchés berbères et panoramas sur les plaines verdoyantes.',
+ 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&q=80',
+ 350, 400, 3, 2, 'nord', 'Tunis', 15, 4.9, 104, NULL,
+ 'Archéologie', 'orange', 'Modéré', '4 – 12 personnes',
+ '["Le Kef citadelle","Dougga UNESCO","Bulla Regia","Chemtou marbres"]'::jsonb,
+ '["Départ, Le Kef citadelle et médina","Dougga site romain, Bulla Regia maisons souterraines","Chemtou carrières, retour Tunis"]'::jsonb,
+ '["Transport 4x4","Hébergement","Petit-déjeuner","Archéologue guide"]'::jsonb,
+ '["Repas","Dépenses perso","Équipement perso"]'::jsonb),
+
+-- SUD 1
+('Sahara & Dunes d''Or', 'Douz · Grand Erg · Ksar Ghilane · 5 jours',
+ 'L''expérience ultime du désert. Bivouac dans les dunes, balade à dos de dromadaire au coucher du soleil et ciel étoilé grandiose.',
+ 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80',
+ 680, 780, 5, 4, 'sud', 'Tunis', 12, 4.9, 231, 'VIP',
+ 'Aventure', 'accent', 'Aventure', '2 – 10 personnes',
+ '["Douz porte du désert","Grand Erg Oriental","Ksar Ghilane oasis","Nuit sous les étoiles"]'::jsonb,
+ '["Vol ou route vers Tozeur, installation camp","Douz marché, dromadaires, entrée désert","Grand Erg, dunes géantes, bivouac","Ksar Ghilane oasis source chaude","Retour Tunis via Gabès"]'::jsonb,
+ '["Transport 4x4","Bivouac tentes équipées","Demi-pension","Chamelier","Guide désert"]'::jsonb,
+ '["Vol interne optionnel","Alcools","Dépenses perso"]'::jsonb),
+
+-- SUD 2
+('Ksour & Troglodytes', 'Matmata · Tataouine · Ksar Hadada · 4 jours',
+ 'Maisons troglodytes, greniers fortifiés berbères et paysages lunaires de la région qui a inspiré la saga Star Wars.',
+ 'https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=80',
+ 510, 580, 4, 3, 'sud', 'Tunis', 16, 4.8, 178, 'Populaire',
+ 'Culture Berbère', 'violet', 'Modéré', '2 – 15 personnes',
+ '["Matmata troglodytes","Médenine ksour","Ksar Hadada","Tataouine"]'::jsonb,
+ '["Départ, Matmata maisons souterraines","Médenine, Ksar Hadada decor Star Wars","Tataouine, Ksar Ouled Soltane","Ghomrassen, retour Tunis"]'::jsonb,
+ '["Transport","Hébergement original","Petit-déjeuner","Guide"]'::jsonb,
+ '["Repas","Dépenses perso","Pourboires"]'::jsonb),
+
+-- SUD 3
+('Chott el-Jérid & Oasis', 'Tozeur · Nefta · Chott · 3 jours',
+ 'Traversée du grand lac salé aux mirages irisés, palmeraies luxuriantes de Tozeur et villages d''adobe de la région des Jérid.',
+ 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80',
+ 395, NULL, 3, 2, 'sud', 'Tunis', 20, 4.7, 142, NULL,
+ 'Paysages', 'teal', 'Facile', '2 – 18 personnes',
+ '["Tozeur médina","Nefta corbeille","Chott el-Jérid","Oasis de montagne"]'::jsonb,
+ '["Départ, Tozeur palmeraie et médina briques","Chott el-Jérid traversée, Nefta corbeille","Chebika Tamerza Mides canyons, retour"]'::jsonb,
+ '["Transport climatisé","Hôtel","Petit-déjeuner","Guide"]'::jsonb,
+ '["Repas","Dépenses perso"]'::jsonb),
+
+-- SUD 4
+('Îles de Kerkennah', 'Ferry · Poulpe · Plages sauvages · 2 jours',
+ 'Escapade hors du temps sur les îles plates de Kerkennah. Vélo, poulpe grillé, baignades cristallines et authenticité absolue.',
+ 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80',
+ 220, NULL, 2, 1, 'sud', 'Sfax', 22, 4.6, 95, NULL,
+ 'Évasion', 'blue', 'Facile', '2 – 20 personnes',
+ '["Ferry depuis Sfax","Villages pêcheurs","Plages cristallines","Poulpe local"]'::jsonb,
+ '["Départ Sfax, ferry Kerkennah, installation, plage","Vélo villages, pêche, dégustation, retour Sfax"]'::jsonb,
+ '["Ferry aller-retour","Hébergement","Petit-déjeuner","Vélos"]'::jsonb,
+ '["Repas","Dépenses perso"]'::jsonb);

@@ -16,7 +16,7 @@ const favoritesRoutes = require('./routes/favoritesRoutes');
 const voyageOrganiseRoutes    = require('./routes/voyageOrganiseRoutes');
 const voyageReservationRoutes = require('./routes/voyageReservationRoutes');
 const circuitRoutes            = require('./routes/circuitRoutes');
-const circuitReservationRoutes = require('./routes/circuitReservationRoutes');
+const circuitReservationRoutes = require('./routes/circuitreservationRoutes');
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
