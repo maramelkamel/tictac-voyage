@@ -16,6 +16,13 @@ const navLinks = [
   { id: 6, label: 'Contact',     href: '/Contact' },
   { id: 7, label: 'Circuit',     href: '/circuits/circuit' },
 ];
+const changeLanguage = (lang) => {
+  const select = document.querySelector(".goog-te-combo");
+  if (select) {
+    select.value = lang;
+    select.dispatchEvent(new Event("change"));
+  }
+};
 
 // ── Loyalty level helper ────────────────────────────────────────
 const getLoyaltyLevel = (totalReservations) => {
@@ -147,7 +154,10 @@ const Navbar = () => {
               {/* Language Switch */}
               <div role="group" aria-label="Sélection de langue" style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: 'var(--radius-sm)', padding: '3px' }}>
                 {['FR', 'EN', 'AR'].map(lang => (
-                  <button key={lang} type="button" onClick={() => setActiveLang(lang)} aria-pressed={activeLang === lang}
+                  <button key={lang} type="button" onClick={() => {
+  setActiveLang(lang);
+  changeLanguage(lang.toLowerCase());
+}} aria-pressed={activeLang === lang}
                     style={{ padding: '6px 14px', fontSize: '12px', fontWeight: 600, color: activeLang === lang ? 'var(--white)' : 'rgba(255,255,255,0.6)', borderRadius: '4px', background: activeLang === lang ? 'var(--secondary)' : 'transparent', transition: 'all var(--duration) var(--ease)', border: 'none', cursor: 'pointer' }}>
                     {lang}
                   </button>

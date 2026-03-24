@@ -614,6 +614,11 @@ input, select { font-family: inherit; border: none; outline: none; }
   background: var(--primary);
 }
 
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+
 /* ============================================
    ANIMATIONS
 ============================================ */
