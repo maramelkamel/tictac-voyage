@@ -31,7 +31,7 @@ const NAV = [
     items: [
       { label: 'Transport', icon: 'transport', sub: [
           { label: 'Véhicules',        path: '/admin/transport',          badgeKey: null },
-          { label: 'Demandes clients', path: '/admin/transport/requests', badgeKey: 'transportRequests' },
+          { label: 'Réservations', path: '/admin/transport/requests', badgeKey: 'transportRequests' },
       ]},
       { label: 'Voyages Organisés', icon: 'voyages', sub: [
           { label: 'Catalogue',    path: '/admin/voyages/VoyagePackages',     badgeKey: null },
@@ -47,10 +47,10 @@ const NAV = [
       ]},
       { label: 'Billeterie / Vols', icon: 'billets', sub: [
           { label: 'Vols',     path: '/admin/billeterie' },
-          { label: 'Demandes', path: '/admin/billeterie/demandes' },
+          { label: 'Réservations', path: '/admin/billeterie/demandes' },
       ]},
       { label: 'Voyage sur Mesure', icon: 'surMesure', sub: [
-          { label: 'Demandes', path: '/admin/sur-mesure', badgeKey: 'surMesure' },
+          { label: 'Réservations', path: '/admin/sur-mesure', badgeKey: 'surMesure' },
       ]},
       { label: 'Contact', icon: 'contact', sub: [
           { label: 'Messages', path: '/admin/contact', badgeKey: 'contactNew' },
@@ -94,7 +94,7 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
         <div className="al-brand">
           <div className="al-brand__logo"><Icon name="logo"/></div>
           <div>
-            <p className="al-brand__name">Tic-Tac Voyage</p>
+            <p className="al-brand__name">TicTac Voyage</p>
             <p className="al-brand__role">Administration</p>
           </div>
         </div>

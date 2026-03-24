@@ -7,7 +7,7 @@ const MODULES = [
   { title: 'Transport', color: 'teal', desc: 'Véhicules et demandes de transfert / mise à disposition.',
     links: [
       { label: 'Véhicules', path: '/admin/transport',          sk: 'vehicles', badge: false },
-      { label: 'Demandes',  path: '/admin/transport/requests', sk: 'pending',  badge: true  },
+      { label: 'Réservations',  path: '/admin/transport/requests', sk: 'pending',  badge: true  },
     ]},
   { title: 'Voyages Organisés', color: 'indigo', desc: 'Offres de voyages organisés et réservations clients.',
     links: [
@@ -27,11 +27,11 @@ const MODULES = [
   { title: 'Billeterie / Vols', color: 'blue', desc: 'Gestion des vols disponibles et demandes de billets.',
     links: [
       { label: 'Vols',     path: '/admin/billeterie',          sk: null },
-      { label: 'Demandes', path: '/admin/billeterie/demandes', sk: null },
+      { label: 'Réservations', path: '/admin/billeterie/demandes', sk: null },
     ]},
   { title: 'Voyage sur Mesure', color: 'orange', desc: 'Demandes de voyages personnalisés à traiter.',
     links: [
-      { label: 'Demandes', path: '/admin/sur-mesure', sk: 'surMesure', badge: true },
+      { label: 'Réservations', path: '/admin/sur-mesure', sk: 'surMesure', badge: true },
     ]},
   { title: 'Contact', color: 'red', desc: 'Messages reçus via le formulaire de contact du site.',
     links: [
@@ -112,7 +112,7 @@ const Dashboard = () => {
         <div className="dash-banner">
           <div>
             <span className="dash-banner__eyebrow">Bienvenue dans votre espace</span>
-            <h2 className="dash-banner__title">Tic-Tac Voyage Admin</h2>
+            <h2 className="dash-banner__title">TicTac Voyage Admin</h2>
             <p className="dash-banner__sub">Gérez tous vos modules depuis ce tableau de bord.</p>
           </div>
           {st.pending > 0 && (
