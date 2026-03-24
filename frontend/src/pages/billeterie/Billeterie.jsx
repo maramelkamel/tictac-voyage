@@ -148,7 +148,7 @@ const Billeterie = () => {
       </div>
       
       <Footer />
-      <Chatbot />
+      
     </div>
   )
 }

@@ -360,7 +360,6 @@ SELECT setval('public.omra_packages_id_seq', (SELECT MAX(id) FROM public.omra_pa
 
 
 
-maram:
 
 -- ════════════════════════════════════════════════════════════════
 --  TIC-TAC VOYAGE — Sample data: clients + omra_reservations
@@ -494,7 +493,7 @@ CREATE INDEX idx_favorites_type   ON public.favorites USING btree (item_type);
 
 
 
-maram
+
 
 
 
@@ -682,7 +681,7 @@ VALUES
 
 
 
-maram 
+
 
 
 -- ════════════════════════════════════════════════════════════════

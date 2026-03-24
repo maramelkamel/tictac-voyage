@@ -554,7 +554,7 @@ const Transport = () => {
       </div>
 
       <Footer />
-      <Chatbot />
+      
     </>
   );
 };

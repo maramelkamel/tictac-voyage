@@ -502,7 +502,7 @@ const CustomTripAbroad = () => {
       </section>
 
       <Footer />
-      <Chatbot />
+     
     </div>
   );
 };

@@ -256,7 +256,7 @@ const Omra = () => {
         </div>
       </section>
 
-      <Chatbot />
+    
       <Footer />
     </>
   );
