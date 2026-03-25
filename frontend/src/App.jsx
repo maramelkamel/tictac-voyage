@@ -35,29 +35,13 @@ import CircuitPayment    from './pages/circuits/CircuitPayment';
 import CircuitPackages   from './pages/admin/circuits/CircuitPackages';
 import CircuitReservations from './pages/admin/circuits/CircuitReservations';
 import Circuit from './pages/circuits/circuit'
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
 
-function GoogleTranslateFix() {
-  const location = useLocation();
-
-  useEffect(() => {
-    setTimeout(() => {
-      const select = document.querySelector(".goog-te-combo");
-      if (select) {
-        select.dispatchEvent(new Event("change"));
-      }
-    }, 500);
-  }, [location]);
-
-  return null;
-}
 
 
 function App() {
   return (
     <Router>
-      <GoogleTranslateFix />
+      
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/Omra/Omra" element={<Omra />} />
