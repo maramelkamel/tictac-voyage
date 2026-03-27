@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import '../../styles/Circuits.css';
+import { usePromotions }  from '../../hooks/usePromotions';
+import PromotionsSection  from '../../components/PromotionsSection';
 
 const API = 'http://localhost:5000/api/circuits?public=true';
 
@@ -63,6 +65,7 @@ export default function Circuits() {
   const [hovered,   setHovered]   = useState(null);
   const [allCircuits, setAll]     = useState([]);
   const [loading,   setLoading]   = useState(true);
+  const { promos } = usePromotions('categorie', 'circuits');
 
   useEffect(() => {
     fetch(API).then(r => r.json()).then(j => setAll((j.data || []).map(normalize))).catch(console.error).finally(() => setLoading(false));
@@ -102,6 +105,13 @@ export default function Circuits() {
       </section>
 
       {/* SPLIT */}
+      {promos.length > 0 && (
+  <section style={{ padding: '8px 0' }}>
+    <div className="ci-container">
+      <PromotionsSection promos={promos} />
+    </div>
+  </section>
+)}
       <section className="ci-split">
         <div className="ci-container">
           <div className={`ci-split__inner ci-split__inner--${activeTab}`}>

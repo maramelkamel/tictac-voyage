@@ -6,6 +6,8 @@ import SearchSection from '../components/SearchSection';
 import Chatbot from '../components/Chatbot';
 import { useNavigate } from 'react-router-dom';
 import { hotelsData } from '../data/hotelsData';
+import { usePromotions }    from '../hooks/usePromotions';
+import PromotionsSection    from '../components/PromotionsSection';
 
 // Destinations data
 const destinationsData = [
@@ -64,6 +66,7 @@ const slidesData = [
 const HomePage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
+  const { promos } = usePromotions('accueil');
 
   // Auto-slide effect
   useEffect(() => {
@@ -125,6 +128,11 @@ const HomePage = () => {
 
       {/* SEARCH SECTION */}
       <SearchSection onSearch={handleSearch} />
+      {promos.length > 0 && (
+  <div className="container mx-auto px-4" style={{ paddingTop: 32 }}>
+    <PromotionsSection promos={promos} titre="Offres & Promotions du moment" />
+  </div>
+)}
 
       {/* HOTELS SECTION */}
       <section className="section hotels-section bg-[var(--color-background-main)]" id="hotels">

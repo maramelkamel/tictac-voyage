@@ -17,6 +17,7 @@ const voyageOrganiseRoutes    = require('./routes/voyageOrganiseRoutes');
 const voyageReservationRoutes = require('./routes/voyageReservationRoutes');
 const circuitRoutes            = require('./routes/circuitRoutes');
 const circuitReservationRoutes = require('./routes/circuitreservationRoutes');
+const promotionsRoutes = require('./routes/promotionsRoutes');
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
@@ -41,6 +42,7 @@ app.use('/api/voyages-organises',    voyageOrganiseRoutes);
 app.use('/api/voyage-reservations',  voyageReservationRoutes);
 app.use('/api/circuits',              circuitRoutes);
 app.use('/api/circuit-reservations',  circuitReservationRoutes);
+app.use('/api/promotions', promotionsRoutes);
 
 
 

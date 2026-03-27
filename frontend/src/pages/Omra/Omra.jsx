@@ -7,6 +7,8 @@ import OmraSearchBar from '../../components/OmraSearchBar';
 import Chatbot from '../../components/Chatbot';
 import { statsData } from '../../data/OmraData';
 import '../../styles/omrastyle.css';
+import { usePromotions }  from '../../hooks/usePromotions';
+import PromotionsSection  from '../../components/PromotionsSection';
 
 const API = 'http://localhost:5000/api/omra/packages?public=true';
 
@@ -16,6 +18,7 @@ const Omra = () => {
   const [packages, setPackages]         = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState('');
+  const { promos } = usePromotions('categorie', 'omra');
 
   // ── Fetch + normalize packages from API ──────────────────────
   useEffect(() => {
@@ -126,6 +129,13 @@ const Omra = () => {
       </section>
 
       {/* Packages */}
+      {promos.length > 0 && (
+  <section style={{ padding: '16px 0 0' }}>
+    <div className="container">
+      <PromotionsSection promos={promos} />
+    </div>
+  </section>
+)}
       <section className="omra-section omra-section--gray">
         <div className="container">
           <div className="omra-section__header">

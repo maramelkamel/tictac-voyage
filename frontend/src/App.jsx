@@ -35,6 +35,7 @@ import CircuitPayment    from './pages/circuits/CircuitPayment';
 import CircuitPackages   from './pages/admin/circuits/CircuitPackages';
 import CircuitReservations from './pages/admin/circuits/CircuitReservations';
 import Circuit from './pages/circuits/circuit'
+import PromotionsAdmin from './pages/admin/promotions/PromotionsAdmin';
 
 
 
@@ -79,6 +80,8 @@ function App() {
             <Route path="/admin/circuits/CircuitPackages"              element={<CircuitPackages />} />
             <Route path="/admin/circuits/CircuitReservations" element={<CircuitReservations />} />
              <Route path="/circuits/circuit" element={<Circuit />} />
+
+<Route path="/admin/promotions" element={<PromotionsAdmin />} />
       </Routes>
       
     </Router>

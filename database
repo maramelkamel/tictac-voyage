@@ -843,3 +843,47 @@ VALUES
  '["Départ Sfax, ferry Kerkennah, installation, plage","Vélo villages, pêche, dégustation, retour Sfax"]'::jsonb,
  '["Ferry aller-retour","Hébergement","Petit-déjeuner","Vélos"]'::jsonb,
  '["Repas","Dépenses perso"]'::jsonb);
+
+
+
+
+
+
+ miniar
+ CREATE TABLE public.promotions (
+  id               SERIAL PRIMARY KEY,
+  titre            VARCHAR(150)  NOT NULL,
+  description      TEXT,
+  categorie        VARCHAR(30)   NOT NULL,
+  type_reduction   VARCHAR(20)   NOT NULL,
+  valeur_reduction NUMERIC(10,2) NOT NULL,
+  code_promo       VARCHAR(50),
+  date_debut       DATE          NOT NULL,
+  date_fin         DATE          NOT NULL,
+  is_active        BOOLEAN       DEFAULT true  NOT NULL,
+  afficher_accueil BOOLEAN       DEFAULT false NOT NULL,
+  display_mode     VARCHAR(20)   DEFAULT 'card' NOT NULL,
+  image_url        TEXT,
+  created_at       TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  updated_at       TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  CONSTRAINT promotions_categorie_check CHECK (
+    categorie = ANY(ARRAY['omra','hotels','vols','circuits','voyages_internationaux'])
+  ),
+  CONSTRAINT promotions_type_check CHECK (
+    type_reduction = ANY(ARRAY['pourcentage','montant_fixe'])
+  ),
+  CONSTRAINT promotions_valeur_check CHECK (valeur_reduction > 0),
+  CONSTRAINT promotions_dates_check  CHECK (date_fin > date_debut),
+  CONSTRAINT promotions_display_check CHECK (
+    display_mode = ANY(ARRAY['card','banner'])
+  )
+);
+
+CREATE INDEX idx_promotions_categorie ON public.promotions (categorie);
+CREATE INDEX idx_promotions_active    ON public.promotions (is_active);
+CREATE INDEX idx_promotions_accueil   ON public.promotions (afficher_accueil);
+CREATE INDEX idx_promotions_dates     ON public.promotions (date_debut, date_fin);
+
+CREATE TRIGGER trg_promotions_updated_at
+  BEFORE UPDATE ON public.promotions
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();

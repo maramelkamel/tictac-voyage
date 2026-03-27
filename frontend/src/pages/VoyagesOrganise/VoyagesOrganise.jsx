@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/omrastyle.css';
+import { usePromotions }  from '../../hooks/usePromotions';
+import PromotionsSection  from '../../components/PromotionsSection';
 
 import VoyageSearchBar  from '../../components/VoyageSearchBar';
 import VoyageCard       from '../../components/VoyageCard';
@@ -55,6 +57,7 @@ const VoyagesOrganise = () => {
   const [saison,        setSaison]        = useState('');
   const [budget,        setBudget]        = useState('');
   const [visibleCount,  setVisibleCount]  = useState(6);
+  const { promos } = usePromotions('categorie', 'voyages_internationaux');
 
   const activeFilterCount = [continent, budget, saison].filter(Boolean).length;
 
@@ -137,6 +140,7 @@ const VoyagesOrganise = () => {
           </div>
 
           {/* Filtres simples */}
+          <PromotionsSection promos={promos} />
           <div className="omra-filters-bar">
             <div className="omra-filters">
               {FILTERS.map((f) => (

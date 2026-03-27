@@ -3,6 +3,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Chatbot from '../components/Chatbot';
 import '../styles/CustomTripAbroad.css';
+import { usePromotions }  from '../hooks/usePromotions';
+import PromotionsSection  from '../components/PromotionsSection';
 
 const API = 'http://localhost:5000/api/custom-trips';
 
@@ -28,6 +30,7 @@ const CustomTripAbroad = () => {
   const [formData, setFormData]         = useState(EMPTY);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess]   = useState(false);
+  const { promos } = usePromotions('categorie', 'voyages_internationaux');
   const [error, setError]               = useState('');
 
   const handleChange = (e) => {
@@ -155,7 +158,11 @@ const CustomTripAbroad = () => {
           </svg>
         </div>
       </section>
-
+{promos.length > 0 && (
+  <div className="container" style={{ padding: '24px 0 0' }}>
+    <PromotionsSection promos={promos} />
+  </div>
+)}
       {/* ══ MAIN ══ */}
       <section className="main-section" id="trip-form">
         <div className="container">
