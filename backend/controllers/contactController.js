@@ -28,7 +28,7 @@ const getOne = async (req, res) => {
 const create = async (req, res) => {
   try {
     const { nom, email, telephone, sujet, message } = req.body;
-    if (!nom || !email || !sujet || !message) {
+    if (!nom || !email || !message) {
       return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
     }
     const msg = await contactModel.createMessage({ nom, email, telephone, sujet, message });

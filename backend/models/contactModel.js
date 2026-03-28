@@ -46,7 +46,7 @@ const createMessage = async ({ nom, email, telephone, sujet, message }) => {
     `INSERT INTO contact_messages (nom, email, telephone, sujet, message)
      VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [nom, email, telephone || null, sujet, message]
+    [nom, email, telephone || null, sujet|| null, message]
   );
   return rows[0];
 };
