@@ -887,3 +887,22 @@ CREATE INDEX idx_promotions_dates     ON public.promotions (date_debut, date_fin
 CREATE TRIGGER trg_promotions_updated_at
   BEFORE UPDATE ON public.promotions
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+
+
+
+
+
+
+
+
+UPDATE promotions 
+SET date_debut = CURRENT_DATE - INTERVAL '1 day'
+WHERE date_debut > CURRENT_DATE;
+
+
+
+
+
+
+  ALTER TABLE contact_messages ALTER COLUMN sujet DROP NOT NULL;
