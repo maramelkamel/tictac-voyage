@@ -13,36 +13,11 @@ const inputStyle = {
 };
 
 const Footer = () => {
-  const [form, setForm] = useState({ nom: '', email: '', message: '' });
-  const [loading, setLoading] = useState(false);
+  const [form, setForm]           = useState({ nom: '', email: '', message: '' });
+  const [loading, setLoading]     = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const services = [
-    { id: 1, label: 'Hôtels',             href: '/' },
-    { id: 2, label: 'Transport',           href: '/transport' },
-    { id: 3, label: 'Voyages Organisés',   href: '/VoyagesOrganise/VoyagesOrganise' },
-    { id: 4, label: 'Omra',               href: '/Omra/Omra' },
-    { id: 5, label: 'Voyages Sur Mesure', href: '/voyagenonorg/VoyageSurMesure' },
-    { id: 6, label: 'Billetterie',        href: '/billeterie/Billeterie' },
-    { id: 7, label: 'Circuits',           href: '/circuits/circuit' },
-  ];
-
-  const contactInfo = [
-    { icon: 'fas fa-phone',          label: '+216 36 149 885' },
-    { icon: 'fas fa-envelope',       label: 'tictacvoyages@gmail.com' },
-    { icon: 'fas fa-map-marker-alt', label: 'Nouvelle Medina, Tunis' },
-  ];
-
-  const socials = [
-    { icon: 'fab fa-facebook-f', href: '#' },
-    { icon: 'fab fa-instagram',  href: '#' },
-    { icon: 'fab fa-whatsapp',   href: '#' },
-    { icon: 'fab fa-youtube',    href: '#' },
-  ];
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,6 +42,29 @@ const Footer = () => {
     }
   };
 
+  const services = [
+    { id: 1, label: 'Hôtels',             href: '/' },
+    { id: 2, label: 'Transport',           href: '/transport' },
+    { id: 3, label: 'Voyages Organisés',   href: '/VoyagesOrganise/VoyagesOrganise' },
+    { id: 4, label: 'Omra',               href: '/Omra/Omra' },
+    { id: 5, label: 'Voyages Sur Mesure', href: '/voyagenonorg/VoyageSurMesure' },
+    { id: 6, label: 'Billetterie',        href: '/billeterie/Billeterie' },
+    { id: 7, label: 'Circuits',           href: '/circuits/circuit' },
+  ];
+
+  const contactInfo = [
+    { icon: 'fas fa-phone',          label: '+216 36 149 885' },
+    { icon: 'fas fa-envelope',       label: 'tictacvoyages@gmail.com' },
+    { icon: 'fas fa-map-marker-alt', label: 'Nouvelle Medina, Tunis' },
+  ];
+
+  const socials = [
+    { icon: 'fab fa-facebook-f', href: '#' },
+    { icon: 'fab fa-instagram',  href: '#' },
+    { icon: 'fab fa-whatsapp',   href: '#' },
+    { icon: 'fab fa-youtube',    href: '#' },
+  ];
+
   return (
     <footer style={{ background: 'var(--primary)', color: '#fff', padding: '72px 0 0' }}>
       <div className="container">
@@ -87,7 +85,8 @@ const Footer = () => {
             </h1>
             <span style={{
               fontSize: '10px', fontWeight: 600, color: 'var(--gold)',
-              letterSpacing: '0.15em', textTransform: 'uppercase', display: 'block', marginBottom: '16px',
+              letterSpacing: '0.15em', textTransform: 'uppercase',
+              display: 'block', marginBottom: '16px',
             }}>
               Agence de Voyage
             </span>
@@ -116,7 +115,11 @@ const Footer = () => {
               {services.map((s) => (
                 <li key={s.id}>
                   <a href={s.href} className="footer-link"
-                    style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', transition: 'all 0.3s ease' }}>
+                    style={{
+                      fontSize: '14px', color: 'rgba(255,255,255,0.7)',
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      textDecoration: 'none', transition: 'all 0.3s ease',
+                    }}>
                     <i className="fas fa-chevron-right" style={{ fontSize: '10px', color: 'var(--secondary)' }} />
                     {s.label}
                   </a>
@@ -130,7 +133,10 @@ const Footer = () => {
             <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '24px' }}>Contactez-nous</h4>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {contactInfo.map((item, i) => (
-                <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', fontSize: '14px', color: 'rgba(255,255,255,0.7)' }}>
+                <li key={i} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '14px',
+                  fontSize: '14px', color: 'rgba(255,255,255,0.7)',
+                }}>
                   <i className={item.icon} style={{ color: 'var(--secondary)', marginTop: '3px', width: '16px' }} />
                   {item.label}
                 </li>
@@ -151,49 +157,34 @@ const Footer = () => {
                 <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '14px', margin: '0 0 12px' }}>
                   Message envoyé avec succès !
                 </p>
-                <button
-                  onClick={() => setSubmitted(false)}
-                  style={{
-                    background: 'transparent', border: '1px solid rgba(255,255,255,0.3)',
-                    color: 'rgba(255,255,255,0.7)', borderRadius: '6px',
-                    padding: '8px 16px', fontSize: '13px', cursor: 'pointer',
-                  }}
-                >
+                <button onClick={() => setSubmitted(false)} style={{
+                  background: 'transparent', border: '1px solid rgba(255,255,255,0.3)',
+                  color: 'rgba(255,255,255,0.7)', borderRadius: '6px',
+                  padding: '8px 16px', fontSize: '13px', cursor: 'pointer',
+                }}>
                   Envoyer un autre message
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <input
-                  type="text"
-                  name="nom"
-                  placeholder="Votre nom"
-                  required
-                  value={form.nom}
-                  onChange={handleChange}
+                  name="nom" type="text" placeholder="Votre nom *"
+                  required value={form.nom} onChange={handleChange}
                   style={inputStyle}
                 />
                 <input
-                  type="email"
-                  name="email"
-                  placeholder="Votre email"
-                  required
-                  value={form.email}
-                  onChange={handleChange}
+                  name="email" type="email" placeholder="Votre email *"
+                  required value={form.email} onChange={handleChange}
                   style={inputStyle}
                 />
                 <textarea
-                  name="message"
-                  placeholder="Votre message"
-                  rows={3}
-                  required
-                  value={form.message}
-                  onChange={handleChange}
+                  name="message" rows={3}
+                  placeholder="Votre message *"
+                  required value={form.message} onChange={handleChange}
                   style={{ ...inputStyle, resize: 'none', fontFamily: 'inherit' }}
                 />
                 <button
-                  type="submit"
-                  disabled={loading}
+                  type="submit" disabled={loading}
                   style={{
                     padding: '13px 24px',
                     background: loading ? 'rgba(255,255,255,0.2)' : 'var(--accent)',
@@ -204,17 +195,10 @@ const Footer = () => {
                     display: 'flex', alignItems: 'center', gap: '8px',
                   }}
                 >
-                  {loading ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin" />
-                      Envoi...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-paper-plane" />
-                      Envoyer
-                    </>
-                  )}
+                  {loading
+                    ? <><i className="fas fa-spinner fa-spin" /> Envoi...</>
+                    : <><i className="fas fa-paper-plane" /> Envoyer</>
+                  }
                 </button>
               </form>
             )}
