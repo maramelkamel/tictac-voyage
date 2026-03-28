@@ -36,7 +36,7 @@ import CircuitPackages   from './pages/admin/circuits/CircuitPackages';
 import CircuitReservations from './pages/admin/circuits/CircuitReservations';
 import Circuit from './pages/circuits/circuit'
 import PromotionsAdmin from './pages/admin/promotions/PromotionsAdmin';
-
+import ReserveHotel from './pages/hotel/ReserveHotel';
 
 
 function App() {
@@ -73,7 +73,7 @@ function App() {
            <Route path="/mon-compte" element={<ClientProfile />} />
            <Route path="/admin/voyages/VoyagePackages"              element={<VoyagePackages />} />
            <Route path="/admin/voyages/VoyageReservations" element={<VoyageReservations />} />
-          
+           
            <Route path="/circuits/CircuitDetails/:id"        element={<CircuitDetails />} />
             <Route path="/circuits/CircuitReserver/:id"       element={<CircuitReserver />} />
             <Route path="/circuits/CircuitPayment/:id"       element={<CircuitPayment />} />
@@ -81,7 +81,8 @@ function App() {
             <Route path="/admin/circuits/CircuitReservations" element={<CircuitReservations />} />
              <Route path="/circuits/circuit" element={<Circuit />} />
 
-<Route path="/admin/promotions" element={<PromotionsAdmin />} />
+            <Route path="/admin/promotions" element={<PromotionsAdmin />} />
+            <Route path="/hotels/:id/reserve" element={<ReserveHotel />} />
       </Routes>
       
     </Router>
