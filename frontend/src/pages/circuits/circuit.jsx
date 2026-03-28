@@ -5,7 +5,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import '../../styles/Circuits.css';
 import { usePromotions }  from '../../hooks/usePromotions';
-import PromotionsSection  from '../../components/PromotionsSection';
+import PromotionsSection  from '../admin/promotions/PromotionsSection';
 
 const API = 'http://localhost:5000/api/circuits?public=true';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/PromotionCard.css';
+import '../../../styles/PromotionCard.css';
 
 const BADGE = {
   omra:                   { cls: 'badge-orange', label: 'Omra' },

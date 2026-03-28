@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 import Chatbot from '../components/Chatbot';
 import '../styles/CustomTripAbroad.css';
 import { usePromotions }  from '../hooks/usePromotions';
-import PromotionsSection  from '../components/PromotionsSection';
+import PromotionsSection  from './admin/promotions/PromotionsSection';
 
 const API = 'http://localhost:5000/api/custom-trips';
 

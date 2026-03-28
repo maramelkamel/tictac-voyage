@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/omrastyle.css';
 import { usePromotions }  from '../../hooks/usePromotions';
-import PromotionsSection  from '../../components/PromotionsSection';
+import PromotionsSection  from '../admin/promotions/PromotionsSection';
 
 import VoyageSearchBar  from '../../components/VoyageSearchBar';
 import VoyageCard       from '../../components/VoyageCard';

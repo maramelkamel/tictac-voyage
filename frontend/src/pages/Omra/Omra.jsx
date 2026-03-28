@@ -8,7 +8,7 @@ import Chatbot from '../../components/Chatbot';
 import { statsData } from '../../data/OmraData';
 import '../../styles/omrastyle.css';
 import { usePromotions }  from '../../hooks/usePromotions';
-import PromotionsSection  from '../../components/PromotionsSection';
+import PromotionsSection  from '../admin/promotions/PromotionsSection';
 
 const API = 'http://localhost:5000/api/omra/packages?public=true';
 

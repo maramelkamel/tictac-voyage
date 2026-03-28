@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import CardStyle from '../components/CardStyle';
-import SearchSection from '../components/SearchSection';
-import Chatbot from '../components/Chatbot';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
+import CardStyle from '../../components/CardStyle';
+import SearchSection from '../../components/SearchSection';
 import { useNavigate } from 'react-router-dom';
-import { hotelsData } from '../data/hotelsData';
-import { usePromotions }    from '../hooks/usePromotions';
-import PromotionsSection    from '../components/PromotionsSection';
+import { hotelsData } from '../../data/hotelsData';
+import { usePromotions }    from '../../hooks/usePromotions';
+import PromotionsSection from '../../pages/admin/promotions/PromotionsSection';
 
 // Destinations data
 const destinationsData = [

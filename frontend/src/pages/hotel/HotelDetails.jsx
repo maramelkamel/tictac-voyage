@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { hotelsData } from '../data/hotelsData';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
+import { hotelsData } from '../../data/hotelsData';
 
 /* ============================================================
    INLINE STYLES — No external CSS dependency

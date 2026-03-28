@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import '../styles/Payment.css';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
+import '../../styles/Payment.css';
 
 /* ── EmailJS ou votre service d'envoi email ──
    Remplacez par votre configuration réelle.
