@@ -37,6 +37,8 @@ import CircuitReservations from './pages/admin/circuits/CircuitReservations';
 import Circuit from './pages/circuits/circuit'
 import PromotionsAdmin from './pages/admin/promotions/PromotionsAdmin';
 import ReserveHotel from './pages/hotel/ReserveHotel';
+import AdminLogin  from './pages/admin/AdminLogin';
+import AdminsAdmin from './pages/admin/admins/AdminsAdmin';
 
 
 function App() {
@@ -83,6 +85,8 @@ function App() {
 
             <Route path="/admin/promotions" element={<PromotionsAdmin />} />
             <Route path="/hotels/:id/reserve" element={<ReserveHotel />} />
+            <Route path="/admin/login"  element={<AdminLogin />} />
+            <Route path="/admin/admins" element={<AdminsAdmin />} />
       </Routes>
       
     </Router>

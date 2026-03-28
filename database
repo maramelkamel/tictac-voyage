@@ -906,3 +906,59 @@ WHERE date_debut > CURRENT_DATE;
 
 
   ALTER TABLE contact_messages ALTER COLUMN sujet DROP NOT NULL;
+
+
+
+
+
+  maram
+
+  -- ════════════════════════════════════════════════════════════════
+--  TIC-TAC VOYAGE — Admins table
+--  Run in pgAdmin Query Tool on tictacvoyage database
+-- ════════════════════════════════════════════════════════════════
+
+CREATE TABLE public.admins (
+    id            SERIAL PRIMARY KEY,
+    first_name    VARCHAR(100) NOT NULL,
+    last_name     VARCHAR(100) NOT NULL,
+    email         VARCHAR(200) NOT NULL UNIQUE,
+    password_hash TEXT         NOT NULL,
+    occupation    VARCHAR(150),                          -- e.g. "Responsable commercial"
+    role          VARCHAR(20)  DEFAULT 'admin'
+                  CHECK (role IN ('main', 'admin')),     -- 'main' = super admin
+    is_active     BOOLEAN      DEFAULT true,
+    created_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_admins_email ON public.admins (email);
+
+-- Auto-update updated_at
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = NOW(); RETURN NEW; END; $$ language 'plpgsql';
+
+CREATE TRIGGER update_admins_updated_at
+    BEFORE UPDATE ON public.admins
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ════════════════════════════════════════════════════════════════
+--  MAIN ADMIN SEED
+--  email: admin@tictac.tn
+--  password: Admin@2026  (bcrypt hash below)
+-- ════════════════════════════════════════════════════════════════
+INSERT INTO public.admins (first_name, last_name, email, password_hash, occupation, role)
+VALUES (
+  'Super',
+  'Admin',
+  'admin@tictac.tn',
+  '$2a$12$K8GxE7F9Lm2NpQvRsW3uOOuFHTzk5RQeYs5Z1XKjJ4LdGnBwYaC7K',
+  'Directeur Général',
+  'main'
+);
+
+-- NOTE: The hash above is for password "Admin@2026"
+-- To generate a fresh hash in Node.js:
+--   const bcrypt = require('bcryptjs');
+--   console.log(await bcrypt.hash('Admin@2026', 12));
+-- Then UPDATE the row with your fresh hash.

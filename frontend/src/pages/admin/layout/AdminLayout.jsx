@@ -1,5 +1,5 @@
 // src/pages/admin/layout/AdminLayout.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './adminLayout.css';
 
@@ -14,15 +14,15 @@ const Icon = ({ name }) => {
     surMesure: <><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></>,
     contact:   <><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></>,
     clients:   <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></>,
+    admins:    <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/><circle cx="19" cy="3" r="2" fill="currentColor"/></>,
     logo:      <><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></>,
-    promotions: <><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></>,
   };
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">{paths[name]}</svg>
   );
 };
 
-const NAV = [
+const NAV_BASE = [
   {
     section: 'Tableau de bord',
     items: [{ label: 'Dashboard', icon: 'dashboard', path: '/admin' }],
@@ -32,7 +32,7 @@ const NAV = [
     items: [
       { label: 'Transport', icon: 'transport', sub: [
           { label: 'Véhicules',        path: '/admin/transport',          badgeKey: null },
-          { label: 'Réservations', path: '/admin/transport/requests', badgeKey: 'transportRequests' },
+          { label: 'Demandes clients', path: '/admin/transport/requests', badgeKey: 'transportRequests' },
       ]},
       { label: 'Voyages Organisés', icon: 'voyages', sub: [
           { label: 'Catalogue',    path: '/admin/voyages/VoyagePackages',     badgeKey: null },
@@ -48,15 +48,14 @@ const NAV = [
       ]},
       { label: 'Billeterie / Vols', icon: 'billets', sub: [
           { label: 'Vols',     path: '/admin/billeterie' },
-          { label: 'Réservations', path: '/admin/billeterie/demandes' },
+          { label: 'Demandes', path: '/admin/billeterie/demandes' },
       ]},
       { label: 'Voyage sur Mesure', icon: 'surMesure', sub: [
-          { label: 'Réservations', path: '/admin/sur-mesure', badgeKey: 'surMesure' },
+          { label: 'Demandes', path: '/admin/sur-mesure', badgeKey: 'surMesure' },
       ]},
       { label: 'Contact', icon: 'contact', sub: [
           { label: 'Messages', path: '/admin/contact', badgeKey: 'contactNew' },
       ]},
-      { label: 'Promotions', icon: 'billets', path: '/admin/promotions' },
       { label: 'Clients', icon: 'clients', sub: [
           { label: 'Tous les clients', path: '/admin/clients/ClientsAdmin', badgeKey: null },
       ]},
@@ -64,9 +63,47 @@ const NAV = [
   },
 ];
 
+// Admins section — only visible to main admin
+const NAV_MAIN_ONLY = {
+  section: 'Administration',
+  items: [
+    { label: 'Administrateurs', icon: 'admins', path: '/admin/admins' },
+  ],
+};
+
 const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], actions = null, toast = null, badges = {} }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  // ── Auth guard ───────────────────────────────────────────────
+  const [admin, setAdmin] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const token     = localStorage.getItem('adminToken');
+    const adminData = localStorage.getItem('admin');
+    if (!token || !adminData) {
+      navigate('/admin/login');
+      return;
+    }
+    try {
+      setAdmin(JSON.parse(adminData));
+    } catch {
+      navigate('/admin/login');
+      return;
+    }
+    setAuthChecked(true);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('admin');
+    navigate('/admin/login');
+  };
+
+  // Build nav — add admins section for main admin
+  const isMain = admin?.role === 'main';
+  const NAV    = isMain ? [...NAV_BASE, NAV_MAIN_ONLY] : NAV_BASE;
 
   const getInitialOpen = () => {
     for (const g of NAV) for (const item of g.items)
@@ -78,6 +115,10 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
   const toggleMenu  = (label) => setOpenMenu(prev => prev === label ? null : label);
   const isActive    = (path)  => pathname === path;
   const isSubActive = (path)  => pathname.startsWith(path) && path !== '/admin';
+
+  if (!authChecked) return null; // Waiting for auth check
+
+  const initials = `${admin?.firstName?.[0] || admin?.first_name?.[0] || ''}${admin?.lastName?.[0] || admin?.last_name?.[0] || ''}`.toUpperCase();
 
   return (
     <div className="al-root">
@@ -96,8 +137,25 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
         <div className="al-brand">
           <div className="al-brand__logo"><Icon name="logo"/></div>
           <div>
-            <p className="al-brand__name">TicTac Voyage</p>
+            <p className="al-brand__name">Tic-Tac Voyage</p>
             <p className="al-brand__role">Administration</p>
+          </div>
+        </div>
+
+        {/* Logged-in admin card */}
+        <div style={{ margin: '0 12px 8px', padding: '10px 12px', background: 'rgba(255,255,255,.07)', borderRadius: 10, border: '1px solid rgba(255,255,255,.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: isMain ? 'linear-gradient(135deg,#7c3aed,#4c1d95)' : 'rgba(255,255,255,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+              {initials || '?'}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {admin?.firstName || admin?.first_name} {admin?.lastName || admin?.last_name}
+              </p>
+              <p style={{ fontSize: 10, color: 'rgba(255,255,255,.55)', marginTop: 1 }}>
+                {isMain ? '👑 Admin Principal' : '🔧 Administrateur'}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -106,6 +164,7 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
             <React.Fragment key={group.section}>
               <span className="al-nav__section">{group.section}</span>
               {group.items.map((item) => {
+                // Simple link (no sub)
                 if (!item.sub) return (
                   <button key={item.label} className={`al-nav__item ${isActive(item.path) ? 'active' : ''}`} onClick={() => navigate(item.path)}>
                     <Icon name={item.icon}/>{item.label}
@@ -146,6 +205,11 @@ const AdminLayout = ({ children, title = 'Administration', breadcrumb = [], acti
           <button className="al-sidebar__footer-btn" onClick={() => navigate('/')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             Retour au site
+          </button>
+          <button className="al-sidebar__footer-btn" onClick={handleLogout}
+            style={{ color: '#fca5a5', marginTop: 4 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Se déconnecter
           </button>
         </div>
       </aside>

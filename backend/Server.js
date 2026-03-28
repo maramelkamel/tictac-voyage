@@ -3,60 +3,54 @@ require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
 
-const transportRoutes = require('./routes/transportRoutes');
-const requestRoutes   = require('./routes/requestRoutes');
-const customTripRoutes = require('./routes/customTripRoutes');
-const contactRoutes    = require('./routes/contactRoutes');
-const chatRoutes = require('./routes/chatRoutes');
-const omraRoutes = require('./routes/omraRoutes');
-const omraReservationRoutes = require('./routes/omraReservationRoutes');
-const clientRoutes = require('./routes/clientRoutes');
-const authRoutes = require('./routes/authRoutes');
-const favoritesRoutes = require('./routes/favoritesRoutes');
+const transportRoutes         = require('./routes/transportRoutes');
+const requestRoutes           = require('./routes/requestRoutes');
+const customTripRoutes        = require('./routes/customTripRoutes');
+const contactRoutes           = require('./routes/contactRoutes');
+const chatRoutes              = require('./routes/chatRoutes');
+const omraRoutes              = require('./routes/omraRoutes');
+const omraReservationRoutes   = require('./routes/omraReservationRoutes');
+const clientRoutes            = require('./routes/clientRoutes');
+const authRoutes              = require('./routes/authRoutes');
+const favoritesRoutes         = require('./routes/favoritesRoutes');
 const voyageOrganiseRoutes    = require('./routes/voyageOrganiseRoutes');
 const voyageReservationRoutes = require('./routes/voyageReservationRoutes');
-const circuitRoutes            = require('./routes/circuitRoutes');
-const circuitReservationRoutes = require('./routes/circuitreservationRoutes');
-const promotionsRoutes = require('./routes/promotionsRoutes');
+const circuitRoutes           = require('./routes/circuitRoutes');
+const circuitReservationRoutes= require('./routes/circuitreservationRoutes');
+const promotionsRoutes        = require('./routes/promotionsRoutes');
+const adminAuthRoutes         = require('./routes/adminAuthRoutes');
+
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
-// ─── Middleware ──────────────────────────────────────────────────
-app.use(cors({
-  origin: '*'
-}));
+app.use(cors({ origin: 'http://localhost:5173' }));
 app.use(express.json());
 
-// ─── Routes ─────────────────────────────────────────────────────
-app.use('/api/transports', transportRoutes);  // Catalogue véhicules
-app.use('/api/requests',   requestRoutes);    // Demandes clients
-app.use('/api/custom-trips', customTripRoutes);  // Voyages sur mesure
-app.use('/api/contact',      contactRoutes);     // Messages de contact
-app.use('/api/chat', chatRoutes);
-app.use('/api/omra/packages', omraRoutes);
-app.use('/api/omra/reservations', omraReservationRoutes);
-app.use('/api/clients', clientRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/favorites', favoritesRoutes);
+app.use('/api/transports',           transportRoutes);
+app.use('/api/requests',             requestRoutes);
+app.use('/api/custom-trips',         customTripRoutes);
+app.use('/api/contact',              contactRoutes);
+app.use('/api/chat',                 chatRoutes);
+app.use('/api/omra/packages',        omraRoutes);
+app.use('/api/omra/reservations',    omraReservationRoutes);
+app.use('/api/clients',              clientRoutes);
+app.use('/api/auth',                 authRoutes);
+app.use('/api/favorites',            favoritesRoutes);
 app.use('/api/voyages-organises',    voyageOrganiseRoutes);
 app.use('/api/voyage-reservations',  voyageReservationRoutes);
-app.use('/api/circuits',              circuitRoutes);
-app.use('/api/circuit-reservations',  circuitReservationRoutes);
-app.use('/api/promotions', promotionsRoutes);
+app.use('/api/circuits',             circuitRoutes);
+app.use('/api/circuit-reservations', circuitReservationRoutes);
+app.use('/api/promotions',           promotionsRoutes);
+app.use('/api/admin-auth',           adminAuthRoutes);
 
-
-
-// ─── Route test ─────────────────────────────────────────────────
 app.get('/', (req, res) => {
   res.json({ message: '🚌 Tic-Tac Voyage API en ligne', version: '1.0.0' });
 });
 
-// ─── 404 ────────────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route introuvable' });
 });
 
-// ─── Lancement ──────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
 });
