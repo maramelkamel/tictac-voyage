@@ -5,10 +5,6 @@ import Footer from '../../components/Footer';
 import { hotelsData } from '../../data/hotelsData';
 import '../../styles/omrastyle.css';
 
-/* ============================================================
-   ReserveHotel.jsx — Uses omrastyle.css (omra-reserve__ classes)
-   ============================================================ */
-
 const roomTypes = [
   'Chambre Standard',
   'Chambre Supérieure',
@@ -33,17 +29,16 @@ const pensionExtra = {
 };
 
 const ReserveHotel = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { id }       = useParams();
+  const navigate     = useNavigate();
+  const location     = useLocation();
 
-  const hotel = hotelsData.find((h) => String(h.id) === String(id)) || hotelsData[0];
+  const hotel      = hotelsData.find((h) => String(h.id) === String(id)) || hotelsData[0];
   const passedForm = location.state?.form;
 
-  const today = new Date().toISOString().split('T')[0];
+  const today    = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
-  // Read logged-in user — adapt to your auth system (Context, Zustand, etc.)
   const getLoggedUser = () => {
     try {
       const raw = localStorage.getItem('user') || localStorage.getItem('currentUser');
@@ -55,50 +50,45 @@ const ReserveHotel = () => {
   const loggedUser = getLoggedUser();
   const isLoggedIn = Boolean(loggedUser);
 
-  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Personal info — auto-filled from logged user
   const [personal, setPersonal] = useState({
-    nom: loggedUser?.nom || loggedUser?.lastName || loggedUser?.name?.split(' ')[1] || '',
-    prenom: loggedUser?.prenom || loggedUser?.firstName || loggedUser?.name?.split(' ')[0] || '',
-    email: loggedUser?.email || '',
-    telephone: loggedUser?.telephone || loggedUser?.phone || '',
+    nom:       loggedUser?.nom       || loggedUser?.lastName              || loggedUser?.name?.split(' ')[1] || '',
+    prenom:    loggedUser?.prenom    || loggedUser?.firstName             || loggedUser?.name?.split(' ')[0] || '',
+    email:     loggedUser?.email     || '',
+    telephone: loggedUser?.telephone || loggedUser?.phone                 || '',
   });
 
-  // Booking info — pre-filled if coming from HotelDetails
   const [booking, setBooking] = useState({
-    checkIn: passedForm?.checkIn || today,
-    checkOut: passedForm?.checkOut || tomorrow,
-    adults: passedForm?.adults || 2,
-    children: passedForm?.children || 0,
-    rooms: passedForm?.rooms || 1,
-    roomType: passedForm?.roomType || 'Chambre Standard',
-    pension: passedForm?.pension || 'All Inclusive',
+    checkIn:         passedForm?.checkIn   || today,
+    checkOut:        passedForm?.checkOut  || tomorrow,
+    adults:          passedForm?.adults    || 2,
+    children:        passedForm?.children  || 0,
+    rooms:           passedForm?.rooms     || 1,
+    roomType:        passedForm?.roomType  || 'Chambre Standard',
+    pension:         passedForm?.pension   || 'All Inclusive',
     specialRequests: '',
   });
 
   const handlePersonal = (field, val) => setPersonal((p) => ({ ...p, [field]: val }));
-  const handleBooking = (field, val) => setBooking((b) => ({ ...b, [field]: val }));
+  const handleBooking  = (field, val) => setBooking((b)  => ({ ...b, [field]: val }));
 
-  // Pricing
   const nights = (() => {
     const diff = Math.round(
       (new Date(booking.checkOut) - new Date(booking.checkIn)) / 86400000
     );
     return diff > 0 ? diff : 0;
   })();
+
   const pricePerNight =
     ((basePrices[booking.roomType] || 180) + (pensionExtra[booking.pension] || 0)) *
     booking.rooms;
   const subtotal = pricePerNight * nights;
-  const taxes = Math.round(subtotal * 0.1);
-  const total = subtotal + taxes;
+  const taxes    = Math.round(subtotal * 0.1);
+  const total    = subtotal + taxes;
 
   const isFormValid =
     personal.nom && personal.prenom && personal.email && personal.telephone && nights > 0;
-
-  const refNum = `TTV-H${hotel.id}-${Date.now().toString(36).toUpperCase()}`;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -106,15 +96,29 @@ const ReserveHotel = () => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      setSubmitted(true);
-    }, 1400);
+      navigate('/PaymentHotel', {
+        state: {
+          hotel,
+          form: {
+            checkIn:  booking.checkIn,
+            checkOut: booking.checkOut,
+            adults:   booking.adults,
+            children: booking.children,
+            rooms:    booking.rooms,
+            roomType: booking.roomType,
+            pension:  booking.pension,
+          },
+          nights,
+          total,
+        },
+      });
+    }, 800);
   };
 
   return (
     <>
       <Navbar />
 
-      {/* omra-reserve sets padding-top, min-height, background */}
       <div className="omra-reserve">
         <div className="container">
 
@@ -140,237 +144,197 @@ const ReserveHotel = () => {
             <div>
               <div className="omra-reserve__form-card">
 
-                {submitted ? (
-                  /* SUCCESS */
-                  <div className="omra-reserve__success">
-                    <div className="omra-reserve__success-icon">
-                      <i className="fas fa-check" />
+                <div className="omra-reserve__form-header">
+                  <h2 className="omra-reserve__form-header-title">
+                    Réserver votre séjour
+                  </h2>
+                  <p className="omra-reserve__form-header-desc">
+                    {isLoggedIn
+                      ? '✨ Vos informations ont été pré-remplies depuis votre compte.'
+                      : 'Renseignez vos coordonnées pour finaliser la réservation.'}
+                  </p>
+                </div>
+
+                <form className="omra-reserve__form-body" onSubmit={handleSubmit}>
+
+                  {/* ── Informations personnelles ── */}
+                  <p style={{
+                    fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+                    letterSpacing: '0.1em', color: 'var(--gray-400)', marginBottom: 16,
+                  }}>
+                    👤 Informations personnelles
+                  </p>
+
+                  <div className="omra-reserve__form-row">
+                    <div className="omra-reserve__field">
+                      <label>Nom *</label>
+                      <input
+                        type="text"
+                        placeholder="Votre nom"
+                        value={personal.nom}
+                        onChange={(e) => handlePersonal('nom', e.target.value)}
+                        required
+                      />
+                      {isLoggedIn && personal.nom && (
+                        <span style={{ fontSize: 11, color: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                          <i className="fas fa-check-circle" /> Pré-rempli depuis votre compte
+                        </span>
+                      )}
                     </div>
-                    <h2 className="omra-reserve__success-title">Réservation confirmée !</h2>
-                    <p className="omra-reserve__success-desc">
-                      Votre demande a bien été reçue. Un conseiller TICTAC VOYAGES vous
-                      contactera dans les plus brefs délais pour finaliser votre séjour.
-                    </p>
-                    <p style={{ marginBottom: 28, fontWeight: 600, color: 'var(--secondary)', fontSize: 14 }}>
-                      Référence : {refNum}
-                    </p>
-                    <div className="omra-reserve__success-actions">
-                      <button
-                        className="omra-reserve__success-btn"
-                        onClick={() => navigate('/')}
-                      >
-                        🏨 Voir d'autres hôtels
-                      </button>
-                      <button
-                        className="omra-reserve__success-btn omra-reserve__success-btn--outline"
-                        onClick={() => navigate('/')}
-                      >
-                        ← Retour à l'accueil
-                      </button>
+                    <div className="omra-reserve__field">
+                      <label>Prénom *</label>
+                      <input
+                        type="text"
+                        placeholder="Votre prénom"
+                        value={personal.prenom}
+                        onChange={(e) => handlePersonal('prenom', e.target.value)}
+                        required
+                      />
                     </div>
                   </div>
-                ) : (
-                  /* FORM */
-                  <>
-                    <div className="omra-reserve__form-header">
-                      <h2 className="omra-reserve__form-header-title">
-                        Réserver votre séjour
-                      </h2>
-                      <p className="omra-reserve__form-header-desc">
-                        {isLoggedIn
-                          ? '✨ Vos informations ont été pré-remplies depuis votre compte.'
-                          : 'Renseignez vos coordonnées pour finaliser la réservation.'}
-                      </p>
+
+                  <div className="omra-reserve__form-row">
+                    <div className="omra-reserve__field">
+                      <label>Email *</label>
+                      <input
+                        type="email"
+                        placeholder="votre@email.com"
+                        value={personal.email}
+                        onChange={(e) => handlePersonal('email', e.target.value)}
+                        required
+                      />
                     </div>
+                    <div className="omra-reserve__field">
+                      <label>Téléphone *</label>
+                      <input
+                        type="tel"
+                        placeholder="+216 XX XXX XXX"
+                        value={personal.telephone}
+                        onChange={(e) => handlePersonal('telephone', e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
 
-                    <form className="omra-reserve__form-body" onSubmit={handleSubmit}>
+                  {/* ── Détails du séjour ── */}
+                  <p style={{
+                    fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+                    letterSpacing: '0.1em', color: 'var(--gray-400)', margin: '24px 0 16px',
+                  }}>
+                    🏨 Détails du séjour
+                  </p>
 
-                      {/* Section label */}
-                      <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--gray-400)', marginBottom: 16 }}>
-                        👤 Informations personnelles
-                      </p>
+                  <div className="omra-reserve__form-row">
+                    <div className="omra-reserve__field">
+                      <label>Date d'arrivée *</label>
+                      <input
+                        type="date"
+                        value={booking.checkIn}
+                        min={today}
+                        onChange={(e) => handleBooking('checkIn', e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="omra-reserve__field">
+                      <label>Date de départ *</label>
+                      <input
+                        type="date"
+                        value={booking.checkOut}
+                        min={booking.checkIn}
+                        onChange={(e) => handleBooking('checkOut', e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
 
-                      <div className="omra-reserve__form-row">
-                        <div className="omra-reserve__field">
-                          <label>Nom *</label>
-                          <input
-                            type="text"
-                            placeholder="Votre nom"
-                            value={personal.nom}
-                            onChange={(e) => handlePersonal('nom', e.target.value)}
-                            required
-                          />
-                          {isLoggedIn && personal.nom && (
-                            <span style={{ fontSize: 11, color: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                              <i className="fas fa-check-circle" /> Pré-rempli depuis votre compte
-                            </span>
-                          )}
-                        </div>
-                        <div className="omra-reserve__field">
-                          <label>Prénom *</label>
-                          <input
-                            type="text"
-                            placeholder="Votre prénom"
-                            value={personal.prenom}
-                            onChange={(e) => handlePersonal('prenom', e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
+                  <div className="omra-reserve__form-row">
+                    <div className="omra-reserve__field">
+                      <label>Adultes</label>
+                      <input
+                        type="number" min={1} max={20}
+                        value={booking.adults}
+                        onChange={(e) => handleBooking('adults', Math.max(1, Number(e.target.value)))}
+                      />
+                    </div>
+                    <div className="omra-reserve__field">
+                      <label>Enfants</label>
+                      <input
+                        type="number" min={0} max={10}
+                        value={booking.children}
+                        onChange={(e) => handleBooking('children', Math.max(0, Number(e.target.value)))}
+                      />
+                    </div>
+                  </div>
 
-                      <div className="omra-reserve__form-row">
-                        <div className="omra-reserve__field">
-                          <label>Email *</label>
-                          <input
-                            type="email"
-                            placeholder="votre@email.com"
-                            value={personal.email}
-                            onChange={(e) => handlePersonal('email', e.target.value)}
-                            required
-                          />
-                        </div>
-                        <div className="omra-reserve__field">
-                          <label>Téléphone *</label>
-                          <input
-                            type="tel"
-                            placeholder="+216 XX XXX XXX"
-                            value={personal.telephone}
-                            onChange={(e) => handlePersonal('telephone', e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      {/* Section label */}
-                      <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--gray-400)', margin: '24px 0 16px' }}>
-                        🏨 Détails du séjour
-                      </p>
-
-                      <div className="omra-reserve__form-row">
-                        <div className="omra-reserve__field">
-                          <label>Date d'arrivée *</label>
-                          <input
-                            type="date"
-                            value={booking.checkIn}
-                            min={today}
-                            onChange={(e) => handleBooking('checkIn', e.target.value)}
-                            required
-                          />
-                        </div>
-                        <div className="omra-reserve__field">
-                          <label>Date de départ *</label>
-                          <input
-                            type="date"
-                            value={booking.checkOut}
-                            min={booking.checkIn}
-                            onChange={(e) => handleBooking('checkOut', e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="omra-reserve__form-row">
-                        <div className="omra-reserve__field">
-                          <label>Adultes</label>
-                          <input
-                            type="number"
-                            min={1}
-                            max={20}
-                            value={booking.adults}
-                            onChange={(e) =>
-                              handleBooking('adults', Math.max(1, Number(e.target.value)))
-                            }
-                          />
-                        </div>
-                        <div className="omra-reserve__field">
-                          <label>Enfants</label>
-                          <input
-                            type="number"
-                            min={0}
-                            max={10}
-                            value={booking.children}
-                            onChange={(e) =>
-                              handleBooking('children', Math.max(0, Number(e.target.value)))
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      <div className="omra-reserve__form-row">
-                        <div className="omra-reserve__field">
-                          <label>Nombre de chambres</label>
-                          <input
-                            type="number"
-                            min={1}
-                            max={10}
-                            value={booking.rooms}
-                            onChange={(e) =>
-                              handleBooking('rooms', Math.max(1, Number(e.target.value)))
-                            }
-                          />
-                        </div>
-                        <div className="omra-reserve__field">
-                          <label>Type de chambre</label>
-                          <select
-                            value={booking.roomType}
-                            onChange={(e) => handleBooking('roomType', e.target.value)}
-                          >
-                            {roomTypes.map((t) => (
-                              <option key={t} value={t}>{t}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="omra-reserve__field">
-                        <label>Formule / Pension</label>
-                        <select
-                          value={booking.pension}
-                          onChange={(e) => handleBooking('pension', e.target.value)}
-                        >
-                          {pensionTypes.map((t) => (
-                            <option key={t} value={t}>{t}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Section label */}
-                      <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--gray-400)', margin: '24px 0 16px' }}>
-                        💬 Demandes spéciales
-                      </p>
-
-                      <div className="omra-reserve__field">
-                        <label>Remarques ou demandes particulières</label>
-                        <textarea
-                          rows={3}
-                          placeholder="Chambre haute, vue mer, lit bébé, régime alimentaire…"
-                          value={booking.specialRequests}
-                          onChange={(e) => handleBooking('specialRequests', e.target.value)}
-                        />
-                      </div>
-
-                      <button
-                        type="submit"
-                        className="omra-reserve__submit"
-                        disabled={!isFormValid || loading}
+                  <div className="omra-reserve__form-row">
+                    <div className="omra-reserve__field">
+                      <label>Nombre de chambres</label>
+                      <input
+                        type="number" min={1} max={10}
+                        value={booking.rooms}
+                        onChange={(e) => handleBooking('rooms', Math.max(1, Number(e.target.value)))}
+                      />
+                    </div>
+                    <div className="omra-reserve__field">
+                      <label>Type de chambre</label>
+                      <select
+                        value={booking.roomType}
+                        onChange={(e) => handleBooking('roomType', e.target.value)}
                       >
-                        {loading ? (
-                          <><i className="fas fa-spinner fa-spin" /> Envoi en cours…</>
-                        ) : (
-                          <><i className="fas fa-shield-alt" /> Confirmer la réservation</>
-                        )}
-                      </button>
+                        {roomTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </div>
+                  </div>
 
-                      {!isFormValid && (
-                        <p style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', marginTop: 10 }}>
-                          {nights <= 0
-                            ? 'Veuillez sélectionner des dates valides.'
-                            : 'Veuillez remplir tous les champs obligatoires (*).'}
-                        </p>
-                      )}
-                    </form>
-                  </>
-                )}
+                  <div className="omra-reserve__field">
+                    <label>Formule / Pension</label>
+                    <select
+                      value={booking.pension}
+                      onChange={(e) => handleBooking('pension', e.target.value)}
+                    >
+                      {pensionTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+
+                  {/* ── Demandes spéciales ── */}
+                  <p style={{
+                    fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+                    letterSpacing: '0.1em', color: 'var(--gray-400)', margin: '24px 0 16px',
+                  }}>
+                    💬 Demandes spéciales
+                  </p>
+
+                  <div className="omra-reserve__field">
+                    <label>Remarques ou demandes particulières</label>
+                    <textarea
+                      rows={3}
+                      placeholder="Chambre haute, vue mer, lit bébé, régime alimentaire…"
+                      value={booking.specialRequests}
+                      onChange={(e) => handleBooking('specialRequests', e.target.value)}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="omra-reserve__submit"
+                    disabled={!isFormValid || loading}
+                  >
+                    {loading ? (
+                      <><i className="fas fa-spinner fa-spin" /> Redirection en cours…</>
+                    ) : (
+                      <><i className="fas fa-credit-card" /> Continuer vers le paiement</>
+                    )}
+                  </button>
+
+                  {!isFormValid && (
+                    <p style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', marginTop: 10 }}>
+                      {nights <= 0
+                        ? 'Veuillez sélectionner des dates valides.'
+                        : 'Veuillez remplir tous les champs obligatoires (*).'}
+                    </p>
+                  )}
+
+                </form>
               </div>
             </div>
 
@@ -435,9 +399,16 @@ const ReserveHotel = () => {
                 </div>
               </div>
 
-              {/* Trust perks — minimal inline style only for layout not covered by omrastyle */}
-              <div style={{ marginTop: 16, background: '#fff', borderRadius: 20, padding: '20px 22px', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', border: '1px solid rgba(15,76,92,0.06)' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94a3b8', marginBottom: 14 }}>
+              {/* Trust perks */}
+              <div style={{
+                marginTop: 16, background: '#fff', borderRadius: 20,
+                padding: '20px 22px', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+                border: '1px solid rgba(15,76,92,0.06)',
+              }}>
+                <p style={{
+                  fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.08em', color: '#94a3b8', marginBottom: 14,
+                }}>
                   Pourquoi réserver avec nous
                 </p>
                 {[
@@ -447,10 +418,10 @@ const ReserveHotel = () => {
                   ['🏷️', 'Meilleurs prix garantis'],
                   ['↩️', 'Annulation flexible sous conditions'],
                 ].map(([icon, label]) => (
-                  <div
-                    key={label}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#475569', marginBottom: 9 }}
-                  >
+                  <div key={label} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    fontSize: 13, color: '#475569', marginBottom: 9,
+                  }}>
                     <span style={{ fontSize: 15 }}>{icon}</span>
                     <span>{label}</span>
                   </div>
