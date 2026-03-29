@@ -157,7 +157,7 @@ const HomePage = () => {
                 amenities={hotel.amenities}
                 priceOptions={hotel.priceOptions}
                 onDetailsClick={() => navigate(`/hotels/${hotel.id}`)}
-                onReserveClick={() => navigate(`/hotels/${hotel.id}#pricing`)}
+                onReserveClick={() => navigate(`/hotels/${hotel.id}/reserve`)}
                 onFavoriteClick={(isFavorite) => console.log('Favorite:', hotel.id, isFavorite)}
               />
             ))}
