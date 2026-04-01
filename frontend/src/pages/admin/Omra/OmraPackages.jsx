@@ -2,27 +2,24 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
-const API_PKG       = 'http://localhost:5000/api/omra/packages';
-const API_PKG_ADMIN = 'http://localhost:5000/api/omra/packages';
-
+const API_PKG = 'http://localhost:5000/api/omra/packages';
 const fPrice = (p) => p ? Number(p).toLocaleString('fr-TN') + ' TND' : '—';
 
-/* ── Package Modal ──────────────────────────────────────────── */
 const EMPTY = { title:'', subtitle:'', description:'', image_url:'', price:'', old_price:'', duration:'', departure:'', spots:'50', badge:'', is_active:true };
 
 const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
   const [form, setForm] = useState(pkg ? {
-    title:      pkg.title       || '',
-    subtitle:   pkg.subtitle    || '',
-    description:pkg.description || '',
-    image_url:  pkg.image_url   || '',
-    price:      pkg.price       || '',
-    old_price:  pkg.old_price   || '',
-    duration:   pkg.duration    || '',
-    departure:  pkg.departure   || '',
-    spots:      pkg.spots       || '50',
-    badge:      pkg.badge       || '',
-    is_active:  pkg.is_active   !== false,
+    title:       pkg.title       || '',
+    subtitle:    pkg.subtitle    || '',
+    description: pkg.description || '',
+    image_url:   pkg.image_url   || '',
+    price:       pkg.price       || '',
+    old_price:   pkg.old_price   || '',
+    duration:    pkg.duration    || '',
+    departure:   pkg.departure   || '',
+    spots:       pkg.spots       || '50',
+    badge:       pkg.badge       || '',
+    is_active:   pkg.is_active   !== false,
   } : { ...EMPTY });
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -52,7 +49,7 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
         onSaved();
       } else notify(json.message || 'Erreur', 'error');
     } catch { notify('Erreur réseau', 'error'); }
-    finally   { setLoading(false); }
+    finally { setLoading(false); }
   };
 
   return (
@@ -89,8 +86,8 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
             <input className="al-input" value={form.image_url} onChange={e => set('image_url', e.target.value)} placeholder="https://..."/>
             {form.image_url && (
               <img src={form.image_url} alt="preview"
-                style={{ marginTop: 8, width: '100%', height: 120, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--g200)' }}
-                onError={e => e.target.style.display = 'none'}/>
+                style={{ marginTop:8, width:'100%', height:120, objectFit:'cover', borderRadius:8, border:'1.5px solid var(--g200)' }}
+                onError={e => e.target.style.display='none'}/>
             )}
           </div>
           <div className="al-row-2">
@@ -130,10 +127,10 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
               </select>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <input type="checkbox" id="is_active" checked={form.is_active} onChange={e => set('is_active', e.target.checked)}
-              style={{ width: 16, height: 16, cursor: 'pointer', accentColor: 'var(--primary)' }}/>
-            <label htmlFor="is_active" className="al-label" style={{ cursor: 'pointer', marginBottom: 0 }}>
+              style={{ width:16, height:16, cursor:'pointer', accentColor:'var(--primary)' }}/>
+            <label htmlFor="is_active" className="al-label" style={{ cursor:'pointer', marginBottom:0 }}>
               Forfait actif (visible sur le site public)
             </label>
           </div>
@@ -149,10 +146,10 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
   );
 };
 
-/* ════════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════
    PANNEAU DÉTAIL LATÉRAL
-   ════════════════════════════════════════════════════════════════ */
-const OmraDetail = ({ pkg, onClose, onEdit, onDelete }) => {
+   ══════════════════════════════════════════════════════════════ */
+const OmraDetail = ({ pkg, onClose, onEdit, onDelete, isMain }) => {
   const avail  = pkg.available_spots !== undefined ? Number(pkg.available_spots) : Number(pkg.spots);
   const isFull = avail <= 0;
   const isLow  = avail <= 5 && avail > 0;
@@ -165,18 +162,7 @@ const OmraDetail = ({ pkg, onClose, onEdit, onDelete }) => {
   ) : null;
 
   return (
-    <div style={{
-      width: 330,
-      flexShrink: 0,
-      borderLeft: '1px solid var(--g200)',
-      display: 'flex',
-      flexDirection: 'column',
-      background: '#fff',
-      animation: 'alModalIn .25s var(--ease)',
-      overflowY: 'auto',
-    }}>
-
-      {/* En-tête */}
+    <div style={{ width:330, flexShrink:0, borderLeft:'1px solid var(--g200)', display:'flex', flexDirection:'column', background:'#fff', animation:'alModalIn .25s var(--ease)', overflowY:'auto' }}>
       <div style={{ padding:'14px 18px', borderBottom:'1px solid var(--g100)', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'#fff', zIndex:2 }}>
         <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em' }}>Détails forfait</p>
         <button className="al-modal__close" onClick={onClose}>
@@ -184,7 +170,6 @@ const OmraDetail = ({ pkg, onClose, onEdit, onDelete }) => {
         </button>
       </div>
 
-      {/* Image */}
       <div style={{ width:'100%', height:170, background:'var(--g100)', flexShrink:0, position:'relative', overflow:'hidden' }}>
         {pkg.image_url ? (
           <img src={pkg.image_url} alt={pkg.title} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} onError={e=>e.target.style.display='none'}/>
@@ -196,9 +181,8 @@ const OmraDetail = ({ pkg, onClose, onEdit, onDelete }) => {
             <p style={{ fontSize:12, color:'rgba(255,255,255,.7)' }}>Forfait Omra</p>
           </div>
         )}
-        {/* Overlays */}
         <div style={{ position:'absolute', top:10, left:10, display:'flex', gap:6, flexWrap:'wrap' }}>
-          <span style={{ padding:'3px 9px', borderRadius:999, background: pkg.is_active ? '#10b981' : '#94a3b8', color:'#fff', fontSize:11, fontWeight:700, boxShadow:'0 2px 8px rgba(0,0,0,.2)' }}>
+          <span style={{ padding:'3px 9px', borderRadius:999, background:pkg.is_active?'#10b981':'#94a3b8', color:'#fff', fontSize:11, fontWeight:700, boxShadow:'0 2px 8px rgba(0,0,0,.2)' }}>
             {pkg.is_active ? '● Actif' : '● Inactif'}
           </span>
           {pkg.badge && (
@@ -209,24 +193,17 @@ const OmraDetail = ({ pkg, onClose, onEdit, onDelete }) => {
         </div>
       </div>
 
-      {/* Corps */}
       <div style={{ padding:'18px 18px 12px', display:'flex', flexDirection:'column', gap:18, flex:1 }}>
-
-        {/* Titre */}
         <div>
           <h3 style={{ fontSize:16, fontWeight:800, color:'var(--g900)', lineHeight:1.3 }}>{pkg.title}</h3>
           {pkg.subtitle && <p style={{ fontSize:12, color:'var(--g500)', marginTop:4 }}>{pkg.subtitle}</p>}
         </div>
-
-        {/* Description */}
         {pkg.description && (
           <div>
             <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:6, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Description</p>
             <p style={{ fontSize:13, color:'var(--g600)', lineHeight:1.65 }}>{pkg.description}</p>
           </div>
         )}
-
-        {/* Prix */}
         <div>
           <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:8, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Tarif</p>
           <div style={{ display:'flex', alignItems:'baseline', gap:10 }}>
@@ -239,23 +216,19 @@ const OmraDetail = ({ pkg, onClose, onEdit, onDelete }) => {
             </span>
           )}
         </div>
-
-        {/* Infos */}
         <div>
           <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:8, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Informations</p>
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-            <InfoRow icon="🗓"  label="Durée"   value={pkg.duration ? `${pkg.duration} jour${pkg.duration > 1 ? 's' : ''}` : null}/>
-            <InfoRow icon="✈️"  label="Départ"  value={pkg.departure || null}/>
+            <InfoRow icon="🗓" label="Durée"  value={pkg.duration ? `${pkg.duration} jour${pkg.duration > 1 ? 's' : ''}` : null}/>
+            <InfoRow icon="✈️" label="Départ" value={pkg.departure || null}/>
           </div>
         </div>
-
-        {/* Disponibilité */}
         <div>
           <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:8, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Disponibilité</p>
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background: isFull?'#fee2e2':isLow?'#fff7ed':'#d1fae5', border:`1px solid ${isFull?'#fca5a5':isLow?'#fed7aa':'#a7f3d0'}` }}>
-              <span style={{ fontSize:12, color: isFull?'#991b1b':isLow?'#92400e':'#065f46' }}>🪑 Places disponibles</span>
-              <span style={{ fontSize:13, fontWeight:800, color: isFull?'#e92f64':isLow?'#f97316':'#065f46' }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background:isFull?'#fee2e2':isLow?'#fff7ed':'#d1fae5', border:`1px solid ${isFull?'#fca5a5':isLow?'#fed7aa':'#a7f3d0'}` }}>
+              <span style={{ fontSize:12, color:isFull?'#991b1b':isLow?'#92400e':'#065f46' }}>🪑 Places disponibles</span>
+              <span style={{ fontSize:13, fontWeight:800, color:isFull?'#e92f64':isLow?'#f97316':'#065f46' }}>
                 {isFull ? 'Complet' : `${avail} / ${pkg.spots}`}
               </span>
             </div>
@@ -267,7 +240,6 @@ const OmraDetail = ({ pkg, onClose, onEdit, onDelete }) => {
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Footer boutons */}
@@ -279,12 +251,17 @@ const OmraDetail = ({ pkg, onClose, onEdit, onDelete }) => {
           </svg>
           Modifier
         </button>
-        <button className="al-btn al-btn--danger" onClick={() => { onDelete(pkg.id); onClose(); }}>
+        <button
+          className="al-btn al-btn--danger"
+          onClick={() => { onDelete(pkg.id); onClose(); }}
+          title={isMain ? 'Supprimer ce forfait' : 'Réservé à l\'administrateur principal'}
+          style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14, height:14 }}>
             <polyline points="3 6 5 6 21 6"/>
             <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
           </svg>
-          Supprimer
+          {isMain ? 'Supprimer' : 'Supprimer 🔒'}
         </button>
       </div>
     </div>
@@ -302,6 +279,12 @@ const OmraPackages = () => {
   const [editPkg,   setEditPkg]   = useState(null);
   const [selected,  setSelected]  = useState(null);
 
+  // ── Role check ────────────────────────────────────────────────
+  const isMain = (() => {
+    try { return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main'; }
+    catch { return false; }
+  })();
+
   const notify = (msg, type = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
@@ -310,16 +293,21 @@ const OmraPackages = () => {
   const fetchPackages = async () => {
     try {
       setLoading(true);
-      const r = await fetch(API_PKG_ADMIN);
+      const r = await fetch(API_PKG);
       const j = await r.json();
       setPackages(j.data || []);
     } catch { notify('Impossible de charger les forfaits', 'error'); }
-    finally   { setLoading(false); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { fetchPackages(); }, []);
 
+  // ── Delete guarded by role ─────────────────────────────────────
   const handleDelete = async (id) => {
+    if (!isMain) {
+      notify('❌ Seul l\'administrateur principal peut supprimer un forfait', 'error');
+      return;
+    }
     if (!window.confirm('Supprimer ce forfait ? Les réservations existantes ne seront pas supprimées.')) return;
     const r = await fetch(`${API_PKG}/${id}`, { method: 'DELETE' });
     const j = await r.json();
@@ -346,35 +334,28 @@ const OmraPackages = () => {
       }
       toast={toast}
     >
-
-      {/* Stats */}
       <div className="al-stats al-stats--4">
         {[
-          { label: 'Total forfaits', value: stats.total,    color: 'blue',
-            icon: <><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></> },
-          { label: 'Actifs',         value: stats.active,   color: 'green',
-            icon: <><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></> },
-          { label: 'Inactifs',       value: stats.inactive, color: 'gray',
-            icon: <><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></> },
-          { label: 'Total réservations', value: stats.totalRes, color: 'teal',
-            icon: <><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></> },
+          { label:'Total forfaits',     value:stats.total,    color:'blue',
+            icon:<><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></> },
+          { label:'Actifs',             value:stats.active,   color:'green',
+            icon:<><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></> },
+          { label:'Inactifs',           value:stats.inactive, color:'gray',
+            icon:<><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></> },
+          { label:'Total réservations', value:stats.totalRes, color:'teal',
+            icon:<><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></> },
         ].map(s => (
           <div key={s.label} className={`al-stat al-stat--${s.color}`}>
-            <div className="al-stat__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">{s.icon}</svg>
-            </div>
+            <div className="al-stat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">{s.icon}</svg></div>
             <div><p className="al-stat__value">{s.value}</p><p className="al-stat__label">{s.label}</p></div>
           </div>
         ))}
       </div>
 
-      {/* Layout table + détail */}
       <div style={{ display:'flex', margin:'0 32px 32px', background:'#fff', borderRadius:16, border:'1px solid var(--g200)', boxShadow:'0 4px 12px rgba(15,76,92,.08)', overflow:'hidden' }}>
-
-        {/* Colonne table */}
         <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>
           <div className="al-toolbar">
-            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--g800)', flex: 1 }}>Liste des forfaits</p>
+            <p style={{ fontSize:15, fontWeight:700, color:'var(--g800)', flex:1 }}>Liste des forfaits</p>
             <button className="al-btn al-btn--ghost" onClick={fetchPackages}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
               Actualiser
@@ -382,17 +363,10 @@ const OmraPackages = () => {
           </div>
 
           {loading ? (
-            <div className="al-loading">
-              <div className="al-spinner-wrap"><div className="al-spinner"/></div>
-              <p style={{ fontSize: 13, color: 'var(--g400)' }}>Chargement...</p>
-            </div>
+            <div className="al-loading"><div className="al-spinner-wrap"><div className="al-spinner"/></div><p style={{ fontSize:13, color:'var(--g400)' }}>Chargement...</p></div>
           ) : packages.length === 0 ? (
             <div className="al-empty">
-              <div className="al-empty__icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
-                </svg>
-              </div>
+              <div className="al-empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
               <p className="al-empty__title">Aucun forfait</p>
               <p className="al-empty__sub">Créez votre premier forfait Omra.</p>
             </div>
@@ -401,14 +375,8 @@ const OmraPackages = () => {
               <table className="al-table">
                 <thead>
                   <tr>
-                    <th>Forfait</th>
-                    <th>Prix</th>
-                    <th>Durée</th>
-                    <th>Départ</th>
-                    <th>Places dispo</th>
-                    <th>Réservations</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
+                    <th>Forfait</th><th>Prix</th><th>Durée</th><th>Départ</th>
+                    <th>Places dispo</th><th>Réservations</th><th>Statut</th><th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -421,51 +389,57 @@ const OmraPackages = () => {
                     return (
                       <tr key={pkg.id} className={`al-row ${isSel ? 'al-row--selected' : ''}`} style={{ cursor:'pointer' }} onClick={() => setSelected(isSel ? null : pkg)}>
                         <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                             {pkg.image_url
-                              ? <img src={pkg.image_url} alt={pkg.title} style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', flexShrink: 0, border: '1.5px solid var(--g200)' }} onError={e => e.target.style.display = 'none'}/>
-                              : <div style={{ width: 44, height: 44, borderRadius: 8, background: 'linear-gradient(135deg,var(--primary),var(--secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5" style={{ width: 20, height: 20 }}><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+                              ? <img src={pkg.image_url} alt={pkg.title} style={{ width:44, height:44, borderRadius:8, objectFit:'cover', flexShrink:0, border:'1.5px solid var(--g200)' }} onError={e=>e.target.style.display='none'}/>
+                              : <div style={{ width:44, height:44, borderRadius:8, background:'linear-gradient(135deg,var(--primary),var(--secondary))', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5" style={{ width:20, height:20 }}><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
                                 </div>
                             }
                             <div>
-                              <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--g800)' }}>
+                              <p style={{ fontWeight:700, fontSize:13, color:'var(--g800)' }}>
                                 {pkg.title}
-                                {pkg.badge && <span style={{ marginLeft: 7, padding: '2px 7px', borderRadius: 999, background: '#fff7ed', color: '#c2410c', fontSize: 10, fontWeight: 700 }}>{pkg.badge}</span>}
+                                {pkg.badge && <span style={{ marginLeft:7, padding:'2px 7px', borderRadius:999, background:'#fff7ed', color:'#c2410c', fontSize:10, fontWeight:700 }}>{pkg.badge}</span>}
                               </p>
-                              {pkg.subtitle && <p style={{ fontSize: 11, color: 'var(--g400)', marginTop: 2 }}>{pkg.subtitle}</p>}
+                              {pkg.subtitle && <p style={{ fontSize:11, color:'var(--g400)', marginTop:2 }}>{pkg.subtitle}</p>}
                             </div>
                           </div>
                         </td>
                         <td>
-                          <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--primary)' }}>{fPrice(pkg.price)}</p>
-                          {pkg.old_price && <p style={{ fontSize: 11, color: 'var(--g400)', textDecoration: 'line-through' }}>{fPrice(pkg.old_price)}</p>}
+                          <p style={{ fontWeight:700, fontSize:13, color:'var(--primary)' }}>{fPrice(pkg.price)}</p>
+                          {pkg.old_price && <p style={{ fontSize:11, color:'var(--g400)', textDecoration:'line-through' }}>{fPrice(pkg.old_price)}</p>}
                         </td>
-                        <td><span style={{ fontWeight: 600, fontSize: 13 }}>{pkg.duration} j</span></td>
-                        <td><span style={{ fontSize: 12, color: 'var(--g600)' }}>{pkg.departure || '—'}</span></td>
+                        <td><span style={{ fontWeight:600, fontSize:13 }}>{pkg.duration} j</span></td>
+                        <td><span style={{ fontSize:12, color:'var(--g600)' }}>{pkg.departure || '—'}</span></td>
                         <td>
-                          <span style={{ fontWeight: 700, fontSize: 13, color: isFull ? '#e92f64' : isLow ? '#f97316' : '#065f46' }}>
+                          <span style={{ fontWeight:700, fontSize:13, color:isFull?'#e92f64':isLow?'#f97316':'#065f46' }}>
                             {isFull ? '❌ Complet' : `${avail} / ${total}`}
                           </span>
-                          {isLow && <p style={{ fontSize: 10, color: '#f97316', marginTop: 2 }}>🔥 Presque complet</p>}
+                          {isLow && <p style={{ fontSize:10, color:'#f97316', marginTop:2 }}>🔥 Presque complet</p>}
                         </td>
                         <td>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999, background: 'rgba(15,76,92,.08)', color: 'var(--primary)', fontSize: 12, fontWeight: 700 }}>
+                          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:999, background:'rgba(15,76,92,.08)', color:'var(--primary)', fontSize:12, fontWeight:700 }}>
                             {pkg.reservation_count || 0} inscrit{pkg.reservation_count > 1 ? 's' : ''}
                           </span>
                         </td>
                         <td>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: pkg.is_active ? '#d1fae5' : 'var(--g100)', color: pkg.is_active ? '#065f46' : 'var(--g500)' }}>
-                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: pkg.is_active ? '#10b981' : 'var(--g400)' }}/>
+                          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 9px', borderRadius:999, fontSize:11, fontWeight:600, background:pkg.is_active?'#d1fae5':'var(--g100)', color:pkg.is_active?'#065f46':'var(--g500)' }}>
+                            <span style={{ width:6, height:6, borderRadius:'50%', background:pkg.is_active?'#10b981':'var(--g400)' }}/>
                             {pkg.is_active ? 'Actif' : 'Inactif'}
                           </span>
                         </td>
                         <td onClick={e => e.stopPropagation()}>
-                          <div style={{ display: 'flex', gap: 6 }}>
+                          <div style={{ display:'flex', gap:6 }}>
                             <button className="al-action-btn al-action-btn--edit" onClick={() => { setEditPkg(pkg); setShowModal(true); }} title="Modifier">
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </button>
-                            <button className="al-action-btn al-action-btn--delete" onClick={() => handleDelete(pkg.id)} title="Supprimer">
+                            {/* ── Delete: grayed out for non-main ── */}
+                            <button
+                              className="al-action-btn al-action-btn--delete"
+                              onClick={() => handleDelete(pkg.id)}
+                              title={isMain ? 'Supprimer' : 'Réservé à l\'administrateur principal'}
+                              style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}
+                            >
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                             </button>
                           </div>
@@ -477,19 +451,18 @@ const OmraPackages = () => {
               </table>
             </div>
           )}
-
           <div className="al-table-footer">
             <p className="al-count">{packages.length} forfait{packages.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
 
-        {/* Panneau détail */}
         {selected && (
           <OmraDetail
             pkg={selected}
             onClose={() => setSelected(null)}
             onEdit={(p) => { setEditPkg(p); setShowModal(true); }}
             onDelete={handleDelete}
+            isMain={isMain}
           />
         )}
       </div>

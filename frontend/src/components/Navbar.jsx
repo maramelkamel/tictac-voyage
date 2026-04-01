@@ -13,8 +13,9 @@ const navLinks = [
   { id: 3, label: 'Transport',   href: '/transport' },
   { id: 4, label: 'Billetterie', href: '/billeterie/Billeterie' },
   { id: 5, label: 'Omra',        href: '/Omra/Omra' },
-  { id: 6, label: 'Contact',     href: '/Contact' },
-  { id: 7, label: 'Circuit',     href: '/circuits/circuit' },
+  { id: 6, label: 'Circuit',     href: '/circuits/circuit' },
+  { id: 7, label: 'Contact',     href: '/Contact' },
+  
 ];
 const changeLanguage = (lang) => {
   const select = document.querySelector(".goog-te-combo");

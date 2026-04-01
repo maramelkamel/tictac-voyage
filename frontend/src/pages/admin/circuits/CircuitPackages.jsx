@@ -25,7 +25,7 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
     if (!form.title || !form.price || !form.duration) { notify('Titre, prix et durée obligatoires', 'error'); return; }
     setLoading(true);
     try {
-      const res  = await fetch(pkg ? `${API}/${pkg.id}` : API, {
+      const res = await fetch(pkg ? `${API}/${pkg.id}` : API, {
         method: pkg ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, price: Number(form.price), old_price: form.old_price ? Number(form.old_price) : null, duration: Number(form.duration), nights: form.nights ? Number(form.nights) : Number(form.duration) - 1, spots: Number(form.spots)||20 }),
@@ -120,10 +120,10 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
   );
 };
 
-/* ════════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════
    PANNEAU DÉTAIL LATÉRAL
-   ════════════════════════════════════════════════════════════════ */
-const CircuitDetail = ({ circuit, onClose, onEdit, onDelete }) => {
+   ══════════════════════════════════════════════════════════════ */
+const CircuitDetail = ({ circuit, onClose, onEdit, onDelete, isMain }) => {
   const avail  = circuit.available_spots !== undefined ? Number(circuit.available_spots) : Number(circuit.spots);
   const isFull = avail <= 0;
   const isLow  = avail <= 5 && avail > 0;
@@ -140,18 +140,7 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete }) => {
   ) : null;
 
   return (
-    <div style={{
-      width: 330,
-      flexShrink: 0,
-      borderLeft: '1px solid var(--g200)',
-      display: 'flex',
-      flexDirection: 'column',
-      background: '#fff',
-      animation: 'alModalIn .25s var(--ease)',
-      overflowY: 'auto',
-    }}>
-
-      {/* En-tête */}
+    <div style={{ width:330, flexShrink:0, borderLeft:'1px solid var(--g200)', display:'flex', flexDirection:'column', background:'#fff', animation:'alModalIn .25s var(--ease)', overflowY:'auto' }}>
       <div style={{ padding:'14px 18px', borderBottom:'1px solid var(--g100)', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'#fff', zIndex:2 }}>
         <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em' }}>Détails circuit</p>
         <button className="al-modal__close" onClick={onClose}>
@@ -159,7 +148,6 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete }) => {
         </button>
       </div>
 
-      {/* Image */}
       <div style={{ width:'100%', height:170, background:'var(--g100)', flexShrink:0, position:'relative', overflow:'hidden' }}>
         {circuit.image_url ? (
           <img src={circuit.image_url} alt={circuit.title} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} onError={e=>e.target.style.display='none'}/>
@@ -169,9 +157,8 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete }) => {
             <p style={{ fontSize:12, color:'rgba(255,255,255,.7)' }}>{circuit.region === 'nord' ? 'Circuit Nord' : 'Circuit Sud'}</p>
           </div>
         )}
-        {/* Overlays */}
         <div style={{ position:'absolute', top:10, left:10, display:'flex', gap:6, flexWrap:'wrap' }}>
-          <span style={{ padding:'3px 9px', borderRadius:999, background: circuit.is_active ? '#10b981' : '#94a3b8', color:'#fff', fontSize:11, fontWeight:700, boxShadow:'0 2px 8px rgba(0,0,0,.2)' }}>
+          <span style={{ padding:'3px 9px', borderRadius:999, background:circuit.is_active?'#10b981':'#94a3b8', color:'#fff', fontSize:11, fontWeight:700, boxShadow:'0 2px 8px rgba(0,0,0,.2)' }}>
             {circuit.is_active ? '● Actif' : '● Inactif'}
           </span>
           {circuit.badge && (
@@ -182,34 +169,23 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete }) => {
         </div>
       </div>
 
-      {/* Corps */}
       <div style={{ padding:'18px 18px 12px', display:'flex', flexDirection:'column', gap:18, flex:1 }}>
-
-        {/* Titre + région + tag */}
         <div>
           <h3 style={{ fontSize:16, fontWeight:800, color:'var(--g900)', lineHeight:1.3 }}>{circuit.title}</h3>
           {circuit.subtitle && <p style={{ fontSize:12, color:'var(--g500)', marginTop:4 }}>{circuit.subtitle}</p>}
           <div style={{ display:'flex', gap:6, marginTop:8, flexWrap:'wrap' }}>
-            <span style={{ padding:'3px 9px', borderRadius:999, fontSize:11, fontWeight:600, background: circuit.region==='nord'?'#e0fbfc':'#fff7ed', color: circuit.region==='nord'?'#0e7490':'#c2410c' }}>
+            <span style={{ padding:'3px 9px', borderRadius:999, fontSize:11, fontWeight:600, background:circuit.region==='nord'?'#e0fbfc':'#fff7ed', color:circuit.region==='nord'?'#0e7490':'#c2410c' }}>
               {circuit.region === 'nord' ? '🏛️ Nord' : '🏜️ Sud'}
             </span>
-            {circuit.tag && (
-              <span style={{ padding:'3px 9px', borderRadius:999, fontSize:11, fontWeight:600, background:'var(--g100)', color:'var(--g600)' }}>
-                {circuit.tag}
-              </span>
-            )}
+            {circuit.tag && <span style={{ padding:'3px 9px', borderRadius:999, fontSize:11, fontWeight:600, background:'var(--g100)', color:'var(--g600)' }}>{circuit.tag}</span>}
           </div>
         </div>
-
-        {/* Description */}
         {circuit.description && (
           <div>
             <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:6, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Description</p>
             <p style={{ fontSize:13, color:'var(--g600)', lineHeight:1.65 }}>{circuit.description}</p>
           </div>
         )}
-
-        {/* Prix */}
         <div>
           <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:8, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Tarif</p>
           <div style={{ display:'flex', alignItems:'baseline', gap:10 }}>
@@ -222,32 +198,28 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete }) => {
             </span>
           )}
         </div>
-
-        {/* Infos pratiques */}
         <div>
           <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:8, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Informations</p>
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-            <InfoRow icon="🗓"  label="Durée"        value={circuit.duration ? `${circuit.duration} j / ${circuit.nights ?? circuit.duration - 1} n` : null}/>
-            <InfoRow icon="✈️"  label="Départ"       value={circuit.departure || null}/>
-            <InfoRow icon="👥"  label="Groupe"       value={circuit.group_size || null}/>
+            <InfoRow icon="🗓"  label="Durée"   value={circuit.duration ? `${circuit.duration} j / ${circuit.nights ?? circuit.duration - 1} n` : null}/>
+            <InfoRow icon="✈️"  label="Départ"  value={circuit.departure || null}/>
+            <InfoRow icon="👥"  label="Groupe"  value={circuit.group_size || null}/>
             {circuit.difficulty && (
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background: difficultyBg[circuit.difficulty] || 'var(--g50)', border:'1px solid var(--g100)' }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background:difficultyBg[circuit.difficulty]||'var(--g50)', border:'1px solid var(--g100)' }}>
                 <span style={{ fontSize:12, color:'var(--g500)' }}>🎯 Difficulté</span>
-                <span style={{ fontSize:13, fontWeight:700, color: difficultyColor[circuit.difficulty] || 'var(--g800)' }}>
+                <span style={{ fontSize:13, fontWeight:700, color:difficultyColor[circuit.difficulty]||'var(--g800)' }}>
                   {difficultyIcon[circuit.difficulty]} {circuit.difficulty}
                 </span>
               </div>
             )}
           </div>
         </div>
-
-        {/* Disponibilité */}
         <div>
           <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:8, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Disponibilité</p>
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background: isFull?'#fee2e2':isLow?'#fff7ed':'#d1fae5', border:`1px solid ${isFull?'#fca5a5':isLow?'#fed7aa':'#a7f3d0'}` }}>
-              <span style={{ fontSize:12, color: isFull?'#991b1b':isLow?'#92400e':'#065f46' }}>🪑 Places disponibles</span>
-              <span style={{ fontSize:13, fontWeight:800, color: isFull?'#e92f64':isLow?'#f97316':'#065f46' }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background:isFull?'#fee2e2':isLow?'#fff7ed':'#d1fae5', border:`1px solid ${isFull?'#fca5a5':isLow?'#fed7aa':'#a7f3d0'}` }}>
+              <span style={{ fontSize:12, color:isFull?'#991b1b':isLow?'#92400e':'#065f46' }}>🪑 Places disponibles</span>
+              <span style={{ fontSize:13, fontWeight:800, color:isFull?'#e92f64':isLow?'#f97316':'#065f46' }}>
                 {isFull ? 'Complet' : `${avail} / ${circuit.spots}`}
               </span>
             </div>
@@ -259,7 +231,6 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete }) => {
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Footer boutons */}
@@ -271,21 +242,26 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete }) => {
           </svg>
           Modifier
         </button>
-        <button className="al-btn al-btn--danger" onClick={() => { onDelete(circuit.id); onClose(); }}>
+        <button
+          className="al-btn al-btn--danger"
+          onClick={() => { onDelete(circuit.id); onClose(); }}
+          title={isMain ? 'Supprimer ce circuit' : 'Réservé à l\'administrateur principal'}
+          style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14, height:14 }}>
             <polyline points="3 6 5 6 21 6"/>
             <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
           </svg>
-          Supprimer
+          {isMain ? 'Supprimer' : 'Supprimer 🔒'}
         </button>
       </div>
     </div>
   );
 };
 
-/* ════════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════
    MAIN
-   ════════════════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════════════ */
 const CircuitPackages = () => {
   const [circuits,  setCircuits]  = useState([]);
   const [loading,   setLoading]   = useState(true);
@@ -293,6 +269,12 @@ const CircuitPackages = () => {
   const [showModal, setShowModal] = useState(false);
   const [editPkg,   setEditPkg]   = useState(null);
   const [selected,  setSelected]  = useState(null);
+
+  // ── Role check ────────────────────────────────────────────────
+  const isMain = (() => {
+    try { return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main'; }
+    catch { return false; }
+  })();
 
   const notify = (msg, type='success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
 
@@ -304,7 +286,12 @@ const CircuitPackages = () => {
 
   useEffect(() => { fetchCircuits(); }, []);
 
+  // ── Delete guarded by role ─────────────────────────────────────
   const handleDelete = async (id) => {
+    if (!isMain) {
+      notify('❌ Seul l\'administrateur principal peut supprimer un circuit', 'error');
+      return;
+    }
     if (!window.confirm('Supprimer ce circuit ?')) return;
     const r = await fetch(`${API}/${id}`, { method:'DELETE' });
     const j = await r.json();
@@ -345,10 +332,7 @@ const CircuitPackages = () => {
         ))}
       </div>
 
-      {/* Layout table + détail */}
       <div style={{ display:'flex', margin:'0 32px 32px', background:'#fff', borderRadius:16, border:'1px solid var(--g200)', boxShadow:'0 4px 12px rgba(15,76,92,.08)', overflow:'hidden' }}>
-
-        {/* Colonne table */}
         <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>
           <div className="al-toolbar">
             <p style={{ fontSize:15, fontWeight:700, color:'var(--g800)', flex:1 }}>Liste des circuits</p>
@@ -388,19 +372,29 @@ const CircuitPackages = () => {
                             </div>
                           </div>
                         </td>
-                        <td><span style={{ padding:'3px 9px', borderRadius:999, fontSize:11, fontWeight:600, background: c.region==='nord'?'#e0fbfc':'#fff7ed', color: c.region==='nord'?'#0e7490':'#c2410c' }}>{c.region==='nord'?'🏛️ Nord':'🏜️ Sud'}</span></td>
+                        <td><span style={{ padding:'3px 9px', borderRadius:999, fontSize:11, fontWeight:600, background:c.region==='nord'?'#e0fbfc':'#fff7ed', color:c.region==='nord'?'#0e7490':'#c2410c' }}>{c.region==='nord'?'🏛️ Nord':'🏜️ Sud'}</span></td>
                         <td><p style={{ fontWeight:700, fontSize:13, color:'var(--primary)' }}>{fPrice(c.price)}</p>{c.old_price && <p style={{ fontSize:11, color:'var(--g400)', textDecoration:'line-through' }}>{fPrice(c.old_price)}</p>}</td>
                         <td><span style={{ fontWeight:600, fontSize:13 }}>{c.duration} j / {c.nights||c.duration-1} n</span></td>
                         <td>
-                          <span style={{ fontWeight:700, fontSize:13, color: isFull?'#e92f64':isLow?'#f97316':'#065f46' }}>{isFull?'❌ Complet':`${avail} / ${c.spots}`}</span>
+                          <span style={{ fontWeight:700, fontSize:13, color:isFull?'#e92f64':isLow?'#f97316':'#065f46' }}>{isFull?'❌ Complet':`${avail} / ${c.spots}`}</span>
                           {isLow && <p style={{ fontSize:10, color:'#f97316', marginTop:2 }}>🔥 Presque complet</p>}
                         </td>
                         <td><span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:999, background:'rgba(15,76,92,.08)', color:'var(--primary)', fontSize:12, fontWeight:700 }}>{c.reservation_count||0} inscrit{c.reservation_count>1?'s':''}</span></td>
                         <td><span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 9px', borderRadius:999, fontSize:11, fontWeight:600, background:c.is_active?'#d1fae5':'var(--g100)', color:c.is_active?'#065f46':'var(--g500)' }}><span style={{ width:6, height:6, borderRadius:'50%', background:c.is_active?'#10b981':'var(--g400)' }}/>{c.is_active?'Actif':'Inactif'}</span></td>
                         <td onClick={e => e.stopPropagation()}>
                           <div style={{ display:'flex', gap:6 }}>
-                            <button className="al-action-btn al-action-btn--edit" onClick={() => { setEditPkg(c); setShowModal(true); }} title="Modifier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                            <button className="al-action-btn al-action-btn--delete" onClick={() => handleDelete(c.id)} title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
+                            <button className="al-action-btn al-action-btn--edit" onClick={() => { setEditPkg(c); setShowModal(true); }} title="Modifier">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                            {/* ── Delete: grayed out for non-main ── */}
+                            <button
+                              className="al-action-btn al-action-btn--delete"
+                              onClick={() => handleDelete(c.id)}
+                              title={isMain ? 'Supprimer' : 'Réservé à l\'administrateur principal'}
+                              style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -413,13 +407,13 @@ const CircuitPackages = () => {
           <div className="al-table-footer"><p className="al-count">{circuits.length} circuit{circuits.length!==1?'s':''}</p></div>
         </div>
 
-        {/* Panneau détail */}
         {selected && (
           <CircuitDetail
             circuit={selected}
             onClose={() => setSelected(null)}
             onEdit={(c) => { setEditPkg(c); setShowModal(true); }}
             onDelete={handleDelete}
+            isMain={isMain}
           />
         )}
       </div>
