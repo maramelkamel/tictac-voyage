@@ -2,112 +2,171 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
-const API = 'http://localhost:5000/api/circuits';
+const API    = 'http://localhost:5000/api/circuits';
 const fPrice = (p) => p ? Number(p).toLocaleString('fr-TN') + ' DT' : '—';
 
-const EMPTY = { title:'', subtitle:'', description:'', image_url:'', price:'', old_price:'', duration:'', nights:'', region:'nord', departure:'', spots:'20', rating:'5.0', reviews:'0', badge:'', tag:'', tag_color:'teal', difficulty:'Facile', group_size:'', is_active:true };
+const EMPTY = {
+  title:'', subtitle:'', description:'', image_url:'', price:'', old_price:'',
+  duration:'', nights:'', region:'nord', departure:'', spots:'20', rating:'5.0',
+  reviews:'0', badge:'', tag:'', tag_color:'teal', difficulty:'Facile',
+  group_size:'', is_active:true,
+};
 
+// ── FIX: defined OUTSIDE PkgModal so React doesn't recreate it
+//    on every keystroke (which would unmount inputs and lose focus) ──
+const ModalField = ({ label, req, children }) => (
+  <div className="al-field">
+    <label className="al-label">{label} {req && <span className="al-required">*</span>}</label>
+    {children}
+  </div>
+);
+
+/* ══════════════════════════════════════════════════════════════
+   MODAL CRÉATION / ÉDITION
+   ══════════════════════════════════════════════════════════════ */
 const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
   const [form, setForm] = useState(pkg ? {
-    title: pkg.title||'', subtitle: pkg.subtitle||'', description: pkg.description||'',
-    image_url: pkg.image_url||'', price: pkg.price||'', old_price: pkg.old_price||'',
-    duration: pkg.duration||'', nights: pkg.nights||'', region: pkg.region||'nord',
-    departure: pkg.departure||'', spots: pkg.spots||'20', rating: pkg.rating||'5.0',
-    reviews: pkg.reviews||'0', badge: pkg.badge||'', tag: pkg.tag||'',
-    tag_color: pkg.tag_color||'teal', difficulty: pkg.difficulty||'Facile',
-    group_size: pkg.group_size||'', is_active: pkg.is_active !== false,
+    title:      pkg.title      || '', subtitle:   pkg.subtitle   || '',
+    description:pkg.description|| '', image_url:  pkg.image_url  || '',
+    price:      pkg.price      || '', old_price:  pkg.old_price  || '',
+    duration:   pkg.duration   || '', nights:     pkg.nights     || '',
+    region:     pkg.region     || 'nord', departure: pkg.departure || '',
+    spots:      pkg.spots      || '20', rating:    pkg.rating    || '5.0',
+    reviews:    pkg.reviews    || '0', badge:     pkg.badge     || '',
+    tag:        pkg.tag        || '', tag_color:  pkg.tag_color  || 'teal',
+    difficulty: pkg.difficulty || 'Facile', group_size: pkg.group_size || '',
+    is_active:  pkg.is_active !== false,
   } : { ...EMPTY });
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.title || !form.price || !form.duration) { notify('Titre, prix et durée obligatoires', 'error'); return; }
+    if (!form.title || !form.price || !form.duration) {
+      notify('Titre, prix et durée obligatoires', 'error'); return;
+    }
     setLoading(true);
     try {
       const res = await fetch(pkg ? `${API}/${pkg.id}` : API, {
-        method: pkg ? 'PUT' : 'POST',
+        method:  pkg ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, price: Number(form.price), old_price: form.old_price ? Number(form.old_price) : null, duration: Number(form.duration), nights: form.nights ? Number(form.nights) : Number(form.duration) - 1, spots: Number(form.spots)||20 }),
+        body: JSON.stringify({
+          ...form,
+          price:    Number(form.price),
+          old_price: form.old_price ? Number(form.old_price) : null,
+          duration: Number(form.duration),
+          nights:   form.nights ? Number(form.nights) : Number(form.duration) - 1,
+          spots:    Number(form.spots) || 20,
+        }),
       });
       const json = await res.json();
       if (json.success) { notify(pkg ? 'Circuit mis à jour ✅' : 'Circuit créé ✅'); onSaved(); }
       else notify(json.message || 'Erreur', 'error');
     } catch { notify('Erreur réseau', 'error'); }
-    finally { setLoading(false); }
+    finally   { setLoading(false); }
   };
-
-  const F = ({ label, req, children }) => (
-    <div className="al-field"><label className="al-label">{label} {req && <span className="al-required">*</span>}</label>{children}</div>
-  );
 
   return (
     <div className="al-overlay" onClick={onClose}>
       <div className="al-modal" style={{ maxWidth:720 }} onClick={e => e.stopPropagation()}>
         <div className="al-modal__header">
           <div className="al-modal__title-wrap">
-            <div className="al-modal__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/></svg></div>
+            <div className="al-modal__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/></svg>
+            </div>
             <h2>{pkg ? 'Modifier le circuit' : 'Nouveau Circuit'}</h2>
           </div>
-          <button className="al-modal__close" onClick={onClose}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+          <button className="al-modal__close" onClick={onClose}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
         </div>
+
         <form className="al-form" onSubmit={handleSubmit}>
-          <F label="Titre" req><input className="al-input" value={form.title} onChange={e=>set('title',e.target.value)} placeholder="Ex: Sahara & Dunes d'Or" required/></F>
-          <F label="Sous-titre"><input className="al-input" value={form.subtitle} onChange={e=>set('subtitle',e.target.value)} placeholder="Douz · Grand Erg · Ksar Ghilane · 5 jours"/></F>
-          <F label="Description"><textarea className="al-textarea" rows={3} value={form.description} onChange={e=>set('description',e.target.value)} placeholder="Description du circuit..."/></F>
-          <F label="URL de l'image">
+          <ModalField label="Titre" req>
+            <input className="al-input" value={form.title} onChange={e=>set('title',e.target.value)} placeholder="Ex: Sahara & Dunes d'Or" required/>
+          </ModalField>
+          <ModalField label="Sous-titre">
+            <input className="al-input" value={form.subtitle} onChange={e=>set('subtitle',e.target.value)} placeholder="Douz · Grand Erg · Ksar Ghilane · 5 jours"/>
+          </ModalField>
+          <ModalField label="Description">
+            <textarea className="al-textarea" rows={3} value={form.description} onChange={e=>set('description',e.target.value)} placeholder="Description du circuit..."/>
+          </ModalField>
+          <ModalField label="URL de l'image">
             <input className="al-input" value={form.image_url} onChange={e=>set('image_url',e.target.value)} placeholder="https://..."/>
             {form.image_url && <img src={form.image_url} alt="preview" style={{ marginTop:8, width:'100%', height:120, objectFit:'cover', borderRadius:8, border:'1.5px solid var(--g200)' }} onError={e=>e.target.style.display='none'}/>}
-          </F>
+          </ModalField>
+
           <div className="al-row-2">
-            <F label="Prix (DT)" req><input className="al-input" type="number" min="0" step="0.01" value={form.price} onChange={e=>set('price',e.target.value)} placeholder="680" required/></F>
-            <F label="Ancien prix (DT)"><input className="al-input" type="number" min="0" step="0.01" value={form.old_price} onChange={e=>set('old_price',e.target.value)} placeholder="780 (optionnel)"/></F>
+            <ModalField label="Prix (DT)" req>
+              <input className="al-input" type="number" min="0" step="0.01" value={form.price} onChange={e=>set('price',e.target.value)} placeholder="680" required/>
+            </ModalField>
+            <ModalField label="Ancien prix (DT)">
+              <input className="al-input" type="number" min="0" step="0.01" value={form.old_price} onChange={e=>set('old_price',e.target.value)} placeholder="780 (optionnel)"/>
+            </ModalField>
           </div>
           <div className="al-row-2">
-            <F label="Durée (jours)" req><input className="al-input" type="number" min="1" value={form.duration} onChange={e=>set('duration',e.target.value)} placeholder="5" required/></F>
-            <F label="Nuits"><input className="al-input" type="number" min="0" value={form.nights} onChange={e=>set('nights',e.target.value)} placeholder="4 (auto si vide)"/></F>
+            <ModalField label="Durée (jours)" req>
+              <input className="al-input" type="number" min="1" value={form.duration} onChange={e=>set('duration',e.target.value)} placeholder="5" required/>
+            </ModalField>
+            <ModalField label="Nuits">
+              <input className="al-input" type="number" min="0" value={form.nights} onChange={e=>set('nights',e.target.value)} placeholder="4 (auto si vide)"/>
+            </ModalField>
           </div>
           <div className="al-row-2">
-            <F label="Région">
+            <ModalField label="Région">
               <select className="al-select" value={form.region} onChange={e=>set('region',e.target.value)}>
                 <option value="nord">🏛️ Circuit Nord</option>
                 <option value="sud">🏜️ Circuit Sud</option>
               </select>
-            </F>
-            <F label="Ville de départ"><input className="al-input" value={form.departure} onChange={e=>set('departure',e.target.value)} placeholder="Tunis ou Sfax"/></F>
+            </ModalField>
+            <ModalField label="Ville de départ">
+              <input className="al-input" value={form.departure} onChange={e=>set('departure',e.target.value)} placeholder="Tunis ou Sfax"/>
+            </ModalField>
           </div>
           <div className="al-row-2">
-            <F label="Places"><input className="al-input" type="number" min="0" value={form.spots} onChange={e=>set('spots',e.target.value)} placeholder="20"/></F>
-            <F label="Difficulté">
+            <ModalField label="Places">
+              <input className="al-input" type="number" min="0" value={form.spots} onChange={e=>set('spots',e.target.value)} placeholder="20"/>
+            </ModalField>
+            <ModalField label="Difficulté">
               <select className="al-select" value={form.difficulty} onChange={e=>set('difficulty',e.target.value)}>
                 <option value="Facile">🟢 Facile</option>
                 <option value="Modéré">🟡 Modéré</option>
                 <option value="Aventure">🔴 Aventure</option>
               </select>
-            </F>
+            </ModalField>
           </div>
           <div className="al-row-2">
-            <F label="Tag / Catégorie"><input className="al-input" value={form.tag} onChange={e=>set('tag',e.target.value)} placeholder="Patrimoine, Nature, Aventure..."/></F>
-            <F label="Couleur tag">
+            <ModalField label="Tag / Catégorie">
+              <input className="al-input" value={form.tag} onChange={e=>set('tag',e.target.value)} placeholder="Patrimoine, Nature, Aventure..."/>
+            </ModalField>
+            <ModalField label="Couleur tag">
               <select className="al-select" value={form.tag_color} onChange={e=>set('tag_color',e.target.value)}>
-                <option value="teal">Teal</option><option value="blue">Blue</option><option value="green">Green</option>
-                <option value="orange">Orange</option><option value="accent">Rose</option><option value="violet">Violet</option>
+                <option value="teal">Teal</option><option value="blue">Blue</option>
+                <option value="green">Green</option><option value="orange">Orange</option>
+                <option value="accent">Rose</option><option value="violet">Violet</option>
               </select>
-            </F>
+            </ModalField>
           </div>
           <div className="al-row-2">
-            <F label="Taille groupe"><input className="al-input" value={form.group_size} onChange={e=>set('group_size',e.target.value)} placeholder="2 – 15 personnes"/></F>
-            <F label="Badge">
+            <ModalField label="Taille groupe">
+              <input className="al-input" value={form.group_size} onChange={e=>set('group_size',e.target.value)} placeholder="2 – 15 personnes"/>
+            </ModalField>
+            <ModalField label="Badge">
               <select className="al-select" value={form.badge} onChange={e=>set('badge',e.target.value)}>
-                <option value="">Aucun</option><option value="Populaire">⭐ Populaire</option>
-                <option value="Nouveau">✨ Nouveau</option><option value="Promo">🔥 Promo</option><option value="VIP">👑 VIP</option>
+                <option value="">Aucun</option>
+                <option value="Populaire">⭐ Populaire</option>
+                <option value="Nouveau">✨ Nouveau</option>
+                <option value="Promo">🔥 Promo</option>
+                <option value="VIP">👑 VIP</option>
               </select>
-            </F>
+            </ModalField>
           </div>
+
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <input type="checkbox" id="is_active" checked={form.is_active} onChange={e=>set('is_active',e.target.checked)} style={{ width:16, height:16, cursor:'pointer', accentColor:'var(--primary)' }}/>
             <label htmlFor="is_active" className="al-label" style={{ cursor:'pointer', marginBottom:0 }}>Circuit actif (visible sur le site public)</label>
           </div>
+
           <div className="al-form-footer">
             <button type="button" className="al-btn al-btn--ghost" onClick={onClose}>Annuler</button>
             <button type="submit" className="al-btn al-btn--primary" disabled={loading}>
@@ -143,29 +202,22 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete, isMain }) => {
     <div style={{ width:330, flexShrink:0, borderLeft:'1px solid var(--g200)', display:'flex', flexDirection:'column', background:'#fff', animation:'alModalIn .25s var(--ease)', overflowY:'auto' }}>
       <div style={{ padding:'14px 18px', borderBottom:'1px solid var(--g100)', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'#fff', zIndex:2 }}>
         <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em' }}>Détails circuit</p>
-        <button className="al-modal__close" onClick={onClose}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
+        <button className="al-modal__close" onClick={onClose}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
 
       <div style={{ width:'100%', height:170, background:'var(--g100)', flexShrink:0, position:'relative', overflow:'hidden' }}>
-        {circuit.image_url ? (
-          <img src={circuit.image_url} alt={circuit.title} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} onError={e=>e.target.style.display='none'}/>
-        ) : (
-          <div style={{ width:'100%', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, background:'linear-gradient(135deg,var(--primary),var(--secondary))' }}>
-            <span style={{ fontSize:40 }}>{circuit.region === 'nord' ? '🏛️' : '🏜️'}</span>
-            <p style={{ fontSize:12, color:'rgba(255,255,255,.7)' }}>{circuit.region === 'nord' ? 'Circuit Nord' : 'Circuit Sud'}</p>
-          </div>
-        )}
+        {circuit.image_url
+          ? <img src={circuit.image_url} alt={circuit.title} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} onError={e=>e.target.style.display='none'}/>
+          : <div style={{ width:'100%', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, background:'linear-gradient(135deg,var(--primary),var(--secondary))' }}>
+              <span style={{ fontSize:40 }}>{circuit.region==='nord'?'🏛️':'🏜️'}</span>
+              <p style={{ fontSize:12, color:'rgba(255,255,255,.7)' }}>{circuit.region==='nord'?'Circuit Nord':'Circuit Sud'}</p>
+            </div>
+        }
         <div style={{ position:'absolute', top:10, left:10, display:'flex', gap:6, flexWrap:'wrap' }}>
-          <span style={{ padding:'3px 9px', borderRadius:999, background:circuit.is_active?'#10b981':'#94a3b8', color:'#fff', fontSize:11, fontWeight:700, boxShadow:'0 2px 8px rgba(0,0,0,.2)' }}>
+          <span style={{ padding:'3px 9px', borderRadius:999, background:circuit.is_active?'#10b981':'#94a3b8', color:'#fff', fontSize:11, fontWeight:700 }}>
             {circuit.is_active ? '● Actif' : '● Inactif'}
           </span>
-          {circuit.badge && (
-            <span style={{ padding:'3px 9px', borderRadius:999, background:'#fff7ed', color:'#c2410c', fontSize:11, fontWeight:700, boxShadow:'0 2px 8px rgba(0,0,0,.15)' }}>
-              {circuit.badge}
-            </span>
-          )}
+          {circuit.badge && <span style={{ padding:'3px 9px', borderRadius:999, background:'#fff7ed', color:'#c2410c', fontSize:11, fontWeight:700 }}>{circuit.badge}</span>}
         </div>
       </div>
 
@@ -175,17 +227,19 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete, isMain }) => {
           {circuit.subtitle && <p style={{ fontSize:12, color:'var(--g500)', marginTop:4 }}>{circuit.subtitle}</p>}
           <div style={{ display:'flex', gap:6, marginTop:8, flexWrap:'wrap' }}>
             <span style={{ padding:'3px 9px', borderRadius:999, fontSize:11, fontWeight:600, background:circuit.region==='nord'?'#e0fbfc':'#fff7ed', color:circuit.region==='nord'?'#0e7490':'#c2410c' }}>
-              {circuit.region === 'nord' ? '🏛️ Nord' : '🏜️ Sud'}
+              {circuit.region==='nord'?'🏛️ Nord':'🏜️ Sud'}
             </span>
             {circuit.tag && <span style={{ padding:'3px 9px', borderRadius:999, fontSize:11, fontWeight:600, background:'var(--g100)', color:'var(--g600)' }}>{circuit.tag}</span>}
           </div>
         </div>
+
         {circuit.description && (
           <div>
             <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:6, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Description</p>
             <p style={{ fontSize:13, color:'var(--g600)', lineHeight:1.65 }}>{circuit.description}</p>
           </div>
         )}
+
         <div>
           <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:8, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Tarif</p>
           <div style={{ display:'flex', alignItems:'baseline', gap:10 }}>
@@ -194,16 +248,17 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete, isMain }) => {
           </div>
           {circuit.old_price && (
             <span style={{ marginTop:4, display:'inline-block', fontSize:11, fontWeight:700, color:'#059669', background:'#d1fae5', padding:'2px 8px', borderRadius:999 }}>
-              -{Math.round((1 - circuit.price / circuit.old_price) * 100)}% de réduction
+              -{Math.round((1-circuit.price/circuit.old_price)*100)}% de réduction
             </span>
           )}
         </div>
+
         <div>
           <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:8, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Informations</p>
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-            <InfoRow icon="🗓"  label="Durée"   value={circuit.duration ? `${circuit.duration} j / ${circuit.nights ?? circuit.duration - 1} n` : null}/>
-            <InfoRow icon="✈️"  label="Départ"  value={circuit.departure || null}/>
-            <InfoRow icon="👥"  label="Groupe"  value={circuit.group_size || null}/>
+            <InfoRow icon="🗓" label="Durée"  value={circuit.duration ? `${circuit.duration} j / ${circuit.nights ?? circuit.duration-1} n` : null}/>
+            <InfoRow icon="✈️" label="Départ" value={circuit.departure || null}/>
+            <InfoRow icon="👥" label="Groupe" value={circuit.group_size || null}/>
             {circuit.difficulty && (
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background:difficultyBg[circuit.difficulty]||'var(--g50)', border:'1px solid var(--g100)' }}>
                 <span style={{ fontSize:12, color:'var(--g500)' }}>🎯 Difficulté</span>
@@ -214,6 +269,7 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete, isMain }) => {
             )}
           </div>
         </div>
+
         <div>
           <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:8, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Disponibilité</p>
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
@@ -225,33 +281,22 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete, isMain }) => {
             </div>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background:'rgba(15,76,92,.05)', border:'1px solid rgba(15,76,92,.1)' }}>
               <span style={{ fontSize:12, color:'var(--g500)' }}>📋 Réservations</span>
-              <span style={{ fontSize:13, fontWeight:800, color:'var(--primary)' }}>
-                {circuit.reservation_count || 0} inscrit{circuit.reservation_count > 1 ? 's' : ''}
-              </span>
+              <span style={{ fontSize:13, fontWeight:800, color:'var(--primary)' }}>{circuit.reservation_count||0} inscrit{circuit.reservation_count>1?'s':''}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Footer boutons */}
       <div style={{ padding:'14px 18px', borderTop:'1px solid var(--g100)', display:'flex', gap:8, position:'sticky', bottom:0, background:'#fff' }}>
         <button className="al-btn al-btn--primary" style={{ flex:1 }} onClick={() => { onEdit(circuit); onClose(); }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14, height:14 }}>
-            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-          </svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14, height:14 }}><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Modifier
         </button>
-        <button
-          className="al-btn al-btn--danger"
+        <button className="al-btn al-btn--danger"
           onClick={() => { onDelete(circuit.id); onClose(); }}
-          title={isMain ? 'Supprimer ce circuit' : 'Réservé à l\'administrateur principal'}
-          style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14, height:14 }}>
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-          </svg>
+          title={isMain ? 'Supprimer' : 'Réservé à l\'administrateur principal'}
+          style={{ opacity:isMain?1:0.4, cursor:isMain?'pointer':'not-allowed' }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14, height:14 }}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
           {isMain ? 'Supprimer' : 'Supprimer 🔒'}
         </button>
       </div>
@@ -270,7 +315,6 @@ const CircuitPackages = () => {
   const [editPkg,   setEditPkg]   = useState(null);
   const [selected,  setSelected]  = useState(null);
 
-  // ── Role check ────────────────────────────────────────────────
   const isMain = (() => {
     try { return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main'; }
     catch { return false; }
@@ -286,12 +330,8 @@ const CircuitPackages = () => {
 
   useEffect(() => { fetchCircuits(); }, []);
 
-  // ── Delete guarded by role ─────────────────────────────────────
   const handleDelete = async (id) => {
-    if (!isMain) {
-      notify('❌ Seul l\'administrateur principal peut supprimer un circuit', 'error');
-      return;
-    }
+    if (!isMain) { notify('❌ Seul l\'administrateur principal peut supprimer un circuit', 'error'); return; }
     if (!window.confirm('Supprimer ce circuit ?')) return;
     const r = await fetch(`${API}/${id}`, { method:'DELETE' });
     const j = await r.json();
@@ -301,10 +341,9 @@ const CircuitPackages = () => {
 
   const stats = {
     total:    circuits.length,
-    nord:     circuits.filter(c => c.region === 'nord').length,
-    sud:      circuits.filter(c => c.region === 'sud').length,
-    active:   circuits.filter(c => c.is_active).length,
-    totalRes: circuits.reduce((a, c) => a + (parseInt(c.reservation_count)||0), 0),
+    nord:     circuits.filter(c => c.region==='nord').length,
+    sud:      circuits.filter(c => c.region==='sud').length,
+    totalRes: circuits.reduce((a,c) => a+(parseInt(c.reservation_count)||0), 0),
   };
 
   return (
@@ -337,7 +376,8 @@ const CircuitPackages = () => {
           <div className="al-toolbar">
             <p style={{ fontSize:15, fontWeight:700, color:'var(--g800)', flex:1 }}>Liste des circuits</p>
             <button className="al-btn al-btn--ghost" onClick={fetchCircuits}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Actualiser
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+              Actualiser
             </button>
           </div>
 
@@ -356,7 +396,7 @@ const CircuitPackages = () => {
                     const isLow  = avail <= 5 && avail > 0;
                     const isSel  = selected?.id === c.id;
                     return (
-                      <tr key={c.id} className={`al-row ${isSel ? 'al-row--selected' : ''}`} style={{ cursor:'pointer' }} onClick={() => setSelected(isSel ? null : c)}>
+                      <tr key={c.id} className={`al-row ${isSel?'al-row--selected':''}`} style={{ cursor:'pointer' }} onClick={() => setSelected(isSel?null:c)}>
                         <td>
                           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                             {c.image_url
@@ -364,10 +404,7 @@ const CircuitPackages = () => {
                               : <div style={{ width:44, height:44, borderRadius:8, background:'linear-gradient(135deg,var(--primary),var(--secondary))', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><span style={{ fontSize:20 }}>{c.region==='nord'?'🏛️':'🏜️'}</span></div>
                             }
                             <div>
-                              <p style={{ fontWeight:700, fontSize:13, color:'var(--g800)' }}>
-                                {c.title}
-                                {c.badge && <span style={{ marginLeft:7, padding:'2px 7px', borderRadius:999, background:'#fff7ed', color:'#c2410c', fontSize:10, fontWeight:700 }}>{c.badge}</span>}
-                              </p>
+                              <p style={{ fontWeight:700, fontSize:13, color:'var(--g800)' }}>{c.title}{c.badge && <span style={{ marginLeft:7, padding:'2px 7px', borderRadius:999, background:'#fff7ed', color:'#c2410c', fontSize:10, fontWeight:700 }}>{c.badge}</span>}</p>
                               {c.tag && <p style={{ fontSize:11, color:'var(--g400)', marginTop:2 }}>{c.tag}</p>}
                             </div>
                           </div>
@@ -386,13 +423,9 @@ const CircuitPackages = () => {
                             <button className="al-action-btn al-action-btn--edit" onClick={() => { setEditPkg(c); setShowModal(true); }} title="Modifier">
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </button>
-                            {/* ── Delete: grayed out for non-main ── */}
-                            <button
-                              className="al-action-btn al-action-btn--delete"
-                              onClick={() => handleDelete(c.id)}
-                              title={isMain ? 'Supprimer' : 'Réservé à l\'administrateur principal'}
-                              style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}
-                            >
+                            <button className="al-action-btn al-action-btn--delete" onClick={() => handleDelete(c.id)}
+                              title={isMain?'Supprimer':'Réservé à l\'administrateur principal'}
+                              style={{ opacity:isMain?1:0.4, cursor:isMain?'pointer':'not-allowed' }}>
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                             </button>
                           </div>
@@ -408,17 +441,18 @@ const CircuitPackages = () => {
         </div>
 
         {selected && (
-          <CircuitDetail
-            circuit={selected}
-            onClose={() => setSelected(null)}
-            onEdit={(c) => { setEditPkg(c); setShowModal(true); }}
-            onDelete={handleDelete}
-            isMain={isMain}
-          />
+          <CircuitDetail circuit={selected} onClose={() => setSelected(null)}
+            onEdit={c => { setEditPkg(c); setShowModal(true); }}
+            onDelete={handleDelete} isMain={isMain}/>
         )}
       </div>
 
-      {showModal && <PkgModal pkg={editPkg} onClose={() => { setShowModal(false); setEditPkg(null); }} onSaved={() => { setShowModal(false); setEditPkg(null); fetchCircuits(); }} notify={notify}/>}
+      {showModal && (
+        <PkgModal pkg={editPkg}
+          onClose={() => { setShowModal(false); setEditPkg(null); }}
+          onSaved={() => { setShowModal(false); setEditPkg(null); fetchCircuits(); }}
+          notify={notify}/>
+      )}
     </AdminLayout>
   );
 };

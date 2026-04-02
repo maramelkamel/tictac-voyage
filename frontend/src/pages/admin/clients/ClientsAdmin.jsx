@@ -2,409 +2,240 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
-const API_CLIENTS = 'http://localhost:5000/api/clients';
-const API_OMRA    = 'http://localhost:5000/api/omra/reservations';
-const API_TRANS   = 'http://localhost:5000/api/requests';
-const API_CUSTOM  = 'http://localhost:5000/api/custom-trips';
+const API    = 'http://localhost:5000/api/clients';
+const fDate  = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
+const fDT    = (d) => d ? new Date(d).toLocaleString('fr-FR')     : '—';
 
-const fDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
-const fDT   = (d) => d ? new Date(d).toLocaleString('fr-FR')     : '—';
+const MARITAL = { celibataire:'Célibataire', marie:'Marié(e)', divorce:'Divorcé(e)', veuf:'Veuf/Veuve' };
 
-// ── Avatar initials ──────────────────────────────────────────────
-const Avatar = ({ first, last }) => {
-  const initials = `${(first || '')[0] || ''}${(last || '')[0] || ''}`.toUpperCase();
-  const colors   = ['#0F4C5C','#1ECAD3','#e92f64','#8b5cf6','#f97316','#10b981'];
-  const color    = colors[(first?.charCodeAt(0) || 0) % colors.length];
-  return (
-    <div style={{ width: 38, height: 38, borderRadius: '50%', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13, fontWeight: 700, color: '#fff' }}>
-      {initials || '?'}
+/* ══════════════════════════════════════════════════════════════
+   CLIENT DETAIL PANEL
+   ══════════════════════════════════════════════════════════════ */
+const ClientDetail = ({ client, onClose, onDelete, isMain }) => {
+  const initials = `${client.first_name?.[0]||''}${client.last_name?.[0]||''}`.toUpperCase();
+
+  const InfoRow = ({ icon, label, value }) => value ? (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background:'var(--g50)', border:'1px solid var(--g100)' }}>
+      <span style={{ fontSize:12, color:'var(--g500)' }}>{icon} {label}</span>
+      <span style={{ fontSize:13, fontWeight:600, color:'var(--g800)' }}>{value}</span>
     </div>
-  );
-};
-
-// ── Booking type badge ───────────────────────────────────────────
-const TypeBadge = ({ type }) => {
-  const map = {
-    omra:      { label: '🕌 Omra',         bg: '#f5f3ff', color: '#7c3aed' },
-    transport: { label: '🚌 Transport',     bg: '#e0fbfc', color: '#0e7490' },
-    custom:    { label: '✈️ Sur Mesure',    bg: '#fff7ed', color: '#c2410c' },
-  };
-  const m = map[type] || { label: type, bg: '#f1f5f9', color: '#64748b' };
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: m.bg, color: m.color, whiteSpace: 'nowrap' }}>
-      {m.label}
-    </span>
-  );
-};
-
-// ── Status badge ─────────────────────────────────────────────────
-const StatusBadge = ({ status }) => {
-  const map = {
-    pending:   { label: 'En attente', bg: '#fff7ed', color: '#c2410c' },
-    confirmed: { label: 'Confirmé',   bg: '#d1fae5', color: '#065f46' },
-    completed: { label: 'Terminé',    bg: '#e0fbfc', color: '#0e7490' },
-    cancelled: { label: 'Annulé',     bg: '#fee2e2', color: '#991b1b' },
-    paid:      { label: 'Payé',       bg: '#d1fae5', color: '#065f46' },
-  };
-  const m = map[status] || { label: status, bg: '#f1f5f9', color: '#64748b' };
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: m.bg, color: m.color }}>
-      {m.label}
-    </span>
-  );
-};
-
-// ── Detail panel ─────────────────────────────────────────────────
-const DetailPanel = ({ client, bookings, onClose }) => {
-  if (!client) return null;
-
-  const Section = ({ title, children }) => (
-    <div style={{ marginBottom: 20 }}>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--g400)', textTransform: 'uppercase', letterSpacing: '.1em', paddingBottom: 8, borderBottom: '1px solid var(--g100)', marginBottom: 12 }}>{title}</p>
-      {children}
-    </div>
-  );
-
-  const totalSpent = bookings.reduce((sum, b) => sum + (Number(b.total_price || b.totalPrix || 0)), 0);
+  ) : null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div style={{ width:320, flexShrink:0, borderLeft:'1px solid var(--g200)', display:'flex', flexDirection:'column', background:'#fff', animation:'alModalIn .25s var(--ease)', overflowY:'auto' }}>
 
       {/* Header */}
-      <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--g100)', display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-        <Avatar first={client.first_name} last={client.last_name} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontWeight: 800, fontSize: 16, color: 'var(--g900)' }}>{client.first_name} {client.last_name}</p>
-          <p style={{ fontSize: 12, color: 'var(--g400)', marginTop: 2 }}>{client.email}</p>
-        </div>
-        <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, border: '1.5px solid var(--g200)', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="var(--g500)" strokeWidth="2" style={{ width: 14, height: 14 }}><path d="M18 6L6 18M6 6l12 12"/></svg>
+      <div style={{ padding:'14px 18px', borderBottom:'1px solid var(--g100)', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'#fff', zIndex:2 }}>
+        <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em' }}>Fiche client</p>
+        <button className="al-modal__close" onClick={onClose}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
 
-      {/* Body */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '18px 20px' }}>
-
-        {/* Stats row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
-          {[
-            { label: 'Réservations', value: bookings.length, color: '#0F4C5C' },
-            { label: 'Total dépensé', value: `${totalSpent.toLocaleString('fr-TN')} TND`, color: '#e92f64' },
-            { label: 'Membre depuis', value: fDate(client.created_at), color: '#8b5cf6' },
-          ].map((s, i) => (
-            <div key={i} style={{ background: 'var(--g50)', borderRadius: 10, padding: '12px 14px', border: '1px solid var(--g100)' }}>
-              <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--g400)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{s.label}</p>
-              <p style={{ fontSize: 14, fontWeight: 800, color: s.color, lineHeight: 1.2 }}>{s.value}</p>
-            </div>
-          ))}
+      {/* Avatar + name */}
+      <div style={{ padding:'24px 20px', display:'flex', flexDirection:'column', alignItems:'center', gap:12, background:'linear-gradient(135deg,var(--primary),var(--secondary))', borderBottom:'1px solid var(--g100)' }}>
+        <div style={{ width:64, height:64, borderRadius:'50%', background:'rgba(255,255,255,.25)', border:'3px solid rgba(255,255,255,.4)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, fontWeight:800, color:'#fff' }}>
+          {initials || '?'}
         </div>
+        <div style={{ textAlign:'center' }}>
+          <p style={{ fontWeight:800, fontSize:17, color:'#fff' }}>{client.first_name} {client.last_name}</p>
+          <p style={{ fontSize:12, color:'rgba(255,255,255,.8)', marginTop:4 }}>{client.email}</p>
+        </div>
+        <span style={{ padding:'4px 12px', borderRadius:999, background:'rgba(255,255,255,.2)', color:'#fff', fontSize:11, fontWeight:600 }}>
+          Client depuis le {fDate(client.created_at)}
+        </span>
+      </div>
 
-        {/* Infos personnelles */}
-        <Section title="Informations personnelles">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            {[
-              { label: 'Prénom',       value: client.first_name },
-              { label: 'Nom',          value: client.last_name },
-              { label: 'Téléphone',    value: client.phone },
-              { label: 'Ville',        value: client.city || '—' },
-              { label: 'Situation',    value: client.marital_status || '—' },
-              { label: 'Enfants',      value: client.number_of_children ?? '—' },
-            ].map((item, i) => (
-              <div key={i}>
-                <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--g400)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{item.label}</p>
-                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--g700)', marginTop: 2 }}>{item.value}</p>
-              </div>
-            ))}
+      {/* Info */}
+      <div style={{ padding:'18px', display:'flex', flexDirection:'column', gap:8, flex:1 }}>
+        <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:4 }}>Informations</p>
+        <InfoRow icon="📞" label="Téléphone"     value={client.phone || null}/>
+        <InfoRow icon="🏙️" label="Ville"          value={client.city  || null}/>
+        <InfoRow icon="💍" label="Situation"      value={MARITAL[client.marital_status] || null}/>
+        <InfoRow icon="👶" label="Enfants"        value={client.number_of_children ? `${client.number_of_children}` : null}/>
+        <InfoRow icon="📅" label="Inscrit le"     value={fDate(client.created_at)}/>
+        <InfoRow icon="🔄" label="Mis à jour le"  value={fDate(client.updated_at)}/>
+      </div>
+
+      {/* Footer */}
+      <div style={{ padding:'14px 18px', borderTop:'1px solid var(--g100)', position:'sticky', bottom:0, background:'#fff' }}>
+        {isMain ? (
+          <button className="al-btn al-btn--danger" style={{ width:'100%' }}
+            onClick={() => { onDelete(client); onClose(); }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14, height:14 }}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            Supprimer ce client
+          </button>
+        ) : (
+          <div style={{ padding:'10px 14px', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:8, fontSize:12, color:'#991b1b', textAlign:'center' }}>
+            🔒 Seul l'admin principal peut supprimer un client
           </div>
-        </Section>
-
-        {/* Historique réservations */}
-        <Section title={`Historique des réservations (${bookings.length})`}>
-          {bookings.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--g400)', textAlign: 'center', padding: '20px 0' }}>Aucune réservation trouvée.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {bookings.map((b, i) => (
-                <div key={i} style={{ background: 'var(--g50)', borderRadius: 10, padding: '12px 14px', border: '1px solid var(--g100)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <TypeBadge type={b._type} />
-                    <StatusBadge status={b.status} />
-                  </div>
-                  <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--g800)', marginBottom: 3 }}>{b._label}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <p style={{ fontSize: 11, color: 'var(--g400)' }}>{fDT(b.created_at)}</p>
-                    {b.total_price && (
-                      <p style={{ fontSize: 13, fontWeight: 700, color: '#0F4C5C' }}>{Number(b.total_price).toLocaleString('fr-TN')} TND</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Section>
-
+        )}
       </div>
     </div>
   );
 };
 
-// ══════════════════════════════════════════════════════════════════
-// MAIN COMPONENT
-// ══════════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════
+   MAIN
+   ══════════════════════════════════════════════════════════════ */
 const ClientsAdmin = () => {
-  const [clients,  setClients]  = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [toast,    setToast]    = useState(null);
-  const [selected, setSelected] = useState(null);
-  const [bookings, setBookings] = useState([]);
-  const [search,   setSearch]   = useState('');
+  const [clients,   setClients]   = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [toast,     setToast]     = useState(null);
+  const [selected,  setSelected]  = useState(null);
+  const [search,    setSearch]    = useState('');
 
-  // All reservations from all sources
-  const [allOmra,    setAllOmra]    = useState([]);
-  const [allTrans,   setAllTrans]   = useState([]);
-  const [allCustom,  setAllCustom]  = useState([]);
+  const isMain = (() => {
+    try { return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main'; }
+    catch { return false; }
+  })();
 
-  const notify = (msg, type = 'success') => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+  const notify = (msg, type='success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
+
+  const fetchClients = async () => {
+    try {
+      setLoading(true);
+      const r = await fetch(API);
+      const j = await r.json();
+      setClients(j.data || []);
+    } catch { notify('Impossible de charger les clients', 'error'); }
+    finally   { setLoading(false); }
   };
 
-  // ── Fetch everything on mount ──────────────────────────────────
-  useEffect(() => {
-    Promise.all([
-      fetch(API_CLIENTS).then(r => r.json()).catch(() => ({ data: [] })),
-      fetch(API_OMRA).then(r => r.json()).catch(() => ({ data: [] })),
-      fetch(API_TRANS).then(r => r.json()).catch(() => ({ data: [] })),
-      fetch(API_CUSTOM).then(r => r.json()).catch(() => ({ data: [] })),
-    ]).then(([c, o, t, ct]) => {
-      setClients(c.data  || []);
-      setAllOmra(o.data  || []);
-      setAllTrans(t.data || []);
-      setAllCustom(ct.data || []);
-      setLoading(false);
-    }).catch(() => {
-      notify('Erreur lors du chargement', 'error');
-      setLoading(false);
-    });
-  }, []);
+  useEffect(() => { fetchClients(); }, []);
 
-  // ── Get bookings for a specific client by email ───────────────
-  const getClientBookings = (client) => {
-    const email = (client.email || '').toLowerCase();
-
-    const omraBooks = allOmra
-      .filter(b => (b.email || '').toLowerCase() === email)
-      .map(b => ({
-        ...b,
-        _type:  'omra',
-        _label: b.package_id ? `Omra — Forfait #${b.package_id}` : 'Omra',
-      }));
-
-    const transBooks = allTrans
-      .filter(b => (b.email || '').toLowerCase() === email)
-      .map(b => ({
-        ...b,
-        _type:  'transport',
-        _label: `${b.departure_location || '—'} → ${b.arrival_location || '—'}`,
-        total_price: null,
-      }));
-
-    const customBooks = allCustom
-      .filter(b => (b.email || '').toLowerCase() === email)
-      .map(b => ({
-        ...b,
-        _type:  'custom',
-        _label: `Voyage sur mesure — ${b.destination || '—'}`,
-        total_price: b.max_budget || null,
-      }));
-
-    return [...omraBooks, ...transBooks, ...customBooks]
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const handleDelete = async (client) => {
+    if (!isMain) { notify('❌ Seul l\'administrateur principal peut supprimer un client', 'error'); return; }
+    if (!window.confirm(`Supprimer le client ${client.first_name} ${client.last_name} ? Cette action est irréversible.`)) return;
+    try {
+      const r = await fetch(`${API}/${client.id}`, { method:'DELETE' });
+      const j = await r.json();
+      if (j.success) { notify('Client supprimé'); fetchClients(); setSelected(null); }
+      else notify(j.message || 'Erreur suppression', 'error');
+    } catch { notify('Erreur réseau', 'error'); }
   };
 
-  // ── Select a client ───────────────────────────────────────────
-  const handleSelect = (client) => {
-    if (selected?.id === client.id) {
-      setSelected(null);
-      setBookings([]);
-    } else {
-      setSelected(client);
-      setBookings(getClientBookings(client));
-    }
-  };
-
-  // ── Filter clients ────────────────────────────────────────────
   const filtered = clients.filter(c => {
     const q = search.toLowerCase();
-    return (
+    return !search ||
       (c.first_name || '').toLowerCase().includes(q) ||
       (c.last_name  || '').toLowerCase().includes(q) ||
       (c.email      || '').toLowerCase().includes(q) ||
       (c.phone      || '').toLowerCase().includes(q) ||
-      (c.city       || '').toLowerCase().includes(q)
-    );
+      (c.city       || '').toLowerCase().includes(q);
   });
 
-  // ── Stats ─────────────────────────────────────────────────────
-  const oneYearAgo = new Date(Date.now() - 365 * 86400000);
-
   const stats = {
-    total:      clients.length,
-    newClients: clients.filter(c => new Date(c.created_at) > oneYearAgo).length,
-    level1:     clients.filter(c => getClientBookings(c).length === 1).length,
-    level2:     clients.filter(c => { const n = getClientBookings(c).length; return n >= 2 && n <= 3; }).length,
-    level3:     clients.filter(c => getClientBookings(c).length >= 4).length,
+    total:  clients.length,
+    cities: [...new Set(clients.map(c => c.city).filter(Boolean))].length,
+    recent: clients.filter(c => {
+      const d = new Date(c.created_at);
+      const now = new Date();
+      return (now - d) / (1000 * 60 * 60 * 24) <= 30;
+    }).length,
   };
 
   return (
-    <AdminLayout
-      title="Clients"
-      breadcrumb={[{ label: 'Clients', active: true }]}
+    <AdminLayout title="Clients"
+      breadcrumb={[{ label:'Clients', active:true }]}
       actions={
-        <button className="al-btn al-btn--ghost" onClick={() => window.location.reload()}>
+        <button className="al-btn al-btn--ghost" onClick={fetchClients}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
           Actualiser
         </button>
       }
-      toast={toast}
-    >
+      toast={toast}>
 
       {/* Stats */}
       <div className="al-stats">
         {[
-          { label: 'Total clients', value: stats.total,    color: 'blue',
-            icon: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></>,
-            sub: null },
-          { label: 'Nouveaux', value: stats.newClients, color: 'green',
-            icon: <><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11v6M19 14h6"/></>,
-            sub: '< 1 an' },
-          { label: 'Niveau 1 ⭐', value: stats.level1, color: 'teal',
-            icon: <><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></>,
-            sub: '1 réservation' },
-          { label: 'Niveau 2 ⭐⭐', value: stats.level2, color: 'orange',
-            icon: <><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></>,
-            sub: '2-3 réservations' },
-          { label: 'Niveau 3 ⭐⭐⭐', value: stats.level3, color: 'red',
-            icon: <><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></>,
-            sub: '4+ réservations' },
+          { label:'Total clients',    value:stats.total,  color:'blue',
+            icon:<><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></> },
+          { label:'Villes différentes', value:stats.cities, color:'teal',
+            icon:<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></> },
+          { label:'Nouveaux (30 j)',  value:stats.recent, color:'green',
+            icon:<><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></> },
         ].map(s => (
           <div key={s.label} className={`al-stat al-stat--${s.color}`}>
-            <div className="al-stat__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">{s.icon}</svg>
-            </div>
-            <div>
-              <p className="al-stat__value">{s.value}</p>
-              <p className="al-stat__label">{s.label}</p>
-              {s.sub && <p style={{ fontSize: 10, color: 'var(--g400)', marginTop: 2 }}>{s.sub}</p>}
-            </div>
+            <div className="al-stat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">{s.icon}</svg></div>
+            <div><p className="al-stat__value">{s.value}</p><p className="al-stat__label">{s.label}</p></div>
           </div>
         ))}
       </div>
 
-      {/* Table + Detail layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: 0, margin: '0 0 32px', transition: 'grid-template-columns .3s' }}>
+      {/* Table + detail panel */}
+      <div style={{ display:'flex', margin:'0 0 32px', transition:'all .3s' }}>
 
-        {/* Table */}
-        <div style={{ margin: '0 0 0 32px', background: '#fff', borderRadius: 16, border: '1px solid var(--g200)', boxShadow: 'var(--shadow-md)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex:1, minWidth:0, margin:'0 0 0 32px', background:'#fff', borderRadius:16, border:'1px solid var(--g200)', boxShadow:'var(--shadow-md)', overflow:'hidden', display:'flex', flexDirection:'column' }}>
 
           {/* Toolbar */}
           <div className="al-toolbar">
             <div className="al-search">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-              <input type="text" placeholder="Rechercher par nom, email, ville..." value={search} onChange={e => setSearch(e.target.value)} />
-              {search && (
-                <button className="al-search__clear" onClick={() => setSearch('')}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                </button>
-              )}
+              <input type="text" placeholder="Rechercher par nom, email, ville..." value={search} onChange={e=>setSearch(e.target.value)}/>
+              {search && <button className="al-search__clear" onClick={()=>setSearch('')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>}
             </div>
+            <p style={{ fontSize:13, color:'var(--g400)', marginLeft:'auto' }}>
+              {filtered.length} client{filtered.length!==1?'s':''} {search ? `sur ${clients.length}` : ''}
+            </p>
           </div>
 
-          {/* Content */}
+          {/* Table */}
           {loading ? (
-            <div className="al-loading">
-              <div className="al-spinner-wrap"><div className="al-spinner"/></div>
-              <p style={{ fontSize: 13, color: 'var(--g400)' }}>Chargement des clients...</p>
-            </div>
+            <div className="al-loading"><div className="al-spinner-wrap"><div className="al-spinner"/></div><p style={{ fontSize:13, color:'var(--g400)' }}>Chargement...</p></div>
           ) : filtered.length === 0 ? (
             <div className="al-empty">
-              <div className="al-empty__icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-              </div>
+              <div className="al-empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
               <p className="al-empty__title">Aucun client trouvé</p>
-              <p className="al-empty__sub">Modifiez votre recherche.</p>
+              <p className="al-empty__sub">{search ? 'Modifiez votre recherche.' : 'Aucun client inscrit pour l\'instant.'}</p>
             </div>
           ) : (
             <div className="al-table-wrap">
               <table className="al-table">
                 <thead>
-                  <tr>
-                    <th>Client</th>
-                    <th>Téléphone</th>
-                    <th>Ville</th>
-                    <th>Membre depuis</th>
-                    <th>Réservations</th>
-                    <th>Types</th>
-                  </tr>
+                  <tr><th>Client</th><th>Contact</th><th>Ville</th><th>Situation</th><th>Inscrit le</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
-                  {filtered.map(client => {
-                    const clientBooks  = getClientBookings(client);
-                    const omraCount    = clientBooks.filter(b => b._type === 'omra').length;
-                    const transCount   = clientBooks.filter(b => b._type === 'transport').length;
-                    const customCount  = clientBooks.filter(b => b._type === 'custom').length;
-                    const isSelected   = selected?.id === client.id;
-
+                  {filtered.map(c => {
+                    const initials = `${c.first_name?.[0]||''}${c.last_name?.[0]||''}`.toUpperCase();
+                    const isSel    = selected?.id === c.id;
                     return (
-                      <tr key={client.id}
-                        className="al-row"
-                        style={{ cursor: 'pointer', background: isSelected ? '#e0fbfc' : undefined }}
-                        onClick={() => handleSelect(client)}>
-
-                        {/* Client */}
+                      <tr key={c.id} className={`al-row ${isSel?'al-row--selected':''}`} style={{ cursor:'pointer' }} onClick={() => setSelected(isSel?null:c)}>
                         <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-                            <Avatar first={client.first_name} last={client.last_name} />
+                          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                            <div style={{ width:38, height:38, borderRadius:'50%', background:'linear-gradient(135deg,var(--primary),var(--secondary))', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:'#fff', flexShrink:0 }}>
+                              {initials || '?'}
+                            </div>
                             <div>
-                              <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--g800)' }}>
-                                {client.first_name} {client.last_name}
-                              </p>
-                              <p style={{ fontSize: 11, color: 'var(--g400)', marginTop: 2 }}>{client.email}</p>
+                              <p style={{ fontWeight:700, fontSize:13, color:'var(--g800)' }}>{c.first_name} {c.last_name}</p>
+                              <p style={{ fontSize:11, color:'var(--g400)', marginTop:2 }}>#{c.id}</p>
                             </div>
                           </div>
                         </td>
-
-                        {/* Phone */}
-                        <td style={{ fontSize: 13, color: 'var(--g600)' }}>{client.phone || '—'}</td>
-
-                        {/* City */}
-                        <td style={{ fontSize: 13, color: 'var(--g600)' }}>{client.city || '—'}</td>
-
-                        {/* Member since */}
                         <td>
-                          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--g700)' }}>{fDate(client.created_at)}</p>
-                          <p style={{ fontSize: 11, color: 'var(--g400)', marginTop: 2 }}>
-                            {Math.floor((Date.now() - new Date(client.created_at)) / 86400000)} jours
-                          </p>
+                          <p style={{ fontSize:13, color:'var(--g700)' }}>{c.email}</p>
+                          {c.phone && <p style={{ fontSize:11, color:'var(--g400)', marginTop:2 }}>{c.phone}</p>}
                         </td>
-
-                        {/* Total bookings */}
+                        <td><span style={{ fontSize:12, color:'var(--g600)' }}>{c.city || '—'}</span></td>
                         <td>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '50%', background: clientBooks.length > 0 ? 'rgba(15,76,92,.1)' : 'var(--g100)', color: clientBooks.length > 0 ? 'var(--primary)' : 'var(--g400)', fontWeight: 700, fontSize: 13 }}>
-                            {clientBooks.length}
-                          </span>
+                          <span style={{ fontSize:12, color:'var(--g600)' }}>{MARITAL[c.marital_status] || '—'}</span>
+                          {c.number_of_children > 0 && <p style={{ fontSize:11, color:'var(--g400)', marginTop:2 }}>{c.number_of_children} enfant{c.number_of_children>1?'s':''}</p>}
                         </td>
-
-                        {/* Types */}
-                        <td>
-                          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                            {omraCount   > 0 && <span style={{ fontSize: 11, padding: '2px 7px', borderRadius: 999, background: '#f5f3ff', color: '#7c3aed', fontWeight: 600 }}>🕌 ×{omraCount}</span>}
-                            {transCount  > 0 && <span style={{ fontSize: 11, padding: '2px 7px', borderRadius: 999, background: '#e0fbfc', color: '#0e7490', fontWeight: 600 }}>🚌 ×{transCount}</span>}
-                            {customCount > 0 && <span style={{ fontSize: 11, padding: '2px 7px', borderRadius: 999, background: '#fff7ed', color: '#c2410c', fontWeight: 600 }}>✈️ ×{customCount}</span>}
-                            {clientBooks.length === 0 && <span style={{ fontSize: 11, color: 'var(--g300)' }}>Aucune</span>}
+                        <td><span style={{ fontSize:12, color:'var(--g500)' }}>{fDate(c.created_at)}</span></td>
+                        <td onClick={e => e.stopPropagation()}>
+                          <div style={{ display:'flex', gap:6 }}>
+                            <button className="al-action-btn al-action-btn--edit"
+                              onClick={() => setSelected(isSel?null:c)} title="Voir le détail">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                            <button className="al-action-btn al-action-btn--delete"
+                              onClick={() => handleDelete(c)}
+                              title={isMain?'Supprimer ce client':'Réservé à l\'administrateur principal'}
+                              style={{ opacity:isMain?1:0.4, cursor:isMain?'pointer':'not-allowed' }}>
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                            </button>
                           </div>
                         </td>
-
                       </tr>
                     );
                   })}
@@ -414,30 +245,17 @@ const ClientsAdmin = () => {
           )}
 
           <div className="al-table-footer">
-            <p className="al-count">{filtered.length} client{filtered.length !== 1 ? 's' : ''}{search ? ` sur ${clients.length} au total` : ''}</p>
+            <p className="al-count">{filtered.length} client{filtered.length!==1?'s':''}</p>
           </div>
         </div>
 
         {/* Detail panel */}
         {selected && (
-          <div style={{ margin: '0 32px 0 16px', background: '#fff', borderRadius: 16, border: '1px solid var(--g200)', boxShadow: 'var(--shadow-md)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <DetailPanel
-              client={selected}
-              bookings={bookings}
-              onClose={() => { setSelected(null); setBookings([]); }}
-            />
+          <div style={{ width:320, flexShrink:0, margin:'0 32px 0 16px' }}>
+            <ClientDetail client={selected} onClose={() => setSelected(null)} onDelete={handleDelete} isMain={isMain}/>
           </div>
         )}
-
       </div>
-
-      {/* Hint */}
-      {!selected && !loading && filtered.length > 0 && (
-        <div style={{ margin: '-20px 32px 0', padding: '14px 20px', borderRadius: 12, background: 'var(--g50)', border: '1px dashed var(--g200)', textAlign: 'center', fontSize: 13, color: 'var(--g400)' }}>
-          👆 Cliquez sur un client pour voir son profil et son historique de réservations
-        </div>
-      )}
-
     </AdminLayout>
   );
 };
