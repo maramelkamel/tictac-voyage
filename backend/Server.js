@@ -23,7 +23,15 @@ const adminAuthRoutes         = require('./routes/adminAuthRoutes');
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+// ── CORS — must explicitly allow Authorization so browsers don't
+//    strip it from preflight (OPTIONS) requests ──────────────────
+app.use(cors({
+  origin:         'http://localhost:5173',
+  methods:        ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials:    true,
+}));
+
 app.use(express.json());
 
 app.use('/api/transports',           transportRoutes);

@@ -31,32 +31,47 @@ const createAdmin = async ({ first_name, last_name, email, password, occupation,
   const password_hash = await bcrypt.hash(password, 12);
   const { rows } = await pool.query(
     `INSERT INTO public.admins (first_name, last_name, email, password_hash, occupation, role)
-     VALUES ($1,$2,$3,$4,$5,$6)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id, first_name, last_name, email, occupation, role, is_active, created_at`,
     [first_name, last_name, email, password_hash, occupation || null, role || 'admin']
   );
   return rows[0];
 };
 
+// ── Fixed updateAdmin — two clean separate queries depending on
+//    whether a new password is provided ────────────────────────────
 const updateAdmin = async (id, { first_name, last_name, email, occupation, role, is_active, password }) => {
-  // Build query dynamically — only hash password if provided
-  let password_hash;
-  if (password) password_hash = await bcrypt.hash(password, 12);
+  // If a new password is provided, hash it and include it in the update
+  if (password) {
+    const password_hash = await bcrypt.hash(password, 12);
+    const { rows } = await pool.query(
+      `UPDATE public.admins
+       SET first_name   = $1,
+           last_name    = $2,
+           email        = $3,
+           occupation   = $4,
+           role         = $5,
+           is_active    = $6,
+           password_hash = $7
+       WHERE id = $8
+       RETURNING id, first_name, last_name, email, occupation, role, is_active, created_at`,
+      [first_name, last_name, email, occupation || null, role || 'admin', is_active !== false, password_hash, id]
+    );
+    return rows[0] || null;
+  }
 
+  // No password change
   const { rows } = await pool.query(
-    `UPDATE public.admins SET
-       first_name  = $1,
-       last_name   = $2,
-       email       = $3,
-       occupation  = $4,
-       role        = $5,
-       is_active   = $6
-       ${password_hash ? ', password_hash = $8' : ''}
-     WHERE id = ${password_hash ? '$7' : '$7'}
+    `UPDATE public.admins
+     SET first_name  = $1,
+         last_name   = $2,
+         email       = $3,
+         occupation  = $4,
+         role        = $5,
+         is_active   = $6
+     WHERE id = $7
      RETURNING id, first_name, last_name, email, occupation, role, is_active, created_at`,
-    password_hash
-      ? [first_name, last_name, email, occupation || null, role || 'admin', is_active !== false, id, password_hash]
-      : [first_name, last_name, email, occupation || null, role || 'admin', is_active !== false, id]
+    [first_name, last_name, email, occupation || null, role || 'admin', is_active !== false, id]
   );
   return rows[0] || null;
 };

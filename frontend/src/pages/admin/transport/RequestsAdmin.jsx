@@ -18,12 +18,18 @@ const VEHICLE_META = {
 };
 
 const RequestsAdmin = () => {
-  const [requests, setRequests]               = useState([]);
-  const [loading, setLoading]                 = useState(true);
-  const [toast, setToast]                     = useState(null);
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [filterStatus, setFilterStatus]       = useState('all');
-  const [search, setSearch]                   = useState('');
+  const [requests,         setRequests]         = useState([]);
+  const [loading,          setLoading]          = useState(true);
+  const [toast,            setToast]            = useState(null);
+  const [selectedRequest,  setSelectedRequest]  = useState(null);
+  const [filterStatus,     setFilterStatus]     = useState('all');
+  const [search,           setSearch]           = useState('');
+
+  // ── Role check ────────────────────────────────────────────────
+  const isMain = (() => {
+    try { return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main'; }
+    catch { return false; }
+  })();
 
   const notify = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -45,12 +51,17 @@ const RequestsAdmin = () => {
 
   useEffect(() => { fetchRequests(); }, []);
 
+  // ── Status change guarded for cancel ──────────────────────────
   const handleStatusChange = async (id, status) => {
+    if (status === 'cancelled' && !isMain) {
+      notify('❌ Seul l\'administrateur principal peut annuler une demande', 'error');
+      return;
+    }
     try {
       const res  = await fetch(`${API}/${id}/status`, {
-        method: 'PATCH',
+        method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body:    JSON.stringify({ status }),
       });
       const json = await res.json();
       if (json.success) {
@@ -63,7 +74,12 @@ const RequestsAdmin = () => {
     } catch { notify('Erreur réseau', 'error'); }
   };
 
+  // ── Delete guarded by role ─────────────────────────────────────
   const handleDelete = async (id) => {
+    if (!isMain) {
+      notify('❌ Seul l\'administrateur principal peut supprimer une demande', 'error');
+      return;
+    }
     if (!window.confirm('Supprimer cette demande ?')) return;
     try {
       const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
@@ -80,10 +96,10 @@ const RequestsAdmin = () => {
   const filtered = requests.filter(r => {
     const q = search.toLowerCase();
     const matchSearch =
-      (r.full_name || '').toLowerCase().includes(q) ||
-      (r.email || '').toLowerCase().includes(q) ||
+      (r.full_name          || '').toLowerCase().includes(q) ||
+      (r.email              || '').toLowerCase().includes(q) ||
       (r.departure_location || '').toLowerCase().includes(q) ||
-      (r.arrival_location || '').toLowerCase().includes(q);
+      (r.arrival_location   || '').toLowerCase().includes(q);
     return matchSearch && (filterStatus === 'all' || r.status === filterStatus);
   });
 
@@ -96,7 +112,7 @@ const RequestsAdmin = () => {
   };
 
   const fDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
-  const fDT   = (d) => d ? new Date(d).toLocaleString('fr-FR') : '—';
+  const fDT   = (d) => d ? new Date(d).toLocaleString('fr-FR')     : '—';
 
   return (
     <AdminLayout
@@ -122,7 +138,7 @@ const RequestsAdmin = () => {
           { label: 'Confirmées', value: stats.confirmed, color: 'green',  key: 'confirmed' },
           { label: 'Terminées',  value: stats.completed, color: 'teal',   key: 'completed' },
           { label: 'Annulées',   value: stats.cancelled, color: 'red',    key: 'cancelled' },
-        ].map((s) => (
+        ].map(s => (
           <div key={s.label}
             className={`al-stat al-stat--${s.color}`}
             onClick={() => setFilterStatus(s.key)}
@@ -146,13 +162,13 @@ const RequestsAdmin = () => {
       {/* Layout table + détail */}
       <div className={`rq-layout ${selectedRequest ? 'rq-layout--split' : ''}`}>
 
-        {/* Table */}
+        {/* ── Table ── */}
         <div className="al-card rq-card-table">
           <div className="al-toolbar">
             <div className="al-search">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
               <input type="text" placeholder="Rechercher client, lieu..."
-                value={search} onChange={e => setSearch(e.target.value)} />
+                value={search} onChange={e => setSearch(e.target.value)}/>
               {search && (
                 <button className="al-search__clear" onClick={() => setSearch('')}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -161,11 +177,11 @@ const RequestsAdmin = () => {
             </div>
             <div className="al-filter-tabs">
               {[
-                { value: 'all',       label: 'Tous'         },
-                { value: 'pending',   label: '⏳ Attente'   },
-                { value: 'confirmed', label: '✅ Confirmés'  },
-                { value: 'completed', label: '🏁 Terminés'  },
-                { value: 'cancelled', label: '❌ Annulés'   },
+                { value: 'all',       label: 'Tous'        },
+                { value: 'pending',   label: '⏳ Attente'  },
+                { value: 'confirmed', label: '✅ Confirmés' },
+                { value: 'completed', label: '🏁 Terminés' },
+                { value: 'cancelled', label: '❌ Annulés'  },
               ].map(({ value, label }) => (
                 <button key={value}
                   className={`al-filter-tab ${filterStatus === value ? 'active' : ''}`}
@@ -207,8 +223,8 @@ const RequestsAdmin = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((r) => {
-                    const sm = STATUS_META[r.status]       || { label: r.status,       cls: 'b--gray',  dot: 'dot--gray' };
+                  {filtered.map(r => {
+                    const sm = STATUS_META[r.status]        || { label: r.status,       cls: 'b--gray', dot: 'dot--gray' };
                     const vm = VEHICLE_META[r.vehicle_type] || { label: r.vehicle_type, cls: 'b--gray' };
                     return (
                       <tr key={r.id}
@@ -230,9 +246,7 @@ const RequestsAdmin = () => {
                             {r.service_type === 'transfert' ? '🚗 Transfert' : '⏱ Mise à dispo'}
                           </span>
                         </td>
-                        <td>
-                          <span className={`al-badge-pill ${vm.cls}`}>{vm.label}</span>
-                        </td>
+                        <td><span className={`al-badge-pill ${vm.cls}`}>{vm.label}</span></td>
                         <td>
                           <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--g700)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {r.departure_location}
@@ -253,16 +267,24 @@ const RequestsAdmin = () => {
                         </td>
                         <td onClick={e => e.stopPropagation()}>
                           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            {/* ── Status select: cancelled disabled for non-main ── */}
                             <select className="rq-status-select"
                               value={r.status}
                               onChange={e => handleStatusChange(r.id, e.target.value)}>
                               <option value="pending">En attente</option>
                               <option value="confirmed">Confirmer</option>
                               <option value="completed">Terminer</option>
-                              <option value="cancelled">Annuler</option>
+                              <option value="cancelled" disabled={!isMain} style={{ color: !isMain ? '#ccc' : undefined }}>
+                                {isMain ? 'Annuler' : 'Annuler 🔒'}
+                              </option>
                             </select>
-                            <button className="al-action-btn al-action-btn--delete"
-                              onClick={() => handleDelete(r.id)}>
+                            {/* ── Delete: grayed out for non-main ── */}
+                            <button
+                              className="al-action-btn al-action-btn--delete"
+                              onClick={() => handleDelete(r.id)}
+                              title={isMain ? 'Supprimer' : 'Réservé à l\'administrateur principal'}
+                              style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}
+                            >
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <polyline points="3 6 5 6 21 6"/>
                                 <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
@@ -286,8 +308,8 @@ const RequestsAdmin = () => {
           </div>
         </div>
 
-        {/* Panneau détail */}
-        {selectedRequest ? (
+        {/* ── Panneau détail ── */}
+        {selectedRequest && (
           <div className="rq-detail">
             <div className="rq-detail__header">
               <div className="rq-avatar rq-avatar--lg">
@@ -322,13 +344,13 @@ const RequestsAdmin = () => {
                 <p className="rq-detail__section-title">Service</p>
                 <div className="rq-detail__grid">
                   <div className="rq-detail__item"><span className="rq-detail__key">Type</span><span className="rq-detail__val">{selectedRequest.service_type === 'transfert' ? 'Transfert' : 'Mise à disposition'}</span></div>
-                  {selectedRequest.trip_type && <div className="rq-detail__item"><span className="rq-detail__key">Trajet</span><span className="rq-detail__val">{selectedRequest.trip_type}</span></div>}
+                  {selectedRequest.trip_type     && <div className="rq-detail__item"><span className="rq-detail__key">Trajet</span><span className="rq-detail__val">{selectedRequest.trip_type}</span></div>}
                   {selectedRequest.duration_type && <div className="rq-detail__item"><span className="rq-detail__key">Durée</span><span className="rq-detail__val">{selectedRequest.duration_type}</span></div>}
                   <div className="rq-detail__item"><span className="rq-detail__key">Véhicule</span><span className="rq-detail__val">{selectedRequest.vehicle_type}</span></div>
                   <div className="rq-detail__item"><span className="rq-detail__key">Passagers</span><span className="rq-detail__val">{selectedRequest.passengers}</span></div>
                   <div className="rq-detail__item"><span className="rq-detail__key">Bagages</span><span className="rq-detail__val">{selectedRequest.luggage}</span></div>
-                  {selectedRequest.child_seat    && <div className="rq-detail__item"><span className="rq-detail__key">Siège enfant</span><span className="rq-detail__val" style={{ color: '#059669' }}>✓ Oui</span></div>}
-                  {selectedRequest.accessibility && <div className="rq-detail__item"><span className="rq-detail__key">PMR</span><span className="rq-detail__val" style={{ color: '#059669' }}>✓ Oui</span></div>}
+                  {selectedRequest.child_seat    && <div className="rq-detail__item"><span className="rq-detail__key">Siège enfant</span><span className="rq-detail__val" style={{ color:'#059669' }}>✓ Oui</span></div>}
+                  {selectedRequest.accessibility && <div className="rq-detail__item"><span className="rq-detail__key">PMR</span><span className="rq-detail__val" style={{ color:'#059669' }}>✓ Oui</span></div>}
                 </div>
               </div>
 
@@ -365,17 +387,31 @@ const RequestsAdmin = () => {
                 </div>
               )}
 
+              {/* ── Changer le statut ── */}
               <div className="rq-detail__section">
                 <p className="rq-detail__section-title">Changer le statut</p>
+
+                {!isMain && (
+                  <div style={{ padding:'10px 14px', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:8, fontSize:12, color:'#991b1b', marginBottom:10 }}>
+                    🔒 L'annulation est réservée à l'administrateur principal.
+                  </div>
+                )}
+
                 <div className="rq-status-btns">
-                  {Object.entries(STATUS_META).map(([key, meta]) => (
-                    <button key={key}
-                      className={`rq-status-btn ${selectedRequest.status === key ? 'active' : ''}`}
-                      onClick={() => handleStatusChange(selectedRequest.id, key)}>
-                      <span className={`al-dot ${meta.dot}`}/>
-                      {meta.label}
-                    </button>
-                  ))}
+                  {Object.entries(STATUS_META).map(([key, meta]) => {
+                    const isCancel = key === 'cancelled';
+                    const blocked  = isCancel && !isMain;
+                    return (
+                      <button key={key}
+                        className={`rq-status-btn ${selectedRequest.status === key ? 'active' : ''}`}
+                        onClick={() => handleStatusChange(selectedRequest.id, key)}
+                        title={blocked ? 'Réservé à l\'administrateur principal' : ''}
+                        style={{ opacity: blocked ? 0.4 : 1, cursor: blocked ? 'not-allowed' : 'pointer' }}>
+                        <span className={`al-dot ${meta.dot}`}/>
+                        {meta.label} {blocked && '🔒'}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -383,9 +419,10 @@ const RequestsAdmin = () => {
                 <p className="rq-detail__section-title">Reçu le</p>
                 <p style={{ fontSize: 12, color: 'var(--g500)' }}>{fDT(selectedRequest.created_at)}</p>
               </div>
+
             </div>
           </div>
-       ) : null}
+        )}
       </div>
 
     </AdminLayout>
