@@ -962,3 +962,23 @@ VALUES (
 --   const bcrypt = require('bcryptjs');
 --   console.log(await bcrypt.hash('Admin@2026', 12));
 -- Then UPDATE the row with your fresh hash.
+
+
+
+
+Maram
+
+-- ════════════════════════════════════════════════════════════════
+--  TIC-TAC VOYAGE — Add quote fields to custom_trips
+--  Run in pgAdmin Query Tool on tictacvoyage database
+-- ════════════════════════════════════════════════════════════════
+ 
+ALTER TABLE public.custom_trips
+  ADD COLUMN IF NOT EXISTS quoted_price  NUMERIC(10,2) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS admin_message TEXT          DEFAULT NULL;
+ 
+-- Verify
+SELECT column_name, data_type FROM information_schema.columns
+WHERE table_name = 'custom_trips'
+  AND column_name IN ('quoted_price', 'admin_message');
+ 
