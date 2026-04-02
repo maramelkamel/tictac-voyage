@@ -8,10 +8,16 @@ const API = 'http://localhost:5000/api/transports';
 
 const TransportAdmin = () => {
   const [transports, setTransports] = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [showForm, setShowForm]     = useState(false);
-  const [editData, setEditData]     = useState(null);
-  const [toast, setToast]           = useState(null);
+  const [loading,    setLoading]    = useState(true);
+  const [showForm,   setShowForm]   = useState(false);
+  const [editData,   setEditData]   = useState(null);
+  const [toast,      setToast]      = useState(null);
+
+  // ── Role check ────────────────────────────────────────────────
+  const isMain = (() => {
+    try { return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main'; }
+    catch { return false; }
+  })();
 
   const notify = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -30,10 +36,15 @@ const TransportAdmin = () => {
 
   useEffect(() => { fetchTransports(); }, []);
 
-  const handleAdd    = ()  => { setEditData(null); setShowForm(true); };
-  const handleEdit   = (t) => { setEditData(t);    setShowForm(true); };
+  const handleAdd  = ()  => { setEditData(null); setShowForm(true); };
+  const handleEdit = (t) => { setEditData(t);    setShowForm(true); };
 
+  // ── Delete guarded by role ─────────────────────────────────────
   const handleDelete = async (id) => {
+    if (!isMain) {
+      notify('❌ Seul l\'administrateur principal peut supprimer un véhicule', 'error');
+      return;
+    }
     if (!window.confirm('Supprimer ce transport définitivement ?')) return;
     try {
       const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
@@ -75,11 +86,11 @@ const TransportAdmin = () => {
     >
       <div className="al-stats">
         {[
-          { label: 'Total',       value: stats.total,     color: 'blue',   icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M8 9v5M13 9v5M18 9v5"/></svg> },
-          { label: 'Voitures',    value: stats.voiture,   color: 'teal',   icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 17h14M5 17a2 2 0 01-2-2V9a2 2 0 012-2h1l2-3h8l2 3h1a2 2 0 012 2v6a2 2 0 01-2 2"/><circle cx="7.5" cy="14" r="1.5"/><circle cx="16.5" cy="14" r="1.5"/></svg> },
-          { label: 'Minibus',     value: stats.minibus,   color: 'indigo', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="6" width="20" height="11" rx="2"/><path d="M6 6V4a1 1 0 011-1h10a1 1 0 011 1v2M2 11h20"/><circle cx="6" cy="19" r="1.5"/><circle cx="18" cy="19" r="1.5"/></svg> },
-          { label: 'Bus',         value: stats.bus,       color: 'violet', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18"/><circle cx="7" cy="21" r="1.5"/><circle cx="17" cy="21" r="1.5"/></svg> },
-          { label: 'Disponibles', value: stats.available, color: 'green',  icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg> },
+          { label:'Total',       value:stats.total,     color:'blue',   icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M8 9v5M13 9v5M18 9v5"/></svg> },
+          { label:'Voitures',    value:stats.voiture,   color:'teal',   icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 17h14M5 17a2 2 0 01-2-2V9a2 2 0 012-2h1l2-3h8l2 3h1a2 2 0 012 2v6a2 2 0 01-2 2"/><circle cx="7.5" cy="14" r="1.5"/><circle cx="16.5" cy="14" r="1.5"/></svg> },
+          { label:'Minibus',     value:stats.minibus,   color:'indigo', icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="6" width="20" height="11" rx="2"/><path d="M6 6V4a1 1 0 011-1h10a1 1 0 011 1v2M2 11h20"/><circle cx="6" cy="19" r="1.5"/><circle cx="18" cy="19" r="1.5"/></svg> },
+          { label:'Bus',         value:stats.bus,       color:'violet', icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18"/><circle cx="7" cy="21" r="1.5"/><circle cx="17" cy="21" r="1.5"/></svg> },
+          { label:'Disponibles', value:stats.available, color:'green',  icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg> },
         ].map(s => (
           <div key={s.label} className={`al-stat al-stat--${s.color}`}>
             <div className="al-stat__icon">{s.icon}</div>
@@ -89,7 +100,13 @@ const TransportAdmin = () => {
       </div>
 
       <div className="al-card">
-        <TransportTable transports={transports} loading={loading} onEdit={handleEdit} onDelete={handleDelete}/>
+        <TransportTable
+          transports={transports}
+          loading={loading}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          isMain={isMain}
+        />
       </div>
 
       {showForm && (
