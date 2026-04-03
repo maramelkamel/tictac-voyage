@@ -3,17 +3,14 @@ const express = require('express');
 const router  = express.Router();
 const ctrl    = require('../controllers/clientController');
 
-// POST /api/clients/register   → create account
-// POST /api/clients/login      → login
+// Public
 router.post('/register', ctrl.register);
 router.post('/login',    ctrl.login);
 
-// GET /api/clients             → all clients (admin)
-// GET /api/clients/:id         → one client (admin)
-router.route('/')
-  .get(ctrl.getAll);
-
-router.route('/:id')
-  .get(ctrl.getOne);
+// Admin / client self-service
+router.get('/',       ctrl.getAll);
+router.get('/:id',    ctrl.getOne);
+router.put('/:id',    ctrl.update);          // update profile
+router.delete('/:id', ctrl.deleteClient);    // delete client (main admin only — enforced on frontend)
 
 module.exports = router;

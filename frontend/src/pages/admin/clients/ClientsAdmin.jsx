@@ -2,17 +2,36 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
-const API    = 'http://localhost:5000/api/clients';
-const fDate  = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
-const fDT    = (d) => d ? new Date(d).toLocaleString('fr-FR')     : '—';
+const API_CLIENTS = 'http://localhost:5000/api/clients';
+const API_OMRA    = 'http://localhost:5000/api/omra/reservations';
+const API_VOYAGE  = 'http://localhost:5000/api/voyage-reservations';
+const API_CIRCUIT = 'http://localhost:5000/api/circuit-reservations';
+const API_TRANS   = 'http://localhost:5000/api/requests';
+const API_CUSTOM  = 'http://localhost:5000/api/custom-trips';
 
-const MARITAL = { celibataire:'Célibataire', marie:'Marié(e)', divorce:'Divorcé(e)', veuf:'Veuf/Veuve' };
+const fDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
+
+const MARITAL = {
+  celibataire: 'Célibataire',
+  marie:       'Marié(e)',
+  divorce:     'Divorcé(e)',
+  veuf:        'Veuf/Veuve',
+};
+
+// ── Loyalty level (same logic as ClientProfile) ───────────────────
+const getLoyaltyLevel = (total) => {
+  if (total === 0) return { label: 'Nouveau client', color: '#64748b', bg: '#f1f5f9', icon: '🌱' };
+  if (total === 1) return { label: 'Niveau 1 ⭐',    color: '#0e7490', bg: '#e0fbfc', icon: '⭐' };
+  if (total <= 3)  return { label: 'Niveau 2 ⭐⭐',  color: '#c2410c', bg: '#fff7ed', icon: '⭐⭐' };
+  return                  { label: 'Niveau 3 ⭐⭐⭐', color: '#7c3aed', bg: '#f5f3ff', icon: '⭐⭐⭐' };
+};
 
 /* ══════════════════════════════════════════════════════════════
    CLIENT DETAIL PANEL
    ══════════════════════════════════════════════════════════════ */
-const ClientDetail = ({ client, onClose, onDelete, isMain }) => {
+const ClientDetail = ({ client, reservationCount, onClose, onDelete, isMain }) => {
   const initials = `${client.first_name?.[0]||''}${client.last_name?.[0]||''}`.toUpperCase();
+  const loyalty  = getLoyaltyLevel(reservationCount);
 
   const InfoRow = ({ icon, label, value }) => value ? (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background:'var(--g50)', border:'1px solid var(--g100)' }}>
@@ -24,16 +43,8 @@ const ClientDetail = ({ client, onClose, onDelete, isMain }) => {
   return (
     <div style={{ width:320, flexShrink:0, borderLeft:'1px solid var(--g200)', display:'flex', flexDirection:'column', background:'#fff', animation:'alModalIn .25s var(--ease)', overflowY:'auto' }}>
 
-      {/* Header */}
-      <div style={{ padding:'14px 18px', borderBottom:'1px solid var(--g100)', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'#fff', zIndex:2 }}>
-        <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em' }}>Fiche client</p>
-        <button className="al-modal__close" onClick={onClose}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      {/* Avatar + name */}
-      <div style={{ padding:'24px 20px', display:'flex', flexDirection:'column', alignItems:'center', gap:12, background:'linear-gradient(135deg,var(--primary),var(--secondary))', borderBottom:'1px solid var(--g100)' }}>
+      {/* Header gradient */}
+      <div style={{ padding:'24px 20px', display:'flex', flexDirection:'column', alignItems:'center', gap:12, background:'linear-gradient(135deg,var(--primary),var(--secondary))', flexShrink:0 }}>
         <div style={{ width:64, height:64, borderRadius:'50%', background:'rgba(255,255,255,.25)', border:'3px solid rgba(255,255,255,.4)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, fontWeight:800, color:'#fff' }}>
           {initials || '?'}
         </div>
@@ -41,20 +52,26 @@ const ClientDetail = ({ client, onClose, onDelete, isMain }) => {
           <p style={{ fontWeight:800, fontSize:17, color:'#fff' }}>{client.first_name} {client.last_name}</p>
           <p style={{ fontSize:12, color:'rgba(255,255,255,.8)', marginTop:4 }}>{client.email}</p>
         </div>
-        <span style={{ padding:'4px 12px', borderRadius:999, background:'rgba(255,255,255,.2)', color:'#fff', fontSize:11, fontWeight:600 }}>
-          Client depuis le {fDate(client.created_at)}
+        <span style={{ padding:'4px 14px', borderRadius:999, background:loyalty.bg, color:loyalty.color, fontSize:12, fontWeight:700 }}>
+          {loyalty.icon} {loyalty.label}
         </span>
+        <div style={{ display:'flex', gap:16, marginTop:4 }}>
+          <div style={{ textAlign:'center' }}>
+            <p style={{ fontSize:20, fontWeight:800, color:'#fff', lineHeight:1 }}>{reservationCount}</p>
+            <p style={{ fontSize:10, color:'rgba(255,255,255,.75)', marginTop:2 }}>Réservations</p>
+          </div>
+        </div>
+        <button onClick={onClose} style={{ position:'absolute', top:14, right:14, width:28, height:28, borderRadius:'50%', border:'none', background:'rgba(255,255,255,.2)', cursor:'pointer', color:'#fff', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
       </div>
 
       {/* Info */}
-      <div style={{ padding:'18px', display:'flex', flexDirection:'column', gap:8, flex:1 }}>
+      <div style={{ padding:'18px', display:'flex', flexDirection:'column', gap:8, flex:1, position:'relative' }}>
         <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:4 }}>Informations</p>
-        <InfoRow icon="📞" label="Téléphone"     value={client.phone || null}/>
-        <InfoRow icon="🏙️" label="Ville"          value={client.city  || null}/>
-        <InfoRow icon="💍" label="Situation"      value={MARITAL[client.marital_status] || null}/>
-        <InfoRow icon="👶" label="Enfants"        value={client.number_of_children ? `${client.number_of_children}` : null}/>
-        <InfoRow icon="📅" label="Inscrit le"     value={fDate(client.created_at)}/>
-        <InfoRow icon="🔄" label="Mis à jour le"  value={fDate(client.updated_at)}/>
+        <InfoRow icon="📞" label="Téléphone"    value={client.phone || null}/>
+        <InfoRow icon="🏙️" label="Ville"         value={client.city  || null}/>
+        <InfoRow icon="💍" label="Situation"     value={MARITAL[client.marital_status] || null}/>
+        <InfoRow icon="👶" label="Enfants"       value={client.number_of_children > 0 ? `${client.number_of_children}` : null}/>
+        <InfoRow icon="📅" label="Inscrit le"    value={fDate(client.created_at)}/>
       </div>
 
       {/* Footer */}
@@ -85,6 +102,9 @@ const ClientsAdmin = () => {
   const [selected,  setSelected]  = useState(null);
   const [search,    setSearch]    = useState('');
 
+  // reservation counts per email
+  const [resCounts, setResCounts] = useState({});
+
   const isMain = (() => {
     try { return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main'; }
     catch { return false; }
@@ -92,25 +112,48 @@ const ClientsAdmin = () => {
 
   const notify = (msg, type='success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
 
-  const fetchClients = async () => {
+  // ── Fetch all clients + aggregate reservation counts ─────────
+  const fetchAll = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const r = await fetch(API);
-      const j = await r.json();
-      setClients(j.data || []);
+      const [cRes, omraRes, voyageRes, circuitRes, transRes, customRes] = await Promise.all([
+        fetch(API_CLIENTS).then(r => r.json()).catch(() => ({})),
+        fetch(API_OMRA).then(r => r.json()).catch(() => ({})),
+        fetch(API_VOYAGE).then(r => r.json()).catch(() => ({})),
+        fetch(API_CIRCUIT).then(r => r.json()).catch(() => ({})),
+        fetch(API_TRANS).then(r => r.json()).catch(() => ({})),
+        fetch(API_CUSTOM).then(r => r.json()).catch(() => ({})),
+      ]);
+
+      setClients(cRes.data || []);
+
+      // Build email → count map
+      const counts = {};
+      const allRes = [
+        ...(omraRes.data    || []),
+        ...(voyageRes.data  || []),
+        ...(circuitRes.data || []),
+        ...(transRes.data   || []),
+        ...(customRes.data  || []),
+      ];
+      allRes.forEach(r => {
+        const e = (r.email || '').toLowerCase();
+        if (e) counts[e] = (counts[e] || 0) + 1;
+      });
+      setResCounts(counts);
     } catch { notify('Impossible de charger les clients', 'error'); }
-    finally   { setLoading(false); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchClients(); }, []);
+  useEffect(() => { fetchAll(); }, []);
 
   const handleDelete = async (client) => {
     if (!isMain) { notify('❌ Seul l\'administrateur principal peut supprimer un client', 'error'); return; }
     if (!window.confirm(`Supprimer le client ${client.first_name} ${client.last_name} ? Cette action est irréversible.`)) return;
     try {
-      const r = await fetch(`${API}/${client.id}`, { method:'DELETE' });
+      const r = await fetch(`${API_CLIENTS}/${client.id}`, { method:'DELETE' });
       const j = await r.json();
-      if (j.success) { notify('Client supprimé'); fetchClients(); setSelected(null); }
+      if (j.success) { notify('Client supprimé'); fetchAll(); setSelected(null); }
       else notify(j.message || 'Erreur suppression', 'error');
     } catch { notify('Erreur réseau', 'error'); }
   };
@@ -125,46 +168,52 @@ const ClientsAdmin = () => {
       (c.city       || '').toLowerCase().includes(q);
   });
 
-  const stats = {
-    total:  clients.length,
-    cities: [...new Set(clients.map(c => c.city).filter(Boolean))].length,
-    recent: clients.filter(c => {
-      const d = new Date(c.created_at);
-      const now = new Date();
-      return (now - d) / (1000 * 60 * 60 * 24) <= 30;
-    }).length,
-  };
+  // ── Loyalty breakdown for stats ───────────────────────────────
+  const loyaltyBreakdown = clients.reduce((acc, c) => {
+    const count = resCounts[(c.email || '').toLowerCase()] || 0;
+    const lvl   = getLoyaltyLevel(count);
+    acc[lvl.label] = (acc[lvl.label] || 0) + 1;
+    return acc;
+  }, {});
+
+  const stats = [
+    { label:'Total clients',   value: clients.length,                              color:'blue',
+      icon: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></> },
+    { label:'🌱 Nouveaux',     value: loyaltyBreakdown['Nouveau client'] || 0,     color:'gray',
+      icon: <><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></> },
+    { label:'⭐ Niveau 1',     value: loyaltyBreakdown['Niveau 1 ⭐']    || 0,     color:'teal',
+      icon: <><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></> },
+    { label:'⭐⭐ Niveau 2',   value: loyaltyBreakdown['Niveau 2 ⭐⭐']  || 0,     color:'orange',
+      icon: <><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></> },
+    { label:'⭐⭐⭐ Niveau 3', value: loyaltyBreakdown['Niveau 3 ⭐⭐⭐'] || 0,     color:'violet',
+      icon: <><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></> },
+  ];
 
   return (
     <AdminLayout title="Clients"
       breadcrumb={[{ label:'Clients', active:true }]}
       actions={
-        <button className="al-btn al-btn--ghost" onClick={fetchClients}>
+        <button className="al-btn al-btn--ghost" onClick={fetchAll}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
           Actualiser
         </button>
       }
       toast={toast}>
 
-      {/* Stats */}
+      {/* Stats with loyalty breakdown */}
       <div className="al-stats">
-        {[
-          { label:'Total clients',    value:stats.total,  color:'blue',
-            icon:<><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></> },
-          { label:'Villes différentes', value:stats.cities, color:'teal',
-            icon:<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></> },
-          { label:'Nouveaux (30 j)',  value:stats.recent, color:'green',
-            icon:<><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></> },
-        ].map(s => (
+        {stats.map(s => (
           <div key={s.label} className={`al-stat al-stat--${s.color}`}>
-            <div className="al-stat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">{s.icon}</svg></div>
+            <div className="al-stat__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">{s.icon}</svg>
+            </div>
             <div><p className="al-stat__value">{s.value}</p><p className="al-stat__label">{s.label}</p></div>
           </div>
         ))}
       </div>
 
       {/* Table + detail panel */}
-      <div style={{ display:'flex', margin:'0 0 32px', transition:'all .3s' }}>
+      <div style={{ display:'flex', margin:'0 0 32px' }}>
 
         <div style={{ flex:1, minWidth:0, margin:'0 0 0 32px', background:'#fff', borderRadius:16, border:'1px solid var(--g200)', boxShadow:'var(--shadow-md)', overflow:'hidden', display:'flex', flexDirection:'column' }}>
 
@@ -172,11 +221,11 @@ const ClientsAdmin = () => {
           <div className="al-toolbar">
             <div className="al-search">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-              <input type="text" placeholder="Rechercher par nom, email, ville..." value={search} onChange={e=>setSearch(e.target.value)}/>
-              {search && <button className="al-search__clear" onClick={()=>setSearch('')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>}
+              <input type="text" placeholder="Rechercher par nom, email, ville..." value={search} onChange={e => setSearch(e.target.value)}/>
+              {search && <button className="al-search__clear" onClick={() => setSearch('')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>}
             </div>
-            <p style={{ fontSize:13, color:'var(--g400)', marginLeft:'auto' }}>
-              {filtered.length} client{filtered.length!==1?'s':''} {search ? `sur ${clients.length}` : ''}
+            <p style={{ fontSize:13, color:'var(--g400)', marginLeft:'auto', flexShrink:0 }}>
+              {filtered.length} client{filtered.length!==1?'s':''}{search ? ` sur ${clients.length}` : ''}
             </p>
           </div>
 
@@ -193,12 +242,15 @@ const ClientsAdmin = () => {
             <div className="al-table-wrap">
               <table className="al-table">
                 <thead>
-                  <tr><th>Client</th><th>Contact</th><th>Ville</th><th>Situation</th><th>Inscrit le</th><th>Actions</th></tr>
+                  <tr><th>Client</th><th>Contact</th><th>Ville</th><th>Niveau fidélité</th><th>Réservations</th><th>Inscrit le</th><th>Actions</th></tr>
                 </thead>
                 <tbody>
                   {filtered.map(c => {
+                    const email   = (c.email || '').toLowerCase();
+                    const count   = resCounts[email] || 0;
+                    const loyalty = getLoyaltyLevel(count);
                     const initials = `${c.first_name?.[0]||''}${c.last_name?.[0]||''}`.toUpperCase();
-                    const isSel    = selected?.id === c.id;
+                    const isSel   = selected?.id === c.id;
                     return (
                       <tr key={c.id} className={`al-row ${isSel?'al-row--selected':''}`} style={{ cursor:'pointer' }} onClick={() => setSelected(isSel?null:c)}>
                         <td>
@@ -218,14 +270,19 @@ const ClientsAdmin = () => {
                         </td>
                         <td><span style={{ fontSize:12, color:'var(--g600)' }}>{c.city || '—'}</span></td>
                         <td>
-                          <span style={{ fontSize:12, color:'var(--g600)' }}>{MARITAL[c.marital_status] || '—'}</span>
-                          {c.number_of_children > 0 && <p style={{ fontSize:11, color:'var(--g400)', marginTop:2 }}>{c.number_of_children} enfant{c.number_of_children>1?'s':''}</p>}
+                          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:999, fontSize:11, fontWeight:700, background:loyalty.bg, color:loyalty.color }}>
+                            {loyalty.icon} {loyalty.label}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:999, background:'rgba(15,76,92,.08)', color:'var(--primary)', fontSize:12, fontWeight:700 }}>
+                            {count} réservation{count!==1?'s':''}
+                          </span>
                         </td>
                         <td><span style={{ fontSize:12, color:'var(--g500)' }}>{fDate(c.created_at)}</span></td>
                         <td onClick={e => e.stopPropagation()}>
                           <div style={{ display:'flex', gap:6 }}>
-                            <button className="al-action-btn al-action-btn--edit"
-                              onClick={() => setSelected(isSel?null:c)} title="Voir le détail">
+                            <button className="al-action-btn al-action-btn--edit" onClick={() => setSelected(isSel?null:c)} title="Voir le détail">
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
                             <button className="al-action-btn al-action-btn--delete"
@@ -252,7 +309,13 @@ const ClientsAdmin = () => {
         {/* Detail panel */}
         {selected && (
           <div style={{ width:320, flexShrink:0, margin:'0 32px 0 16px' }}>
-            <ClientDetail client={selected} onClose={() => setSelected(null)} onDelete={handleDelete} isMain={isMain}/>
+            <ClientDetail
+              client={selected}
+              reservationCount={resCounts[(selected.email||'').toLowerCase()] || 0}
+              onClose={() => setSelected(null)}
+              onDelete={handleDelete}
+              isMain={isMain}
+            />
           </div>
         )}
       </div>
