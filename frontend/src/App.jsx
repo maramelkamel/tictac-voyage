@@ -39,6 +39,8 @@ import PromotionsAdmin from './pages/admin/promotions/PromotionsAdmin';
 import ReserveHotel from './pages/hotel/ReserveHotel';
 import AdminLogin  from './pages/admin/AdminLogin';
 import AdminsAdmin from './pages/admin/admins/AdminsAdmin';
+import ResetPassword from './pages/ResetPassword';
+import ForgotPassword from './pages/ForgotPassword';
 
 
 function App() {
@@ -87,10 +89,16 @@ function App() {
             <Route path="/hotels/:id/reserve" element={<ReserveHotel />} />
             <Route path="/admin/login"  element={<AdminLogin />} />
             <Route path="/admin/admins" element={<AdminsAdmin />} />
+            <Route path="/ResetPassword" element={<ResetPassword />} />
+            <Route path="/ForgotPassword" element={<ForgotPassword />} />
       </Routes>
       
     </Router>
   );
 }
+
+
+
+
 
 export default App;

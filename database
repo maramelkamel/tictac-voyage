@@ -982,3 +982,7 @@ SELECT column_name, data_type FROM information_schema.columns
 WHERE table_name = 'custom_trips'
   AND column_name IN ('quoted_price', 'admin_message');
  
+maram 
+ALTER TABLE public.clients
+  ADD COLUMN IF NOT EXISTS reset_token         VARCHAR(100) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP WITH TIME ZONE DEFAULT NULL;

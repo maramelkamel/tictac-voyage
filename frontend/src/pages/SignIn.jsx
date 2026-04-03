@@ -163,7 +163,7 @@ const SignIn = () => {
                 <div className={`auth-field ${focused === 'password' ? 'auth-field--focused' : ''} ${errors.password ? 'auth-field--error' : ''}`}>
                   <div className="auth-field-header">
                     <label htmlFor="password">Mot de passe</label>
-                    <button type="button" className="auth-link-btn auth-forgot" onClick={() => navigate('/pages/ForgotPassword')}>
+                    <button type="button" className="auth-link-btn auth-forgot" onClick={() => navigate('/ForgotPassword')}>
                       Mot de passe oublié ?
                     </button>
                   </div>

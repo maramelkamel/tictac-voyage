@@ -4,6 +4,8 @@ const router     = express.Router();
 const jwt        = require('jsonwebtoken');
 const controller = require('../controllers/authController');
 
+
+
 // ── JWT Middleware ───────────────────────────────────────────────
 const authMiddleware = (req, res, next) => {
   const header = req.headers.authorization;
