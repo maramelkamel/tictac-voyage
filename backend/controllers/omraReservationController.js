@@ -1,5 +1,6 @@
 // backend/controllers/omraReservationController.js
-const resModel = require('../models/omraReservationModel');
+const resModel                   = require('../models/omraReservationModel');
+const { sendReservationStatusEmail } = require('../utils/mailer');
 
 /* GET /api/omra/reservations/stats */
 const getStats = async (req, res) => {
@@ -28,7 +29,8 @@ const getAll = async (req, res) => {
 const getOne = async (req, res) => {
   try {
     const reservation = await resModel.getReservationById(req.params.id);
-    if (!reservation) return res.status(404).json({ success: false, message: 'Réservation introuvable' });
+    if (!reservation)
+      return res.status(404).json({ success: false, message: 'Réservation introuvable' });
     res.json({ success: true, data: reservation });
   } catch (err) {
     console.error('omraReservationController.getOne:', err);
@@ -36,48 +38,67 @@ const getOne = async (req, res) => {
   }
 };
 
-/* POST /api/omra/reservations — client submits reservation form */
+/* POST /api/omra/reservations */
 const create = async (req, res) => {
   try {
     const {
-      package_id, first_name, last_name, email, phone,
-      gender, passport_number, chambre_type, number_of_persons, total_price, payment_method,
+      first_name, last_name, email, phone,
+      gender, passport_number, total_price, payment_method,
     } = req.body;
 
-    if (!first_name || !last_name || !email || !phone || !gender || !passport_number || !total_price || !payment_method) {
+    if (!first_name || !last_name || !email || !phone ||
+        !gender || !passport_number || !total_price || !payment_method)
       return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
-    }
 
-    const valid_payment = ['online', 'agency'];
-    if (!valid_payment.includes(payment_method)) {
+    if (!['online', 'agency'].includes(payment_method))
       return res.status(400).json({ success: false, message: 'Mode de paiement invalide' });
-    }
 
     const reservation = await resModel.createReservation(req.body);
-    res.status(201).json({ success: true, data: reservation, message: 'Réservation enregistrée avec succès' });
+    res.status(201).json({
+      success: true,
+      data: reservation,
+      message: 'Réservation enregistrée avec succès',
+    });
   } catch (err) {
     console.error('omraReservationController.create:', err);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
 
-/* PATCH /api/omra/reservations/:id/status — admin updates status */
+/* PATCH /api/omra/reservations/:id/status */
 const updateStatus = async (req, res) => {
   try {
-    const { status, payment_status } = req.body;
-    const validStatus  = ['pending', 'confirmed', 'cancelled', 'completed'];
-    const validPayment = ['pending', 'paid', 'refunded'];
+    const { id }     = req.params;
+    const { status } = req.body;
 
-    if (!validStatus.includes(status)) {
+    if (!['pending', 'confirmed', 'cancelled', 'completed'].includes(status))
       return res.status(400).json({ success: false, message: 'Statut invalide' });
-    }
-    if (payment_status && !validPayment.includes(payment_status)) {
-      return res.status(400).json({ success: false, message: 'Statut paiement invalide' });
+
+    // Use the model to update — it returns the full row with package_title joined
+    const r = await resModel.updateStatus(id, status);
+    if (!r)
+      return res.status(404).json({ success: false, message: 'Réservation introuvable' });
+
+    // 🔔 Send email for meaningful status changes
+    if (['confirmed', 'cancelled', 'completed'].includes(status)) {
+      sendReservationStatusEmail({
+        email:     r.email,
+        firstName: r.first_name,
+        type:      'omra',
+        title:     r.package_title || `Forfait Omra #${r.package_id}`,
+        status,
+        details: {
+          'Chambre':   r.chambre_type,
+          'Personnes': `${r.number_of_persons} personne(s)`,
+          'Paiement':  r.payment_method === 'online' ? '💳 En ligne' : '🏪 Agence',
+          'Total':     r.total_price
+            ? `${Number(r.total_price).toLocaleString('fr-TN')} TND`
+            : null,
+        },
+      }).catch(err => console.error('❌ Omra status email failed:', err.message));
     }
 
-    const reservation = await resModel.updateStatus(req.params.id, status, payment_status);
-    if (!reservation) return res.status(404).json({ success: false, message: 'Réservation introuvable' });
-    res.json({ success: true, data: reservation });
+    res.json({ success: true, data: r });
   } catch (err) {
     console.error('omraReservationController.updateStatus:', err);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
@@ -88,7 +109,8 @@ const updateStatus = async (req, res) => {
 const remove = async (req, res) => {
   try {
     const deleted = await resModel.deleteReservation(req.params.id);
-    if (!deleted) return res.status(404).json({ success: false, message: 'Réservation introuvable' });
+    if (!deleted)
+      return res.status(404).json({ success: false, message: 'Réservation introuvable' });
     res.json({ success: true, message: 'Réservation supprimée' });
   } catch (err) {
     console.error('omraReservationController.remove:', err);

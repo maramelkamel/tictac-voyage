@@ -179,32 +179,44 @@ const sendContactReplyEmail = async ({ email, firstName, subject, originalMessag
 };
 
 // ── 4. Password reset ─────────────────────────────────────────
-const sendPasswordResetEmail = async ({ email, firstName, resetToken }) => {
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-
+// ── 4. Password reset — 6-digit code ─────────────────────────────
+const sendPasswordResetEmail = async ({ email, firstName, resetCode }) => {
   const html = baseTemplate(`
-    <h2 style="color:#0F4C5C;font-size:22px;margin:0 0 6px;">Réinitialisation du mot de passe 🔐</h2>
-    <p style="color:#64748b;font-size:14px;margin:0 0 24px;">Bonjour <strong>${firstName}</strong>, vous avez demandé à réinitialiser votre mot de passe.</p>
+    <h2 style="color:#0F4C5C;font-size:22px;margin:0 0 6px;">
+      Réinitialisation du mot de passe 🔐
+    </h2>
+    <p style="color:#64748b;font-size:14px;margin:0 0 24px;">
+      Bonjour <strong>${firstName}</strong>, vous avez demandé à réinitialiser votre mot de passe.
+    </p>
 
     <div style="background:#fff7ed;border-radius:12px;padding:16px 20px;margin-bottom:24px;border-left:4px solid #f97316;">
-      <p style="margin:0;font-size:13px;color:#92400e;">⚠️ Ce lien est valable <strong>30 minutes</strong> seulement. Si vous n'avez pas fait cette demande, ignorez cet email.</p>
+      <p style="margin:0;font-size:13px;color:#92400e;">
+        ⚠️ Ce code est valable <strong>30 minutes</strong> seulement.
+        Si vous n'avez pas fait cette demande, ignorez cet email.
+      </p>
     </div>
 
     <div style="text-align:center;margin-bottom:24px;">
-      <a href="${resetUrl}" style="display:inline-block;background:linear-gradient(135deg,#0F4C5C,#1ECAD3);color:#fff;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:700;font-size:14px;">
-        Réinitialiser mon mot de passe →
-      </a>
+      <p style="margin:0 0 12px;font-size:13px;color:#475569;font-weight:600;">
+        Votre code de réinitialisation :
+      </p>
+      <div style="display:inline-block;background:linear-gradient(135deg,#0F4C5C,#1a6b80);
+                  border-radius:16px;padding:20px 40px;">
+        <span style="font-size:38px;font-weight:900;color:#fff;letter-spacing:10px;">
+          ${resetCode}
+        </span>
+      </div>
     </div>
 
-    <p style="color:#94a3b8;font-size:11px;text-align:center;word-break:break-all;">
-      Ou copiez ce lien : ${resetUrl}
+    <p style="color:#94a3b8;font-size:12px;text-align:center;">
+      Entrez ce code sur la page de réinitialisation de mot de passe.
     </p>
   `);
 
   await transporter.sendMail({
     from:    process.env.EMAIL_FROM,
     to:      email,
-    subject: '🔐 Réinitialisation de mot de passe — TicTac Voyage',
+    subject: '🔐 Code de réinitialisation — TicTac Voyage',
     html,
   });
 };

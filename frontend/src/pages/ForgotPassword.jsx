@@ -1,92 +1,166 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const ForgotPassword = () => {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [step, setStep] = useState('email'); // 'email' -> 'verify' -> 'done'
-  const [loading, setLoading] = useState(false);
+const API = 'http://localhost:5000/api/auth';
 
-  // Step 1: send email to get the code
+const ForgotPassword = () => {
+  const navigate          = useNavigate();
+  const [email,   setEmail]   = useState('');
+  const [code,    setCode]    = useState('');
+  const [step,    setStep]    = useState('email'); // 'email' | 'verify'
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState('');
+
+  // ── Step 1: send code ─────────────────────────────────────────
   const handleSendEmail = async (e) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/auth/forgot-password', {
-        method: 'POST',
+      const res  = await fetch(`${API}/forgot-password`, {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body:    JSON.stringify({ email }),
       });
-      if (res.ok) {
-        setStep('verify'); // move to code verification step
+      const json = await res.json();
+      if (json.success) {
+        setStep('verify');
       } else {
-        alert('Erreur lors de l’envoi de l’email');
+        setError(json.message || 'Erreur lors de l\'envoi');
       }
-    } catch (err) {
-      console.error(err);
-      alert('Erreur serveur');
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion.');
     }
     setLoading(false);
   };
 
-  // Step 2: verify the code
+  // ── Step 2: verify code ───────────────────────────────────────
   const handleVerifyCode = async (e) => {
     e.preventDefault();
+    setError('');
+    if (code.length !== 6) { setError('Le code doit contenir 6 chiffres'); return; }
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/auth/verify-reset-code', {
-        method: 'POST',
+      const res  = await fetch(`${API}/verify-reset-code`, {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code }),
+        body:    JSON.stringify({ email, code }),
       });
-      if (res.ok) {
+      const json = await res.json();
+      if (json.success) {
         navigate(`/ResetPassword?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`);
       } else {
-        alert('Code invalide ou expiré');
+        setError(json.message || 'Code invalide ou expiré');
       }
-    } catch (err) {
-      console.error(err);
-      alert('Erreur serveur');
+    } catch {
+      setError('Erreur réseau. Vérifiez votre connexion.');
     }
     setLoading(false);
+  };
+
+  const inputStyle = {
+    padding: '13px 16px', borderRadius: 10, border: '1.5px solid #e2e8f0',
+    fontSize: 14, fontFamily: 'inherit', outline: 'none', width: '100%',
+    boxSizing: 'border-box', transition: 'border-color .2s',
+  };
+
+  const btnStyle = {
+    padding: '13px', borderRadius: 10, border: 'none',
+    background: 'linear-gradient(135deg,#0F4C5C,#1ECAD3)',
+    color: '#fff', fontSize: 14, fontWeight: 700,
+    cursor: 'pointer', fontFamily: 'inherit', width: '100%',
+    opacity: loading ? 0.7 : 1,
+  };
+
+  const ghostBtn = {
+    marginTop: 12, width: '100%', padding: '11px', borderRadius: 10,
+    border: '1.5px solid #e2e8f0', background: '#fff',
+    color: '#64748b', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-      <div style={{ background: '#fff', borderRadius: 16, padding: '40px 36px', width: '100%', maxWidth: 400, boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>
-        {step === 'email' && (
-          <>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F4C5C', marginBottom: 8 }}>🔐 Mot de passe oublié</h2>
-            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 24 }}>Entrez votre email pour recevoir un code de réinitialisation.</p>
-            <form onSubmit={handleSendEmail} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <input type="email" placeholder="votre@email.com" value={email} onChange={e => setEmail(e.target.value)}
-                style={{ padding: '12px 14px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} required />
-              <button type="submit" disabled={loading} style={{ padding: '13px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#0F4C5C,#1ECAD3)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {loading ? 'Envoi...' : 'Envoyer le code →'}
-              </button>
-            </form>
-            <button onClick={() => navigate('/SignIn')} style={{ marginTop: 16, width: '100%', padding: '10px', borderRadius: 10, border: '1.5px solid #e2e8f0', background: '#fff', color: '#64748b', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-              ← Retour
-            </button>
-          </>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: 16 }}>
+      <div style={{ background: '#fff', borderRadius: 20, padding: '40px 36px', width: '100%', maxWidth: 420, boxShadow: '0 8px 40px rgba(0,0,0,0.12)' }}>
+
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg,#0F4C5C,#1ECAD3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+            <span style={{ fontSize: 26 }}>{step === 'email' ? '🔐' : '📧'}</span>
+          </div>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F4C5C', margin: '0 0 6px' }}>
+            {step === 'email' ? 'Mot de passe oublié' : 'Vérification du code'}
+          </h2>
+          <p style={{ fontSize: 13, color: '#64748b', margin: 0, lineHeight: 1.6 }}>
+            {step === 'email'
+              ? 'Entrez votre email pour recevoir un code à 6 chiffres.'
+              : `Un code a été envoyé à ${email}. Entrez-le ci-dessous.`}
+          </p>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div style={{ padding: '11px 14px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 10, color: '#991b1b', fontSize: 13, fontWeight: 600, marginBottom: 18 }}>
+            ⚠️ {error}
+          </div>
         )}
 
-        {step === 'verify' && (
-          <>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F4C5C', marginBottom: 8 }}>📧 Vérification du code</h2>
-            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 24 }}>Entrez le code reçu par email pour réinitialiser votre mot de passe.</p>
-            <form onSubmit={handleVerifyCode} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <input type="text" placeholder="Code reçu" value={code} onChange={e => setCode(e.target.value)}
-                style={{ padding: '12px 14px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 14, fontFamily: 'inherit', outline: 'none' }} required />
-              <button type="submit" disabled={loading} style={{ padding: '13px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#0F4C5C,#1ECAD3)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {loading ? 'Vérification...' : 'Vérifier le code →'}
-              </button>
-            </form>
-            <button onClick={() => setStep('email')} style={{ marginTop: 16, width: '100%', padding: '10px', borderRadius: 10, border: '1.5px solid #e2e8f0', background: '#fff', color: '#64748b', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-              ← Retour
+        {/* ── Step 1: email ── */}
+        {step === 'email' && (
+          <form onSubmit={handleSendEmail} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                Adresse email
+              </label>
+              <input
+                type="email"
+                placeholder="votre@email.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                style={inputStyle}
+                onFocus={e => e.target.style.borderColor = '#0F4C5C'}
+                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                required
+                autoComplete="email"
+              />
+            </div>
+            <button type="submit" disabled={loading} style={btnStyle}>
+              {loading ? '⏳ Envoi en cours...' : 'Envoyer le code →'}
             </button>
-          </>
+            <button type="button" onClick={() => navigate('/SignIn')} style={ghostBtn}>
+              ← Retour à la connexion
+            </button>
+          </form>
+        )}
+
+        {/* ── Step 2: verify code ── */}
+        {step === 'verify' && (
+          <form onSubmit={handleVerifyCode} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                Code à 6 chiffres
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Ex : 482915"
+                value={code}
+                onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                style={{ ...inputStyle, fontSize: 24, fontWeight: 800, letterSpacing: 8, textAlign: 'center', color: '#0F4C5C' }}
+                onFocus={e => e.target.style.borderColor = '#0F4C5C'}
+                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                required
+                maxLength={6}
+                autoComplete="one-time-code"
+              />
+              <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>⏱ Ce code expire dans 30 minutes.</p>
+            </div>
+            <button type="submit" disabled={loading || code.length !== 6} style={{ ...btnStyle, opacity: (loading || code.length !== 6) ? 0.6 : 1 }}>
+              {loading ? '⏳ Vérification...' : 'Vérifier le code →'}
+            </button>
+            <button type="button" onClick={() => { setStep('email'); setCode(''); setError(''); }} style={ghostBtn}>
+              ← Renvoyer un nouveau code
+            </button>
+          </form>
         )}
       </div>
     </div>
