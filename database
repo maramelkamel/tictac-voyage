@@ -986,3 +986,120 @@ maram
 ALTER TABLE public.clients
   ADD COLUMN IF NOT EXISTS reset_token         VARCHAR(100) DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP WITH TIME ZONE DEFAULT NULL;
+
+
+
+
+
+  miniar 
+  npm install axios //BACKEND ET HOOKS
+  npm install node-cron // backend
+  npm install puppeteer //backend
+
+
+
+
+  -- ============================================================
+--  TicTac Voyages — flight_reservations
+--  À exécuter dans pgAdmin (Query Tool)
+--  Supprime la table si elle existe déjà, puis la recrée.
+-- ============================================================
+
+DROP TABLE IF EXISTS public.flight_reservations CASCADE;
+
+CREATE TABLE public.flight_reservations (
+  id               SERIAL PRIMARY KEY,
+
+  -- Relation utilisateur (optionnelle si réservation guest)
+  user_id          INTEGER,
+
+  -- Identifiants Duffel
+  duffel_order_id  VARCHAR(100) UNIQUE,
+  offer_id         VARCHAR(100),
+
+  -- Infos vol (denormalisées pour affichage rapide)
+  origin_iata      VARCHAR(3),
+  destination_iata VARCHAR(3),
+  airline_name     VARCHAR(100),
+  flight_number    VARCHAR(20),
+  departing_at     TIMESTAMPTZ,
+  arriving_at      TIMESTAMPTZ,
+  cabin_class      VARCHAR(30)  DEFAULT 'economy',
+
+  -- Prix
+  total_price      NUMERIC(10,2) NOT NULL DEFAULT 0,
+  currency         VARCHAR(5)    NOT NULL DEFAULT 'TND',
+
+  -- Passagers (JSON array)
+  passengers       JSONB         NOT NULL DEFAULT '[]',
+
+  -- Statuts
+  status           VARCHAR(20)   NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending','confirmed','cancelled','completed')),
+  payment_status   VARCHAR(20)   NOT NULL DEFAULT 'pending'
+    CHECK (payment_status IN ('pending','paid','refunded')),
+  payment_method   VARCHAR(20)   NOT NULL DEFAULT 'agency'
+    CHECK (payment_method IN ('online','agency')),
+
+  notes            TEXT,
+
+  created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+-- Index utiles
+CREATE INDEX idx_flight_res_user    ON public.flight_reservations(user_id);
+CREATE INDEX idx_flight_res_status  ON public.flight_reservations(status);
+CREATE INDEX idx_flight_res_created ON public.flight_reservations(created_at DESC);
+
+-- Trigger updated_at auto
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN NEW.updated_at = NOW(); RETURN NEW; END; $$;
+
+DROP TRIGGER IF EXISTS trg_flight_res_updated ON public.flight_reservations;
+CREATE TRIGGER trg_flight_res_updated
+  BEFORE UPDATE ON public.flight_reservations
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- ── Données de démonstration ────────────────────────────────
+INSERT INTO public.flight_reservations
+  (user_id, duffel_order_id, offer_id, origin_iata, destination_iata,
+   airline_name, flight_number, departing_at, arriving_at, cabin_class,
+   total_price, currency, passengers, status, payment_status, payment_method, notes)
+VALUES
+  (NULL, 'ORD-DEMO-001', 'off_demo_001', 'TUN', 'CDG', 'Tunisair', 'TU701',
+   NOW() + INTERVAL '3 days', NOW() + INTERVAL '3 days 2 hours 30 minutes',
+   'economy', 1230.00, 'TND',
+   '[{"given_name":"Sami","family_name":"Ben Ali","type":"adult"}]',
+   'confirmed', 'paid', 'online', NULL),
+
+  (NULL, 'ORD-DEMO-002', 'off_demo_002', 'TUN', 'DXB', 'Emirates', 'EK747',
+   NOW() + INTERVAL '5 days', NOW() + INTERVAL '5 days 4 hours',
+   'business', 4850.00, 'TND',
+   '[{"given_name":"Leila","family_name":"Trabelsi","type":"adult"},{"given_name":"Youssef","family_name":"Trabelsi","type":"adult"}]',
+   'pending', 'pending', 'agency', 'Client préféré — priorité'),
+
+  (NULL, 'ORD-DEMO-003', 'off_demo_003', 'TUN', 'LHR', 'British Airways', 'BA569',
+   NOW() + INTERVAL '8 days', NOW() + INTERVAL '8 days 3 hours 15 minutes',
+   'economy', 980.00, 'TND',
+   '[{"given_name":"Mohamed","family_name":"Mansouri","type":"adult"}]',
+   'confirmed', 'pending', 'agency', NULL),
+
+  (NULL, 'ORD-DEMO-004', 'off_demo_004', 'TUN', 'IST', 'Turkish Airlines', 'TK636',
+   NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days' + INTERVAL '2 hours 45 minutes',
+   'economy', 760.00, 'TND',
+   '[{"given_name":"Fatma","family_name":"Riahi","type":"adult"}]',
+   'completed', 'paid', 'online', NULL),
+
+  (NULL, 'ORD-DEMO-005', 'off_demo_005', 'TUN', 'MRS', 'Transavia', 'TO919',
+   NOW() + INTERVAL '1 day', NOW() + INTERVAL '1 day 1 hour 50 minutes',
+   'economy', 540.00, 'TND',
+   '[{"given_name":"Ali","family_name":"Gharbi","type":"adult"},{"given_name":"Nour","family_name":"Gharbi","type":"child"}]',
+   'pending', 'pending', 'agency', 'Enfant de 8 ans — siège fenêtre demandé'),
+
+  (NULL, 'ORD-DEMO-006', 'off_demo_006', 'TUN', 'FCO', 'Nouvelair', 'BJ271',
+   NOW() + INTERVAL '12 days', NOW() + INTERVAL '12 days 1 hour 40 minutes',
+   'economy', 620.00, 'TND',
+   '[{"given_name":"Rim","family_name":"Jebali","type":"adult"}]',
+   'cancelled', 'refunded', 'online', 'Annulée par client');

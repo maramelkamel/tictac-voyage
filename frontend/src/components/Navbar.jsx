@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import logo from "../assets/logo.png";
 
 const navLinks = [
-  { id: 1, label: 'Hôtels',      href: '/' },
+  { id: 1, label: 'Hôtels',      href: '/hotels/search' },
   { id: 2, label: 'Voyages',     href: '#',
     submenu: [
       { icon: 'fas fa-globe', title: 'Voyages Organisés', desc: 'Circuits tout compris',  href: '/VoyagesOrganise/VoyagesOrganise' },
@@ -11,7 +11,7 @@ const navLinks = [
     ],
   },
   { id: 3, label: 'Transport',   href: '/transport' },
-  { id: 4, label: 'Billetterie', href: '/billeterie/Billeterie' },
+  { id: 4, label: 'Billetterie', href: '/flights' },
   { id: 5, label: 'Omra',        href: '/Omra/Omra' },
   { id: 6, label: 'Circuit',     href: '/circuits/circuit' },
   { id: 7, label: 'Contact',     href: '/Contact' },

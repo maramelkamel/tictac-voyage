@@ -6,17 +6,17 @@ import AdminLayout from '../layout/AdminLayout';
 const MODULES = [
   { title: 'Transport', color: 'teal', desc: 'Véhicules et demandes de transfert / mise à disposition.',
     links: [
-      { label: 'Véhicules', path: '/admin/transport',          sk: 'vehicles', badge: false },
-      { label: 'Réservations',  path: '/admin/transport/requests', sk: 'pending',  badge: true  },
+      { label: 'Véhicules',    path: '/admin/transport',          sk: 'vehicles', badge: false },
+      { label: 'Réservations', path: '/admin/transport/requests', sk: 'pending',  badge: true  },
     ]},
   { title: 'Voyages Organisés', color: 'indigo', desc: 'Offres de voyages organisés et réservations clients.',
     links: [
-      { label: 'Catalogue',    path: '/admin/voyages/VoyagePackages',    sk: 'voyagesTotal',   badge: false },
+      { label: 'Catalogue',    path: '/admin/voyages/VoyagePackages',     sk: 'voyagesTotal',   badge: false },
       { label: 'Réservations', path: '/admin/voyages/VoyageReservations', sk: 'voyagesPending', badge: true  },
     ]},
   { title: 'Circuits', color: 'green', desc: 'Circuits touristiques Nord & Sud Tunisie.',
     links: [
-      { label: 'Catalogue',    path: '/admin/circuits/CircuitPackages',    sk: 'circuitsTotal',   badge: false },
+      { label: 'Catalogue',    path: '/admin/circuits/CircuitPackages',     sk: 'circuitsTotal',   badge: false },
       { label: 'Réservations', path: '/admin/circuits/CircuitReservations', sk: 'circuitsPending', badge: true  },
     ]},
   { title: 'Omra', color: 'violet', desc: 'Offres de pèlerinage Omra et suivi des réservations.',
@@ -24,10 +24,11 @@ const MODULES = [
       { label: 'Forfaits',     path: '/admin/omra/packages',     sk: null },
       { label: 'Réservations', path: '/admin/omra/reservations', sk: 'omraPending', badge: true },
     ]},
-  { title: 'Billeterie / Vols', color: 'blue', desc: 'Gestion des vols disponibles et demandes de billets.',
+  // ── Updated: Billeterie / Vols now has 3 links ────────────
+  { title: 'Billeterie / Vols', color: 'blue', desc: 'Gestion des vols disponibles, réservations et tarification.',
     links: [
-      { label: 'Vols',     path: '/admin/billeterie',          sk: null },
-      { label: 'Réservations', path: '/admin/billeterie/demandes', sk: null },
+      { label: 'Réservations de vols', path: '/admin/flights/reservations', sk: 'flightsPending', badge: true },
+      { label: 'Gestion des prix',     path: '/admin/flights/pricing',      sk: null,            badge: false },
     ]},
   { title: 'Voyage sur Mesure', color: 'orange', desc: 'Demandes de voyages personnalisés à traiter.',
     links: [
@@ -57,16 +58,17 @@ const DashIcon = ({ c }) => ({
 const Dashboard = () => {
   const navigate = useNavigate();
   const [st, setSt] = useState({
-    vehicles:       0,
-    pending:        0,
-    surMesure:      0,
-    contactNew:     0,
-    omraPending:    0,
-    totalClients:   0,
-    voyagesTotal:   0,
-    voyagesPending: 0,
+    vehicles:        0,
+    pending:         0,
+    surMesure:       0,
+    contactNew:      0,
+    omraPending:     0,
+    totalClients:    0,
+    voyagesTotal:    0,
+    voyagesPending:  0,
     circuitsTotal:   0,
     circuitsPending: 0,
+    flightsPending:  0,
   });
 
   useEffect(() => {
@@ -81,18 +83,22 @@ const Dashboard = () => {
       fetch('http://localhost:5000/api/voyage-reservations').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/circuits').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/circuit-reservations').then(r => r.json()).catch(() => ({})),
-    ]).then(([v, r, ct, cs, omra, clients, voyages, voyageRes, circuits, circuitRes]) => setSt({
-      vehicles:        v.data?.length || 0,
-      pending:         r.data?.filter(x => x.status === 'pending').length || 0,
-      surMesure:       ct.data?.filter(x => x.status === 'pending').length || 0,
-      contactNew:      parseInt(cs.data?.nouveaux) || 0,
-      omraPending:     omra.data?.filter(x => x.status === 'pending').length || 0,
-      totalClients:    clients.data?.length || 0,
-      voyagesTotal:    voyages.data?.length || 0,
-      voyagesPending:  voyageRes.data?.filter(x => x.status === 'pending').length || 0,
-      circuitsTotal:   circuits.data?.length || 0,
-      circuitsPending: circuitRes.data?.filter(x => x.status === 'pending').length || 0,
-    }));
+      fetch('http://localhost:5000/api/flights/reservations').then(r => r.json()).catch(() => ({})),
+    ]).then(([v, r, ct, cs, omra, clients, voyages, voyageRes, circuits, circuitRes, flightRes]) =>
+      setSt({
+        vehicles:        v.data?.length || 0,
+        pending:         r.data?.filter(x => x.status === 'pending').length || 0,
+        surMesure:       ct.data?.filter(x => x.status === 'pending').length || 0,
+        contactNew:      parseInt(cs.data?.nouveaux) || 0,
+        omraPending:     omra.data?.filter(x => x.status === 'pending').length || 0,
+        totalClients:    clients.data?.length || 0,
+        voyagesTotal:    voyages.data?.length || 0,
+        voyagesPending:  voyageRes.data?.filter(x => x.status === 'pending').length || 0,
+        circuitsTotal:   circuits.data?.length || 0,
+        circuitsPending: circuitRes.data?.filter(x => x.status === 'pending').length || 0,
+        flightsPending:  flightRes.data?.filter(x => x.status === 'pending').length || 0,
+      })
+    );
   }, []);
 
   return (
@@ -106,6 +112,7 @@ const Dashboard = () => {
         contactNew:        st.contactNew,
         voyagesPending:    st.voyagesPending,
         circuitsPending:   st.circuitsPending,
+        flightsPending:    st.flightsPending,
       }}
     >
       <div className="dash-page">
@@ -117,7 +124,9 @@ const Dashboard = () => {
           </div>
           {st.pending > 0 && (
             <button className="dash-alert" onClick={() => navigate('/admin/transport/requests')}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+                <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+              </svg>
               <div>
                 <p className="dash-alert__num">{st.pending}</p>
                 <p className="dash-alert__lbl">demande{st.pending > 1 ? 's' : ''} en attente</p>
@@ -144,7 +153,9 @@ const Dashboard = () => {
                     return (
                       <button key={link.path} className="dash-link" onClick={() => navigate(link.path)}>
                         <span className="dash-link__label">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="dash-link__arrow"><path d="M9 18l6-6-6-6"/></svg>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="dash-link__arrow">
+                            <path d="M9 18l6-6-6-6"/>
+                          </svg>
                           {link.label}
                         </span>
                         {count !== null && (

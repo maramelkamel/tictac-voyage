@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import HomePage from './pages/hotel/HomePage';
+import HomePage from './pages/home/HomePage';
 import Omra from './pages/Omra/Omra';
 import Reserve from './pages/Omra/Reserve';
 import Details from './pages/Omra/Details';
@@ -10,13 +10,11 @@ import Transport from './pages/Transport/Transport';
 import VoyagesOrganise from './pages/VoyagesOrganise/VoyagesOrganise';
 import Detail from './pages/VoyagesOrganise/Detail';
 import Reserver from './pages/VoyagesOrganise/Reserver';
-import HotelDetails from './pages/hotel/HotelDetails';
 import Contact from './pages/Contact';
 import OmraPayment from './pages/Omra/OmraPayment';
 import Billeterie from './pages/billeterie/Billeterie';
 import Payment from './pages/VoyagesOrganise/Payment';
 import CustomTripAbroad from './pages/CustomTripAbroad';
-import PaymentHotel from './pages/hotel/PaymentHotel';
 import TransportAdmin from './pages/admin/transport/TransportAdmin';
 import RequestsAdmin    from './pages/admin/transport/RequestsAdmin';
 import Dashboard        from './pages/admin/dashboard/Dashboard';
@@ -36,12 +34,22 @@ import CircuitPackages   from './pages/admin/circuits/CircuitPackages';
 import CircuitReservations from './pages/admin/circuits/CircuitReservations';
 import Circuit from './pages/circuits/circuit'
 import PromotionsAdmin from './pages/admin/promotions/PromotionsAdmin';
-import ReserveHotel from './pages/hotel/ReserveHotel';
 import AdminLogin  from './pages/admin/AdminLogin';
 import AdminsAdmin from './pages/admin/admins/AdminsAdmin';
 import ResetPassword from './pages/ResetPassword';
 import ForgotPassword from './pages/ForgotPassword';
-
+import FlightReservation  from './pages/flight/FlightReservation';
+import FlightPayment  from './pages/flight/FlightPayment';
+import FlightSearch from './pages/flight/FlightSearch';
+import FlightListPage from './pages/flight/FlightsListPage';
+import FlightDetails from './pages/flight/FlightDetailPage';
+import FlightReservations from './pages/admin/flight/FlightReservations';
+import FlightPricingAdmin from './pages/admin/flight/FlightPricingAdmin';
+import HotelDetails from './pages/Hotels/HotelDetails';
+import HotelPayment from './pages/Hotels/Hotelpayment';
+import HotelSearch from './pages/Hotels/HotelSearch';
+import HotelListPage from './pages/Hotels/HotelListPage';
+import HotelReservation from './pages/Hotels/HotelReservation';
 
 function App() {
   return (
@@ -59,12 +67,11 @@ function App() {
         <Route path="/VoyagesOrganise/VoyagesOrganise" element={<VoyagesOrganise />} />
         <Route path="/VoyagesOrganise/Detail/:id" element={<Detail />} />
         <Route path="/VoyagesOrganise/Reserver/:id" element={<Reserver />} />
-         <Route path="/hotels/:id" element={<HotelDetails />} />
          <Route path="/Contact" element={<Contact/>} />
          <Route path="/billeterie/Billeterie" element={<Billeterie/>} />
          <Route path="/VoyagesOrganise/Payment/:id" element={<Payment />} />
          <Route path="/CustomTripAbroad" element={<CustomTripAbroad/>} />
-         <Route path="/PaymentHotel" element={<PaymentHotel/>}/>
+         <Route path="/hotels/payment" element={<HotelPayment/>}/>
          <Route path="/admin/transport" element={<TransportAdmin/>}/>
            <Route path="/admin/transport/requests"element={<RequestsAdmin />} /> 
            <Route path="/admin" element={<Dashboard />} />
@@ -86,12 +93,22 @@ function App() {
              <Route path="/circuits/circuit" element={<Circuit />} />
 
             <Route path="/admin/promotions" element={<PromotionsAdmin />} />
-            <Route path="/hotels/:id/reserve" element={<ReserveHotel />} />
             <Route path="/admin/login"  element={<AdminLogin />} />
             <Route path="/admin/admins" element={<AdminsAdmin />} />
             <Route path="/ResetPassword" element={<ResetPassword />} />
             <Route path="/ForgotPassword" element={<ForgotPassword />} />
-      </Routes>
+<Route path="/flights" element={<FlightSearch />} />
+<Route path="/flights/results" element={<FlightListPage />} />
+<Route path="/flights/reserve"       element={<FlightReservation />} />
+<Route path="/flights/payment"       element={<FlightPayment />} />
+      <Route path="/hotels/details"              element={<HotelDetails />} />
+      <Route path="/flights/details"     element={<FlightDetails />} />
+      <Route path="/admin/flights/reservations"       element={<FlightReservations />} />
+      <Route path="/admin/flights/pricing"      element={<FlightPricingAdmin />} />
+<Route path="/hotels/search"      element={<HotelSearch />} />
+<Route path="/hotels/results"     element={<HotelListPage />} />
+<Route path="/hotels/reservation" element={<HotelReservation />} />
+</Routes>
       
     </Router>
   );

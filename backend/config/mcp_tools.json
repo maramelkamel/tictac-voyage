@@ -1,0 +1,50 @@
+{
+  "tools": [
+    {
+      "name": "scrape_flight_source",
+      "description": "Scrape une source de vols spécifique (OACA, Nouvelair, FlightRadar24)",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "source": { "type": "string", "enum": ["OACA", "Nouvelair", "FlightRadar24"] },
+          "airport": { "type": "string", "default": "tunis" },
+          "type": { "type": "string", "enum": ["D", "A"], "default": "D" }
+        },
+        "required": ["source"]
+      }
+    },
+    {
+      "name": "normalize_flight_data",
+      "description": "Normalise les données brutes de vols vers le schéma PostgreSQL",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "raw_data": { "type": "array", "items": { "type": "object" } }
+        },
+        "required": ["raw_data"]
+      }
+    },
+    {
+      "name": "upsert_flights_batch",
+      "description": "Insère ou met à jour un lot de vols dans la base de données PostgreSQL",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "flights": { "type": "array", "items": { "type": "object" } }
+        },
+        "required": ["flights"]
+      }
+    },
+    {
+      "name": "validate_flight_schema",
+      "description": "Valide que les données de vols respectent le schéma attendu",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "flight": { "type": "object" }
+        },
+        "required": ["flight"]
+      }
+    }
+  ]
+}
