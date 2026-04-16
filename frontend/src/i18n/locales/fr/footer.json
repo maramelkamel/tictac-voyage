@@ -1,0 +1,28 @@
+{
+  "tagline": "Agence de Voyage",
+  "description": "Votre partenaire de confiance pour tous vos voyages en Tunisie et à l'international.",
+  "nos_services": "Nos Services",
+  "contactez_nous": "Contactez-nous",
+  "send_message": "Envoyez-nous un message",
+  "your_name": "Votre nom *",
+  "your_email": "Votre email *",
+  "your_message": "Votre message *",
+  "send_btn": "Envoyer",
+  "sending": "Envoi...",
+  "success_title": "Message envoyé avec succès !",
+  "send_another": "Envoyer un autre message",
+  "rights": "© 2025 TICTAC VOYAGES. Tous droits réservés.",
+  "mentions_legales": "Mentions légales",
+  "confidentialite": "Confidentialité",
+  "address": "Nouvelle Medina, Tunis",
+  "hours": "Lun - Sam: 09h - 18h",
+  "services": {
+    "hotels": "Hôtels",
+    "transport": "Transport",
+    "voyages_organises": "Voyages Organisés",
+    "omra": "Omra",
+    "sur_mesure": "Voyages Sur Mesure",
+    "billetterie": "Billetterie",
+    "circuits": "Circuits"
+  }
+}

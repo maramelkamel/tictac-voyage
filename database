@@ -1103,3 +1103,10 @@ VALUES
    'economy', 620.00, 'TND',
    '[{"given_name":"Rim","family_name":"Jebali","type":"adult"}]',
    'cancelled', 'refunded', 'online', 'Annulée par client');
+
+
+
+   miniar:
+   cd frontend
+npm install i18next react-i18next i18next-browser-languagedetector
+npm install i18next react-i18next i18next-locize-backend i18next-browser-languagedetector locize-lastused

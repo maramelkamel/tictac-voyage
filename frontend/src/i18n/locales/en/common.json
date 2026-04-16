@@ -1,0 +1,23 @@
+{
+  "loading": "Loading...",
+  "error_generic": "An error occurred. Please try again.",
+  "error_server": "Unable to contact the server.",
+  "back": "Back",
+  "close": "Close",
+  "send": "Send",
+  "sending": "Sending...",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
+  "required_fields": "All fields marked with * are required",
+  "secure_payment": "100% Secure Payment",
+  "no_immediate_payment": "No immediate payment required.",
+  "advisor_contact_24h": "An advisor will contact you within 24h.",
+  "data_secure": "Your data is secure",
+  "data_confidential": "🔒 Your data is confidential and will never be shared.",
+  "per_person": "per person",
+  "taxes_included": "taxes included",
+  "not_found_title": "Not found.",
+  "not_found_emoji": "😕",
+  "session_expired": "Session expired.",
+  "lang_label": "Language selection"
+}

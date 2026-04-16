@@ -1,0 +1,52 @@
+/* src/styles/rtl.css — importer dans App.css */
+
+html[dir="rtl"] body {
+  font-family: 'Cairo', 'Tajawal', 'Noto Sans Arabic', sans-serif;
+}
+
+html[dir="rtl"] .ct-hero__title,
+html[dir="rtl"] .detail-hero__title,
+html[dir="rtl"] .payment-card__title,
+html[dir="rtl"] h1, html[dir="rtl"] h2, html[dir="rtl"] h3 {
+  text-align: right;
+}
+
+html[dir="rtl"] .omra-reserve__form-row,
+html[dir="rtl"] .ct-form__row,
+html[dir="rtl"] .pay-form-row {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .detail-breadcrumb,
+html[dir="rtl"] .payment-breadcrumb,
+html[dir="rtl"] .payment-steps {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] input,
+html[dir="rtl"] textarea,
+html[dir="rtl"] select {
+  text-align: right;
+  direction: rtl;
+}
+
+html[dir="rtl"] .footer-grid {
+  direction: rtl;
+}
+
+html[dir="rtl"] .nav-desktop {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .detail-prog-item {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .detail-inc-tag,
+html[dir="rtl"] .agency-contact-item {
+  flex-direction: row-reverse;
+}
+
+/* Icônes directionnelles */
+html[dir="rtl"] .fas.fa-chevron-right { transform: scaleX(-1); }
+html[dir="rtl"] .fas.fa-arrow-right   { transform: scaleX(-1); }

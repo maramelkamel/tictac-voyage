@@ -1,0 +1,28 @@
+{
+  "tagline": "Travel Agency",
+  "description": "Your trusted partner for all your travels in Tunisia and internationally.",
+  "nos_services": "Our Services",
+  "contactez_nous": "Contact Us",
+  "send_message": "Send us a message",
+  "your_name": "Your name *",
+  "your_email": "Your email *",
+  "your_message": "Your message *",
+  "send_btn": "Send",
+  "sending": "Sending...",
+  "success_title": "Message sent successfully!",
+  "send_another": "Send another message",
+  "rights": "© 2025 TICTAC VOYAGES. All rights reserved.",
+  "mentions_legales": "Legal Notice",
+  "confidentialite": "Privacy Policy",
+  "address": "Nouvelle Medina, Tunis",
+  "hours": "Mon - Sat: 09am - 6pm",
+  "services": {
+    "hotels": "Hotels",
+    "transport": "Transport",
+    "voyages_organises": "Organized Tours",
+    "omra": "Umrah",
+    "sur_mesure": "Custom Trips",
+    "billetterie": "Tickets",
+    "circuits": "Circuits"
+  }
+}
