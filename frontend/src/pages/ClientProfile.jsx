@@ -189,6 +189,30 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
       </>
     );
 
+    if (type === 'flight') return (
+      <>
+        <Section title="Vol reserve">
+          <Row label="Trajet" value={r.origin_iata && r.destination_iata ? `${r.origin_iata} → ${r.destination_iata}` : null}/>
+          <Row label="Compagnie" value={r.airline_name || null}/>
+          <Row label="Numero de vol" value={r.flight_number || null}/>
+          <Row label="Depart" value={fDT(r.departing_at)}/>
+          <Row label="Arrivee" value={fDT(r.arriving_at)}/>
+          <Row label="Cabine" value={r.cabin_class || null}/>
+          <Row label="Passagers" value={r.passengers ? `${r.passengers.length} passager${r.passengers.length > 1 ? 's' : ''}` : null}/>
+        </Section>
+        <Section title="Paiement">
+          <Row label="Methode" value={r.payment_method === 'online' ? '💳 En ligne' : "🏪 A l'agence"}/>
+          <Row label="Statut paiement" value={r.payment_status === 'paid' ? '✅ Paye' : '⏳ En attente'} accent={r.payment_status === 'paid' ? '#059669' : '#c2410c'}/>
+          <Row label="Total" value={r.total_price ? `${Number(r.total_price).toLocaleString('fr-FR')} ${r.currency || ''}`.trim() : null} accent="#0F4C5C"/>
+        </Section>
+        {r.notes && (
+          <Section title="Remarques">
+            <p style={{ fontSize:13, color:'#475569', background:'#f8fafc', padding:'12px 14px', borderRadius:8, lineHeight:1.6 }}>{r.notes}</p>
+          </Section>
+        )}
+      </>
+    );
+
     if (type === 'custom') {
       const nights = r.departure_date && r.return_date
         ? Math.ceil(Math.abs(new Date(r.return_date) - new Date(r.departure_date)) / 86400000)
@@ -253,6 +277,7 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
     omra:      { emoji:'🕌', label:'Omra',              color:'#7c3aed', bg:'linear-gradient(135deg,#7c3aed,#6d28d9)' },
     voyage:    { emoji:'🏖️', label:'Voyage Organisé',   color:'#4338ca', bg:'linear-gradient(135deg,#4338ca,#6366f1)' },
     circuit:   { emoji:'🗺️', label:'Circuit Tunisie',   color:'#059669', bg:'linear-gradient(135deg,#059669,#10b981)' },
+    flight:    { emoji:'✈️', label:'Vol',               color:'#0F4C5C', bg:'linear-gradient(135deg,#0F4C5C,#1ECAD3)' },
     transport: { emoji:'🚌', label:'Transport',          color:'#0e7490', bg:'linear-gradient(135deg,#0F4C5C,#1a6b80)' },
     custom:    { emoji:'✈️', label:'Voyage sur Mesure',  color:'#c2410c', bg:'linear-gradient(135deg,#c2410c,#f97316)' },
   };
@@ -276,6 +301,7 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
                 {type==='omra'    && (r.package_title  || `Forfait Omra #${r.id}`)}
                 {type==='voyage'  && (r.voyage_title   || `Voyage #${r.id}`)}
                 {type==='circuit' && (r.circuit_title  || `Circuit #${r.id}`)}
+                {type==='flight' && `${r.origin_iata || '—'} → ${r.destination_iata || '—'}`}
                 {type==='transport' && `${r.departure_location} → ${r.arrival_location || '...'}`}
                 {type==='custom'  && r.destination}
               </p>
@@ -342,6 +368,7 @@ const ClientProfile = () => {
   const [omraRes,    setOmraRes]    = useState([]);
   const [voyageRes,  setVoyageRes]  = useState([]);
   const [circuitRes, setCircuitRes] = useState([]);
+  const [flightRes,  setFlightRes]  = useState([]);
   const [transRes,   setTransRes]   = useState([]);
   const [customRes,  setCustomRes]  = useState([]);
   const [messages,   setMessages]   = useState([]);
@@ -378,10 +405,11 @@ const ClientProfile = () => {
     try {
       const headers = { Authorization: `Bearer ${token}` };
       const e = email?.toLowerCase();
-      const [omra, voyage, circuit, trans, custom, msgs, favs] = await Promise.all([
+      const [omra, voyage, circuit, flights, trans, custom, msgs, favs] = await Promise.all([
         fetch(`${API}/omra/reservations`,    { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/voyage-reservations`,  { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/circuit-reservations`, { headers }).then(r=>r.json()).catch(()=>({})),
+        fetch(`${API}/flights/mine`,         { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/requests`,             { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/custom-trips`,         { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/contact`,              { headers }).then(r=>r.json()).catch(()=>({})),
@@ -390,6 +418,7 @@ const ClientProfile = () => {
       setOmraRes(   (omra.data    || []).filter(r => r.email?.toLowerCase() === e));
       setVoyageRes( (voyage.data  || []).filter(r => r.email?.toLowerCase() === e));
       setCircuitRes((circuit.data || []).filter(r => r.email?.toLowerCase() === e));
+      setFlightRes( flights.data || []);
       setTransRes(  (trans.data   || []).filter(r => r.email?.toLowerCase() === e));
       setCustomRes( (custom.data  || []).filter(r => r.email?.toLowerCase() === e));
       setMessages(  (msgs.data    || []).filter(r => r.email?.toLowerCase() === e));
@@ -416,7 +445,7 @@ const ClientProfile = () => {
     finally { setSaving(false); }
   };
 
-  const allReservations = [...omraRes, ...voyageRes, ...circuitRes, ...transRes, ...customRes];
+  const allReservations = [...omraRes, ...voyageRes, ...circuitRes, ...flightRes, ...transRes, ...customRes];
   const totalRes        = allReservations.length;
   const loyalty         = getLoyaltyInfo(totalRes);
   const nextDiscount    = getNextDiscount(totalRes);
@@ -654,6 +683,27 @@ const ClientProfile = () => {
                       )}
 
                       {/* ── Transport ── */}
+                      {flightRes.length > 0 && (
+                        <div>
+                          <SectionHead emoji="✈️" label="Vols" count={flightRes.length} color="#0F4C5C" bg="#e0fbfc"/>
+                          {flightRes.map(r => (
+                            <ResCard key={r.id} onClick={() => setDetailModal({ reservation:r, type:'flight' })}
+                              right={
+                                <>
+                                  {r.total_price && <span style={{ fontWeight:800, fontSize:16, color:'#0F4C5C' }}>{Number(r.total_price).toLocaleString('fr-FR')} {r.currency || ''}</span>}
+                                  <StatusBadge status={r.status}/>
+                                </>
+                              }>
+                              <p style={{ fontWeight:700, fontSize:14, color:'#0f172a', marginBottom:4 }}>{r.origin_iata || '—'} → {r.destination_iata || '—'}</p>
+                              <p style={{ fontSize:12, color:'#64748b' }}>
+                                {r.airline_name || 'Vol'}{r.flight_number ? ` · ${r.flight_number}` : ''} · {r.payment_method==='online'?'💳 En ligne':"🏪 Agence"}
+                              </p>
+                              <p style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>Départ le {fDT(r.departing_at)}</p>
+                            </ResCard>
+                          ))}
+                        </div>
+                      )}
+
                       {transRes.length > 0 && (
                         <div>
                           <SectionHead emoji="🚌" label="Transport" count={transRes.length} color="#0e7490" bg="#e0fbfc"/>

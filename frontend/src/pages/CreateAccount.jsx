@@ -72,14 +72,14 @@ const CreateAccount = () => {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          firstName:        formData.firstName,
-          lastName:         formData.lastName,
+          first_name:         formData.firstName.trim(),
+          last_name:          formData.lastName.trim(),
           email:            formData.email,
           phone:            formData.phone,
           password:         formData.password,
-          maritalStatus:    formData.maritalStatus,
-          numberOfChildren: formData.numberOfChildren,
-          city:             formData.city,
+          marital_status:     formData.maritalStatus || null,
+          number_of_children: formData.numberOfChildren === '' ? 0 : Number(formData.numberOfChildren),
+          city:               formData.city.trim() || null,
         }),
       });
 

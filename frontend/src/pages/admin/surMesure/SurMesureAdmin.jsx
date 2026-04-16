@@ -31,17 +31,9 @@ const Badge = ({ s }) => {
    DETAIL PANEL
    ══════════════════════════════════════════════════════════════ */
 const DetailPanel = ({ req, onClose, onStatusChange, onSendQuote, isMain }) => {
-  const [quotePrice, setQuotePrice] = useState('');
-  const [quoteMsg,   setQuoteMsg]   = useState('');
+  const [quotePrice, setQuotePrice] = useState(req?.quoted_price ? String(req.quoted_price) : '');
+  const [quoteMsg,   setQuoteMsg]   = useState(req?.admin_message || '');
   const [sending,    setSending]    = useState(false);
-
-  // Sync local state when req changes
-  useEffect(() => {
-    if (req) {
-      setQuotePrice(req.quoted_price ? String(req.quoted_price) : '');
-      setQuoteMsg(req.admin_message || '');
-    }
-  }, [req?.id]);
 
   if (!req) return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:16, height:'100%', padding:32, textAlign:'center' }}>
@@ -231,7 +223,7 @@ const DetailPanel = ({ req, onClose, onStatusChange, onSendQuote, isMain }) => {
             {Object.entries(STATUS).map(([key, meta]) => {
               const blocked = key==='cancelled' && !isMain;
               return (
-                <button key={key} onClick={() => onStatusChange(req.id, key)}
+                <button key={key} onClick={() => !blocked && onStatusChange(req.id, key)}
                   title={blocked?'Réservé à l\'administrateur principal':''}
                   style={{ display:'flex', alignItems:'center', gap:7, padding:'7px 14px', borderRadius:8, border:`1.5px solid ${req.status===key?meta.color:'var(--g200)'}`, background:req.status===key?meta.bg:'#fff', fontSize:12, fontWeight:600, cursor:blocked?'not-allowed':'pointer', opacity:blocked?0.4:1, fontFamily:'inherit', color:req.status===key?meta.color:'var(--g600)', transition:'all .2s' }}>
                   <span style={{ width:7, height:7, borderRadius:'50%', background:meta.dot }}/>
@@ -463,7 +455,7 @@ const SurMesureAdmin = () => {
 
         {selected && (
           <div style={{ margin:'0 32px 0 16px', background:'#fff', borderRadius:16, border:'1px solid var(--g200)', boxShadow:'var(--shadow-md)', overflow:'hidden', display:'flex', flexDirection:'column' }}>
-            <DetailPanel req={selected} onClose={() => setSelected(null)}
+            <DetailPanel key={selected.id} req={selected} onClose={() => setSelected(null)}
               onStatusChange={handleStatusChange} onSendQuote={handleSendQuote} isMain={isMain}/>
           </div>
         )}

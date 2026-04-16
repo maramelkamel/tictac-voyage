@@ -2,44 +2,61 @@ const pool = require('../config/db');
 
 /**
  * Flight Reservation Model
- * Table: flight_reservation
+ * Table: public.flight_reservations
  */
 
-/**
- * Create a new flight reservation
- * @param {Object} data
- * @returns {Object} created reservation
- */
 const create = async (data) => {
   const {
     user_id,
     duffel_order_id,
     offer_id,
+    origin_iata,
+    destination_iata,
+    airline_name,
+    flight_number,
+    departing_at,
+    arriving_at,
+    cabin_class = 'economy',
     total_price,
-    currency = 'EUR',
+    currency = 'TND',
     passengers,
     status = 'pending',
     payment_status = 'pending',
+    payment_method = 'agency',
+    notes = null,
   } = data;
 
   const result = await pool.query(
-    `INSERT INTO flight_reservation
-       (user_id, duffel_order_id, offer_id, total_price, currency, passengers, status, payment_status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO public.flight_reservations
+       (user_id, duffel_order_id, offer_id, origin_iata, destination_iata, airline_name, flight_number, departing_at, arriving_at, cabin_class, total_price, currency, passengers, status, payment_status, payment_method, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
      RETURNING *`,
-    [user_id, duffel_order_id, offer_id, total_price, currency, JSON.stringify(passengers), status, payment_status]
+    [
+      user_id,
+      duffel_order_id,
+      offer_id,
+      origin_iata || null,
+      destination_iata || null,
+      airline_name || null,
+      flight_number || null,
+      departing_at || null,
+      arriving_at || null,
+      cabin_class,
+      total_price,
+      currency,
+      JSON.stringify(passengers || []),
+      status,
+      payment_status,
+      payment_method,
+      notes,
+    ]
   );
   return result.rows[0];
 };
 
-/**
- * Find all reservations for a user
- * @param {string} userId
- * @returns {Array}
- */
 const findByUserId = async (userId) => {
   const result = await pool.query(
-    `SELECT * FROM flight_reservation
+    `SELECT * FROM public.flight_reservations
      WHERE user_id = $1
      ORDER BY created_at DESC`,
     [userId]
@@ -47,57 +64,42 @@ const findByUserId = async (userId) => {
   return result.rows;
 };
 
-/**
- * Find a single reservation by id
- * @param {string} id
- * @returns {Object|null}
- */
 const findById = async (id) => {
   const result = await pool.query(
-    `SELECT * FROM flight_reservation WHERE id = $1`,
+    `SELECT fr.*, c.first_name AS client_first_name, c.last_name AS client_last_name, c.email AS client_email, c.phone AS client_phone
+     FROM public.flight_reservations fr
+     LEFT JOIN public.clients c ON c.id = fr.user_id
+     WHERE fr.id = $1`,
     [id]
   );
   return result.rows[0] || null;
 };
 
-/**
- * Update status (and optionally payment_status)
- * @param {string} id
- * @param {string} status
- * @param {string|null} paymentStatus
- * @returns {Object}
- */
 const updateStatus = async (id, status, paymentStatus = null) => {
-  let query;
-  let params;
+  const result = paymentStatus
+    ? await pool.query(
+        `UPDATE public.flight_reservations
+         SET status = $1, payment_status = $2, updated_at = NOW()
+         WHERE id = $3
+         RETURNING *`,
+        [status, paymentStatus, id]
+      )
+    : await pool.query(
+        `UPDATE public.flight_reservations
+         SET status = $1, updated_at = NOW()
+         WHERE id = $2
+         RETURNING *`,
+        [status, id]
+      );
 
-  if (paymentStatus) {
-    query = `UPDATE flight_reservation
-             SET status = $1, payment_status = $2, updated_at = NOW()
-             WHERE id = $3
-             RETURNING *`;
-    params = [status, paymentStatus, id];
-  } else {
-    query = `UPDATE flight_reservation
-             SET status = $1, updated_at = NOW()
-             WHERE id = $2
-             RETURNING *`;
-    params = [status, id];
-  }
-
-  const result = await pool.query(query, params);
   return result.rows[0] || null;
 };
 
-/**
- * Get all flight reservations (admin)
- * @returns {Array}
- */
 const getAllForAdmin = async () => {
   const result = await pool.query(
-    `SELECT fr.*, c.email AS client_email, c.first_name, c.last_name
-     FROM flight_reservation fr
-     LEFT JOIN client c ON c.id = fr.user_id
+    `SELECT fr.*, c.email AS client_email, c.first_name AS client_first_name, c.last_name AS client_last_name, c.phone AS client_phone
+     FROM public.flight_reservations fr
+     LEFT JOIN public.clients c ON c.id = fr.user_id
      ORDER BY fr.created_at DESC`
   );
   return result.rows;

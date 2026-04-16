@@ -1,0 +1,80 @@
+.flights-page,
+.flights-reservation-page {
+  background:
+    radial-gradient(circle at top right, rgba(30, 202, 211, 0.12), transparent 22rem),
+    radial-gradient(circle at 10% 30%, rgba(160, 18, 56, 0.08), transparent 18rem),
+    linear-gradient(180deg, #f8fbfc 0%, #ffffff 32%, #f7fafc 100%);
+}
+
+.flights-hero::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 110px;
+  background: linear-gradient(180deg, rgba(15, 76, 92, 0) 0%, rgba(248, 251, 252, 0.9) 100%);
+  pointer-events: none;
+}
+
+.flights-search-card,
+.flights-reservation-shell .omra-reserve__form-card,
+.flights-reservation-shell .omra-reserve__pkg-card,
+.flights-reservation-shell .omra-reserve__summary,
+.flights-results-grid aside,
+.flights-results-grid > div:last-child {
+  backdrop-filter: blur(10px);
+}
+
+.flights-reservation-shell {
+  padding: 18px 0 42px;
+}
+
+.flights-results-layout {
+  position: relative;
+}
+
+.flights-results-layout::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 15rem;
+  height: 15rem;
+  background: radial-gradient(circle, rgba(230, 126, 34, 0.12), transparent 68%);
+  pointer-events: none;
+}
+
+@media (max-width: 1100px) {
+  .flights-destination-grid,
+  .flights-feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .flights-results-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .flights-results-grid aside {
+    position: static !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .flights-search-card {
+    padding: 20px 16px !important;
+    border-radius: 18px !important;
+  }
+
+  .flights-destination-grid,
+  .flights-feature-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .flights-reservation-shell {
+    padding-top: 8px;
+  }
+
+  .flights-page .container,
+  .flights-reservation-page .container {
+    width: min(100% - 24px, 1200px);
+  }
+}

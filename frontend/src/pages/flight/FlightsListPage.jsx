@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import FlightCard from '../../components/FlightCard';
 import '../../styles/omrastyle.css';
+import '../../styles/FlightsPage.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -338,8 +339,8 @@ const FlightListPage = () => {
         `${departureDate}${returnDate ? ` · Retour ${returnDate}` : ''} · ${adults + children} passager${adults + children > 1 ? 's' : ''} · ${CABIN_LABELS[cabinClass] || cabinClass}`
       } />
 
-      <div className="container" style={{ padding: '28px 0 60px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 24, alignItems: 'start' }}>
+      <div className="container flights-results-layout" style={{ padding: '28px 0 60px' }}>
+        <div className="flights-results-grid" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 24, alignItems: 'start' }}>
 
           {/* ── Filters sidebar ─────────────────────────────── */}
           <aside style={{ background: '#fff', borderRadius: 16, padding: 20,

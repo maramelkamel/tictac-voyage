@@ -16,6 +16,7 @@ const FlightPayment = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   // ── Fallback ────────────────────────────────────────────────────────────────
   if (!state?.offer || !state?.passengers || !state?.flightInfo) {
@@ -93,6 +94,8 @@ const FlightPayment = () => {
     setApiError('');
     try {
       await bookFlight('online');
+      setMethod('online');
+      setSuccessMessage(`Votre paiement de ${totalAmount.toLocaleString('fr-FR')} ${currency} a été enregistré avec succès. Votre réservation de vol est maintenant visible dans votre espace client.`);
       setSubmitted(true);
     } catch (err) {
       setApiError(err.message || 'Erreur lors de la réservation.');
@@ -107,6 +110,8 @@ const FlightPayment = () => {
     setApiError('');
     try {
       await bookFlight('agency');
+      setMethod('agency');
+      setSuccessMessage("Votre réservation a bien été enregistrée. Vous pourrez la retrouver dans vos réservations et finaliser le paiement à l'agence.");
       setSubmitted(true);
     } catch (err) {
       setApiError(err.message || 'Erreur lors de la réservation.');
@@ -126,6 +131,11 @@ const FlightPayment = () => {
             <h2 className="payment-success__title">
               {method === 'agency' ? 'Réservation confirmée !' : 'Paiement effectué !'}
             </h2>
+            {successMessage && (
+              <div style={{ background: '#dcfce7', border: '1px solid #86efac', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#166534', fontWeight: 600 }}>
+                ✓ {successMessage}
+              </div>
+            )}
             <p className="payment-success__desc">
               Merci pour votre réservation du vol <strong>{origin} → {destination}</strong>.{' '}
               {method === 'agency'
@@ -137,7 +147,7 @@ const FlightPayment = () => {
               <button className="payment-success__btn" onClick={() => navigate('/flights/search')}>
                 ← Chercher un autre vol
               </button>
-              <button className="payment-success__btn" onClick={() => navigate('/my-bookings')} style={{ background: 'var(--primary)' }}>
+              <button className="payment-success__btn" onClick={() => navigate('/mon-compte?tab=reservations')} style={{ background: 'var(--primary)' }}>
                 Mes réservations
               </button>
             </div>

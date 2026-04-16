@@ -104,6 +104,7 @@ const sendReservationStatusEmail = async ({ email, firstName, type, title, statu
     omra:      '🕌 Omra',
     voyage:    '🏖️ Voyage Organisé',
     circuit:   '🗺️ Circuit Tunisie',
+    flight:    '✈️ Billet d’avion',
     transport: '🚌 Transport',
     custom:    '✈️ Voyage sur Mesure',
   }[type] || type;

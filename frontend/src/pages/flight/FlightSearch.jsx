@@ -6,6 +6,7 @@ import Footer from '../../components/Footer';
 import AirportAutocomplete from '../../components/AirportAutocomplete';
 import FlightCard from '../../components/FlightCard';
 import '../../styles/omrastyle.css';
+import '../../styles/FlightsPage.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -238,7 +239,7 @@ const FlightSearch = () => {
   );
 
   return (
-    <>
+    <div className="flights-page">
       <Navbar />
 
       <style>{`
@@ -256,7 +257,7 @@ const FlightSearch = () => {
       `}</style>
 
       {/* ── Hero + Search ───────────────────────────────────── */}
-      <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #0f3460 100%)',
+      <div className="flights-hero" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #0f3460 100%)',
         paddingTop: 130, paddingBottom: 80, position: 'relative', overflow: 'hidden' }}>
         {/* Decorative circles */}
         <div style={{ position: 'absolute', top: -60, right: -60, width: 300, height: 300,
@@ -281,7 +282,7 @@ const FlightSearch = () => {
           </div>
 
           {/* Search card */}
-          <div style={{ background: '#fff', borderRadius: 20, padding: '28px 32px',
+          <div className="flights-search-card" style={{ background: '#fff', borderRadius: 20, padding: '28px 32px',
             boxShadow: '0 20px 60px rgba(0,0,0,0.25)', maxWidth: 960, margin: '0 auto' }}>
 
             {/* Trip type */}
@@ -396,7 +397,7 @@ const FlightSearch = () => {
         <section style={{ marginBottom: 64 }}>
           <SectionTitle icon="fa-fire" badge="Tendances" title="Destinations populaires depuis Tunis"
             subtitle="Cliquez pour voir les offres disponibles · Prix en temps réel" />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div className="flights-destination-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
             {POPULAR_DESTINATIONS.map((dest, i) => (
               <button key={i} className="dest-card"
                 onClick={() => !loading && handleQuickDestination(dest)}
@@ -490,7 +491,7 @@ const FlightSearch = () => {
         {/* 4 — Why book with us ─────────────────────────────── */}
         <section>
           <SectionTitle icon="fa-shield-alt" badge="Pourquoi nous" title="Réservez en toute confiance" />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+          <div className="flights-feature-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
             {[
               { icon: 'fa-shield-alt',  color: '#4f46e5', title: 'Réservation sécurisée', desc: 'Paiement SSL 256-bit ou directement en agence. Vos données sont protégées.' },
               { icon: 'fa-tags',        color: '#16a34a', title: 'Meilleurs tarifs',      desc: 'Prix Duffel en temps réel avec une marge agence transparente et compétitive.' },
@@ -518,7 +519,7 @@ const FlightSearch = () => {
       </div>
 
       <Footer />
-    </>
+    </div>
   );
 };
 
