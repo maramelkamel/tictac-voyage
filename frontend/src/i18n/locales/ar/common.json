@@ -1,0 +1,23 @@
+{
+  "loading": "جار التحميل...",
+  "error_generic": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+  "error_server": "تعذر الاتصال بالخادم.",
+  "back": "رجوع",
+  "close": "إغلاق",
+  "send": "إرسال",
+  "sending": "جار الإرسال...",
+  "confirm": "تأكيد",
+  "cancel": "إلغاء",
+  "required_fields": "جميع الحقول المميزة بـ * مطلوبة",
+  "secure_payment": "دفع آمن 100%",
+  "no_immediate_payment": "لا دفع فوري مطلوب.",
+  "advisor_contact_24h": "سيتصل بك مستشار خلال 24 ساعة.",
+  "data_secure": "بياناتك محمية",
+  "data_confidential": "🔒 بياناتك سرية ولن تُشارك أبداً.",
+  "per_person": "للشخص",
+  "taxes_included": "الضرائب مشمولة",
+  "not_found_title": "غير موجود.",
+  "not_found_emoji": "😕",
+  "session_expired": "انتهت الجلسة.",
+  "lang_label": "اختيار اللغة"
+}

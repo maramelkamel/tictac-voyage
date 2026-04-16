@@ -1,0 +1,28 @@
+{
+  "tagline": "وكالة سفر",
+  "description": "شريككم الموثوق لجميع رحلاتكم في تونس وعلى المستوى الدولي.",
+  "nos_services": "خدماتنا",
+  "contactez_nous": "اتصل بنا",
+  "send_message": "أرسل لنا رسالة",
+  "your_name": "اسمك *",
+  "your_email": "بريدك الإلكتروني *",
+  "your_message": "رسالتك *",
+  "send_btn": "إرسال",
+  "sending": "جار الإرسال...",
+  "success_title": "تم إرسال الرسالة بنجاح!",
+  "send_another": "إرسال رسالة أخرى",
+  "rights": "© 2025 TICTAC VOYAGES. جميع الحقوق محفوظة.",
+  "mentions_legales": "الإشعار القانوني",
+  "confidentialite": "سياسة الخصوصية",
+  "address": "المدينة الجديدة، تونس",
+  "hours": "الإثنين - السبت: 09ص - 6م",
+  "services": {
+    "hotels": "الفنادق",
+    "transport": "النقل",
+    "voyages_organises": "رحلات منظمة",
+    "omra": "العمرة",
+    "sur_mesure": "رحلات مخصصة",
+    "billetterie": "التذاكر",
+    "circuits": "الجولات"
+  }
+}

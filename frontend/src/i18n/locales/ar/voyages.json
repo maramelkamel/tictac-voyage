@@ -1,0 +1,35 @@
+{
+  "not_found": "الرحلة غير موجودة.",
+  "back_to_voyages": "← العودة إلى الرحلات",
+  "about_title": "📖 عن هذه الرحلة",
+  "programme_title": "🗓️ البرنامج يوماً بيوم",
+  "gallery_title": "📸 معرض الصور",
+  "included_title": "✅ ما هو مشمول",
+  "not_included_title": "❌ غير مشمول",
+  "day_label": "اليوم {{number}}",
+  "photos_more": "+{{count}} صور",
+  "reserve_btn": "احجز هذه الرحلة →",
+  "back_btn": "← العودة إلى القائمة",
+  "price_note": "لا دفع فوري. سيتصل بك مستشار خلال 24 ساعة.",
+  "spots_warning": "🔥 لم يتبق سوى {{count}} أماكن!",
+  "per_person_taxes": "للشخص · الضرائب مشمولة",
+  "rating_label": "{{score}} ({{count}} تقييم)",
+  "perks": {
+    "cancel": "إلغاء مجاني خلال 48 ساعة",
+    "guide": "مرشد ناطق بالفرنسية مشمول",
+    "support": "مساعدة على مدار الساعة",
+    "transfer": "نقل من وإلى المطار مشمول"
+  },
+  "stats": {
+    "destination": "الوجهة",
+    "duration": "المدة",
+    "departure": "الانطلاق",
+    "places": "الأماكن المتبقية"
+  },
+  "hero": {
+    "rating": "{{score}} ({{count}} تقييم)",
+    "duration": "{{value}}",
+    "departure": "انطلاق {{city}}",
+    "places": "{{count}} مكان متبقٍ"
+  }
+}

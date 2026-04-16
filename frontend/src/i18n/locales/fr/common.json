@@ -1,0 +1,23 @@
+{
+  "loading": "Chargement...",
+  "error_generic": "Une erreur est survenue. Veuillez réessayer.",
+  "error_server": "Impossible de contacter le serveur.",
+  "back": "Retour",
+  "close": "Fermer",
+  "send": "Envoyer",
+  "sending": "Envoi en cours...",
+  "confirm": "Confirmer",
+  "cancel": "Annuler",
+  "required_fields": "Tous les champs marqués d'un * sont obligatoires",
+  "secure_payment": "Paiement 100% sécurisé",
+  "no_immediate_payment": "Aucun paiement immédiat requis.",
+  "advisor_contact_24h": "Un conseiller vous contactera sous 24h.",
+  "data_secure": "Vos données sont sécurisées",
+  "data_confidential": "🔒 Vos données sont confidentielles et ne seront jamais partagées.",
+  "per_person": "par personne",
+  "taxes_included": "taxes incluses",
+  "not_found_title": "Introuvable.",
+  "not_found_emoji": "😕",
+  "session_expired": "Session expirée.",
+  "lang_label": "Sélection de la langue"
+}
