@@ -1,0 +1,153 @@
+{
+  "eyebrow": "Tunisia hotels",
+  "heroPrimary": "Search a hotel",
+  "heroSecondary": "View recommendations",
+  "searchTitle": "Search a hotel in Tunisia",
+  "searchButton": "Search",
+  "publicDataOnly": "Public information available",
+  "listTitle": "Book your hotel in Tunisia",
+  "listSubtitle": "Real hotel profiles with live photos, reviews and up-to-date details.",
+  "resultsHeading": "Available hotels",
+  "loading": "Loading hotels...",
+  "allDestinations": "All destinations",
+  "allCategories": "All",
+  "allTunisia": "Tunisia",
+  "sortBy": "Sort by",
+  "about": "Full description",
+  "amenities": "Amenities",
+  "pricingBreakdown": "Available plans",
+  "reservationTitle": "Reservation",
+  "paymentTitle": "Payment",
+  "paymentSubtitle": "Simulated payment before final confirmation.",
+  "hotelLabel": "Hotel",
+  "availability": "Availability",
+  "priceSummary": "Price summary",
+  "pricePerNight": "Price / night",
+  "estimatedTotal": "Estimated total",
+  "perNight": "per night",
+  "perNightShort": "night",
+  "priceUnit": "/ night",
+  "pricingLabel": "Select a plan",
+  "estimatedPriceLabel": "Estimated price",
+  "autoEstimatedPriceHint": "Automatic estimate",
+  "publicInfoLabel": "Information and reviews available",
+  "officialWebsite": "Official website",
+  "googleMaps": "View on Google Maps",
+  "pricingUnavailable": "Rates and availability are not provided at the moment.",
+  "estimatedFromPublicData": "Prices are estimated automatically from the hotel's public information.",
+  "priceUnavailable": "Rate unavailable",
+  "realDetailsAvailable": "Real details available",
+  "backToList": "Back to hotels",
+  "backToDetails": "Back to details",
+  "continueToPayment": "Continue to payment →",
+  "reservationFormTitle": "Hotel booking form",
+  "reservationFormSubtitle": "Enter your details, dates and stay preferences.",
+  "payOnline": "Simulated payment",
+  "payOnlineDesc": "Instant validation for testing",
+  "payAtAgency": "Pay at agency",
+  "payAtAgencyDesc": "Confirm now, settle later",
+  "confirmAndPay": "Pay {{amount}} TND →",
+  "processing": "Processing...",
+  "agencyHoldNotice": "Your booking will be held for 48h if you choose agency payment.",
+  "confirmationTitle": "Booking confirmed",
+  "confirmationMessage": "Your stay at {{hotel}} has been successfully registered under reference {{reference}}.",
+  "confirmationReference": "Reference",
+  "paymentStatus": "Payment status",
+  "backHome": "Back home",
+  "resultsCount": "{{count}} hotel(s) for {{destination}}",
+  "destinationFrom": "From {{amount}} TND",
+  "nights_one": "{{count}} night",
+  "nights_other": "{{count}} nights",
+  "searchAgain": "Search another hotel",
+  "cardNumber": "Card number",
+  "cardName": "Name on card",
+  "cardExpiry": "Expiry",
+  "cardCvv": "CVV",
+  "actions": {
+    "details": "Details",
+    "reserve": "Book now",
+    "favorite": "Add to favorites"
+  },
+  "tabs": {
+    "hotels": "Hotels",
+    "flights": "Flights",
+    "circuits": "Circuits"
+  },
+  "sections": {
+    "bestDestinations": "Top destinations",
+    "bestDestinationsSubtitle": "The Tunisian cities most requested for hotel stays.",
+    "bestDeals": "Best deals",
+    "bestDealsSubtitle": "Competitive offers recalculated from your current search.",
+    "recommendedHotels": "Recommended hotels",
+    "recommendedHotelsSubtitle": "Our preferred properties for a premium Tunisia stay."
+  },
+  "home": {
+    "searchBlockTitle": "Find your hotel from the homepage",
+    "destinationPlaceholder": "Tunis, Hammamet, Djerba...",
+    "peopleLabel": "People",
+    "embeddedHotelsTitle": "Hotels to explore now",
+    "embeddedHotelsSubtitle": "Search and a first hotel selection are embedded directly inside the homepage.",
+    "previewEmpty": "Enter a destination to display hotels.",
+    "seeAllHotels": "See all hotels",
+    "heroSlides": {
+      "slide1": {
+        "title": "Tunisia hotels integrated into your homepage",
+        "subtitle": "Search, compare and explore real hotel profiles without leaving the homepage."
+      },
+      "slide2": {
+        "title": "Real public data, then enriched",
+        "subtitle": "Hotel information, available images, useful links and automatically estimated prices."
+      },
+      "slide3": {
+        "title": "A clearer hotel experience",
+        "subtitle": "A search form aligned with the homepage, translated details and smoother navigation."
+      }
+    }
+  },
+  "fields": {
+    "destination": "Destination",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "adults": "Adults",
+    "children": "Children",
+    "rooms": "Rooms",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "phone": "Phone",
+    "roomType": "Room type",
+    "boardType": "Plan",
+    "specialRequests": "Special requests"
+  },
+  "boardTypes": {
+    "room_only": "Room only",
+    "breakfast": "Breakfast",
+    "half_board": "Half board",
+    "full_board": "Full board",
+    "all_inclusive": "All inclusive"
+  },
+  "roomTypes": {
+    "standard": "Standard",
+    "sea_view": "Sea view",
+    "deluxe": "Deluxe",
+    "suite": "Suite"
+  },
+  "filters": {
+    "maxBudget": "Max budget",
+    "stars": "Category"
+  },
+  "sort": {
+    "recommended": "Recommended",
+    "priceAsc": "Lowest price",
+    "priceDesc": "Highest price",
+    "rating": "Top rated"
+  },
+  "errors": {
+    "noMatches": "No hotel matches your filters.",
+    "detailsUnavailable": "Hotel details are unavailable.",
+    "noSelectedHotel": "No hotel selected.",
+    "noActiveSearch": "Booking session expired. Start again from the hotel page.",
+    "bookingFailed": "Unable to finalize the booking.",
+    "bookingUnavailable": "Online booking is temporarily unavailable for this hotel."
+  }
+}

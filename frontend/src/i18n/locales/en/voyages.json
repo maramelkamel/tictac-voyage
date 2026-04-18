@@ -30,6 +30,7 @@
     "rating": "{{score}} ({{count}} reviews)",
     "duration": "{{value}}",
     "departure": "Departure {{city}}",
-    "places": "{{count}} spots remaining"
+    "places": "{{count}} spot remaining",
+    "places_plural": "{{count}} spots remaining"
   }
 }

@@ -1,0 +1,36 @@
+{
+  "not_found": "Voyage introuvable.",
+  "back_to_voyages": "← Retour aux voyages",
+  "about_title": "📖 À propos de ce voyage",
+  "programme_title": "🗓️ Programme jour par jour",
+  "gallery_title": "📸 Galerie photo",
+  "included_title": "✅ Ce qui est inclus",
+  "not_included_title": "❌ Non inclus",
+  "day_label": "Jour {{number}}",
+  "photos_more": "+{{count}} photos",
+  "reserve_btn": "Réserver ce voyage →",
+  "back_btn": "← Retour à la liste",
+  "price_note": "Aucun paiement immédiat. Un conseiller vous contactera sous 24h.",
+  "spots_warning": "🔥 Plus que {{count}} places disponibles !",
+  "per_person_taxes": "par personne · taxes incluses",
+  "rating_label": "{{score}} ({{count}} avis)",
+  "perks": {
+    "cancel": "Annulation gratuite sous 48h",
+    "guide": "Guide francophone inclus",
+    "support": "Assistance 24h/24 et 7j/7",
+    "transfer": "Transferts aéroport inclus"
+  },
+  "stats": {
+    "destination": "Destination",
+    "duration": "Durée",
+    "departure": "Départ",
+    "places": "Places restantes"
+  },
+  "hero": {
+    "rating": "{{score}} ({{count}} avis)",
+    "duration": "{{value}}",
+    "departure": "Départ {{city}}",
+    "places": "{{count}} place restante",
+    "places_plural": "{{count}} places restantes"
+  }
+}

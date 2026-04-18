@@ -14,19 +14,27 @@ const CardStyle = ({
   currency = 'TND',
   priceUnit = '/ nuit',
   priceOptions = [
-    { label: 'LPD', value: 180 },
-    { label: 'DP', value: 250 },
-    { label: 'PC', value: 320 },
-    { label: 'AI', value: 420 },
+    { label: 'Logement petit-dejeuner', value: 180 },
+    { label: 'Demi-pension', value: 250 },
+    { label: 'Pension complete', value: 320 },
+    { label: 'All inclusive', value: 420 },
   ],
   stars = 5,
   onDetailsClick = () => {},
   onReserveClick = () => {},
   onFavoriteClick = () => {},
   isFavorite = false,
+  detailLabel = 'Détails',
+  reserveLabel = 'Réserver',
+  favoriteLabel = 'Ajouter aux favoris',
+  pricingLabel = 'Sélectionnez une formule',
+  publicInfoLabel = 'Informations et avis disponibles',
+  noAvailabilityLabel = 'Tarifs non disponibles',
+  estimatedHint = 'Estimation automatique',
 }) => {
-  const [currentPrice, setCurrentPrice] = useState(priceOptions[0]?.value || price || 0);
-  const [activeOption, setActiveOption] = useState(priceOptions[0]?.label || 'LPD');
+  const hasPricing = price !== undefined || priceOptions.length > 0;
+  const [currentPrice, setCurrentPrice] = useState(priceOptions[0]?.value ?? price ?? null);
+  const [activeOption, setActiveOption] = useState(priceOptions[0]?.label || '');
   const [favorite, setFavorite] = useState(isFavorite);
   const [isHovered, setIsHovered] = useState(false);
   const priceRef = useRef(null);
@@ -88,7 +96,7 @@ const CardStyle = ({
       {/* Image Section */}
       <div style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
         <img
-          src={image}
+          src={image || 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=1200&q=80'}
           alt={title}
           style={{
             width: '100%',
@@ -146,7 +154,7 @@ const CardStyle = ({
             border: 'none',
             cursor: 'pointer',
           }}
-          aria-label="Ajouter aux favoris"
+          aria-label={favoriteLabel}
         >
           <i className={favorite ? 'fas fa-heart' : 'far fa-heart'} />
         </button>
@@ -235,46 +243,49 @@ const CardStyle = ({
         {/* Price Section */}
         <div style={{ marginBottom: '20px' }}>
           <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--gray-500)', marginBottom: '10px' }}>
-            Sélectionnez une formule
+            {hasPricing ? pricingLabel : publicInfoLabel}
           </p>
 
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {priceOptions.map((option) => (
-              <button
-                key={option.label}
-                onClick={() => handlePriceChange(option)}
-                style={{
-                  padding: '10px 16px',
-                  background: activeOption === option.label ? 'var(--secondary)' : 'transparent',
-                  border: `2px solid ${activeOption === option.label ? 'var(--secondary)' : 'var(--gray-200)'}`,
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  color: activeOption === option.label ? 'var(--white)' : 'var(--gray-600)',
-                  transition: 'all var(--duration) var(--ease)',
-                  cursor: 'pointer',
-                }}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+          {priceOptions.length > 0 ? (
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {priceOptions.map((option) => (
+                <button
+                  key={option.label}
+                  onClick={() => handlePriceChange(option)}
+                  style={{
+                    padding: '10px 16px',
+                    background: activeOption === option.label ? 'var(--secondary)' : 'transparent',
+                    border: `2px solid ${activeOption === option.label ? 'var(--secondary)' : 'var(--gray-200)'}`,
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: activeOption === option.label ? 'var(--white)' : 'var(--gray-600)',
+                    transition: 'all var(--duration) var(--ease)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '16px' }}>
             <span
               ref={priceRef}
               style={{
-                fontSize: '30px',
+                fontSize: hasPricing ? '30px' : '16px',
                 fontWeight: 800,
                 color: 'var(--accent)',
                 transition: 'opacity 0.15s var(--ease), transform 0.15s var(--ease)',
               }}
             >
-              {currentPrice}
+              {hasPricing ? currentPrice : noAvailabilityLabel}
             </span>
-            <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--accent)' }}>{currency}</span>
-            <span style={{ fontSize: '13px', color: 'var(--gray-400)' }}>{priceUnit}</span>
+            {hasPricing ? <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--accent)' }}>{currency}</span> : null}
+            {hasPricing ? <span style={{ fontSize: '13px', color: 'var(--gray-400)' }}>{priceUnit}</span> : null}
           </div>
+          {hasPricing ? <div style={{ fontSize: '11px', color: 'var(--gray-400)', marginTop: '6px' }}>{estimatedHint}</div> : null}
         </div>
 
         {/* Actions */}
@@ -298,7 +309,7 @@ const CardStyle = ({
               cursor: 'pointer',
             }}
           >
-            <i className="fas fa-info-circle" /> Détails
+            <i className="fas fa-info-circle" /> {detailLabel}
           </button>
           <button
             onClick={onReserveClick}
@@ -319,7 +330,7 @@ const CardStyle = ({
               cursor: 'pointer',
             }}
           >
-            <i className="fas fa-check" /> Réserver
+            <i className="fas fa-check" /> {reserveLabel}
           </button>
         </div>
       </div>

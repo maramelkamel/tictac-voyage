@@ -1,0 +1,153 @@
+{
+  "eyebrow": "Hotels Tunisie",
+  "heroPrimary": "Rechercher un hotel",
+  "heroSecondary": "Voir les recommandations",
+  "searchTitle": "Rechercher un hotel en Tunisie",
+  "searchButton": "Rechercher",
+  "publicDataOnly": "Informations publiques disponibles",
+  "listTitle": "Reservez votre hotel en Tunisie",
+  "listSubtitle": "Des fiches hotels reelles avec photos, avis et informations a jour.",
+  "resultsHeading": "Hotels disponibles",
+  "loading": "Chargement des hotels...",
+  "allDestinations": "Toutes les destinations",
+  "allCategories": "Toutes",
+  "allTunisia": "Tunisie",
+  "sortBy": "Trier par",
+  "about": "Description complete",
+  "amenities": "Equipements",
+  "pricingBreakdown": "Formules disponibles",
+  "reservationTitle": "Reservation",
+  "paymentTitle": "Paiement",
+  "paymentSubtitle": "Simulation de paiement avant confirmation finale.",
+  "hotelLabel": "Hotel",
+  "availability": "Disponibilite",
+  "priceSummary": "Resume du prix",
+  "pricePerNight": "Prix / nuit",
+  "estimatedTotal": "Total estime",
+  "perNight": "par nuit",
+  "perNightShort": "nuit",
+  "priceUnit": "/ nuit",
+  "pricingLabel": "Selectionnez une formule",
+  "estimatedPriceLabel": "Prix estime",
+  "autoEstimatedPriceHint": "Estimation automatique",
+  "publicInfoLabel": "Informations et avis disponibles",
+  "officialWebsite": "Site officiel",
+  "googleMaps": "Voir sur Google Maps",
+  "pricingUnavailable": "Tarifs et disponibilites non fournis pour le moment.",
+  "estimatedFromPublicData": "Prix estimes automatiquement a partir des informations publiques de l'hotel.",
+  "priceUnavailable": "Tarif indisponible",
+  "realDetailsAvailable": "Details reels disponibles",
+  "backToList": "Retour aux hotels",
+  "backToDetails": "Retour aux details",
+  "continueToPayment": "Continuer vers le paiement →",
+  "reservationFormTitle": "Formulaire de reservation hotel",
+  "reservationFormSubtitle": "Renseignez vos informations, vos dates et vos preferences de sejour.",
+  "payOnline": "Paiement simule",
+  "payOnlineDesc": "Validation instantanee pour vos tests",
+  "payAtAgency": "Paiement en agence",
+  "payAtAgencyDesc": "Confirmation maintenant, reglement plus tard",
+  "confirmAndPay": "Payer {{amount}} TND →",
+  "processing": "Traitement...",
+  "agencyHoldNotice": "Votre reservation sera gardee 48h si vous choisissez le paiement en agence.",
+  "confirmationTitle": "Reservation confirmee",
+  "confirmationMessage": "Votre sejour a {{hotel}} a ete enregistre avec succes sous la reference {{reference}}.",
+  "confirmationReference": "Reference",
+  "paymentStatus": "Statut paiement",
+  "backHome": "Retour a l'accueil",
+  "resultsCount": "{{count}} hotel(s) pour {{destination}}",
+  "destinationFrom": "A partir de {{amount}} TND",
+  "nights_one": "{{count}} nuit",
+  "nights_other": "{{count}} nuits",
+  "searchAgain": "Rechercher un autre hotel",
+  "cardNumber": "Numero de carte",
+  "cardName": "Nom sur la carte",
+  "cardExpiry": "Expiration",
+  "cardCvv": "CVV",
+  "actions": {
+    "details": "Details",
+    "reserve": "Reserver",
+    "favorite": "Ajouter aux favoris"
+  },
+  "tabs": {
+    "hotels": "Hotels",
+    "flights": "Vols",
+    "circuits": "Circuits"
+  },
+  "sections": {
+    "bestDestinations": "Meilleures destinations",
+    "bestDestinationsSubtitle": "Les villes tunisiennes les plus prises pour un sejour hotelier.",
+    "bestDeals": "Meilleures offres",
+    "bestDealsSubtitle": "Une selection de tarifs competitifs recalcules selon votre recherche.",
+    "recommendedHotels": "Hotels recommandes",
+    "recommendedHotelsSubtitle": "Nos adresses preferees pour une experience premium en Tunisie."
+  },
+  "home": {
+    "searchBlockTitle": "Trouvez votre hotel depuis l'accueil",
+    "destinationPlaceholder": "Tunis, Hammamet, Djerba...",
+    "peopleLabel": "Personnes",
+    "embeddedHotelsTitle": "Hotels a explorer maintenant",
+    "embeddedHotelsSubtitle": "La recherche et une selection d'hotels sont integrees directement dans la page d'accueil.",
+    "previewEmpty": "Entrez une destination pour afficher des hôtels.",
+    "seeAllHotels": "Voir tous les hotels",
+    "heroSlides": {
+      "slide1": {
+        "title": "Hotels Tunisie integres a votre accueil",
+        "subtitle": "Recherchez, comparez et explorez des fiches hotelieres reelles sans quitter la page d'accueil."
+      },
+      "slide2": {
+        "title": "Des donnees publiques reelles et enrichies",
+        "subtitle": "Informations hotelieres, images disponibles, liens utiles et prix estimes automatiquement."
+      },
+      "slide3": {
+        "title": "Une experience hotel plus claire",
+        "subtitle": "Formulaire harmonise, details traduits et navigation plus fluide entre accueil et hotels."
+      }
+    }
+  },
+  "fields": {
+    "destination": "Destination",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "adults": "Adultes",
+    "children": "Enfants",
+    "rooms": "Chambres",
+    "firstName": "Prenom",
+    "lastName": "Nom",
+    "email": "Email",
+    "phone": "Telephone",
+    "roomType": "Type de chambre",
+    "boardType": "Formule",
+    "specialRequests": "Demandes speciales"
+  },
+  "boardTypes": {
+    "room_only": "Logement seul",
+    "breakfast": "Petit-dejeuner",
+    "half_board": "Demi-pension",
+    "full_board": "Pension complete",
+    "all_inclusive": "All inclusive"
+  },
+  "roomTypes": {
+    "standard": "Standard",
+    "sea_view": "Vue mer",
+    "deluxe": "Deluxe",
+    "suite": "Suite"
+  },
+  "filters": {
+    "maxBudget": "Budget max",
+    "stars": "Categorie"
+  },
+  "sort": {
+    "recommended": "Recommandes",
+    "priceAsc": "Prix croissant",
+    "priceDesc": "Prix decroissant",
+    "rating": "Mieux notes"
+  },
+  "errors": {
+    "noMatches": "Aucun hotel ne correspond a vos filtres.",
+    "detailsUnavailable": "Les details de cet hotel sont indisponibles.",
+    "noSelectedHotel": "Aucun hotel selectionne.",
+    "noActiveSearch": "La session de reservation a expire. Relancez la reservation depuis la fiche hotel.",
+    "bookingFailed": "Impossible de finaliser la reservation.",
+    "bookingUnavailable": "La reservation en ligne n'est pas disponible pour cet hotel pour le moment."
+  }
+}

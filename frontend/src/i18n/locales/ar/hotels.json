@@ -1,0 +1,151 @@
+{
+  "eyebrow": "فنادق تونس",
+  "heroPrimary": "ابحث عن فندق",
+  "heroSecondary": "عرض الترشيحات",
+  "searchTitle": "ابحث عن فندق في تونس",
+  "searchButton": "بحث",
+  "publicDataOnly": "معلومات عامة متاحة",
+  "listTitle": "احجز فندقك في تونس",
+  "listSubtitle": "بطاقات فنادق حقيقية مع صور وآراء ومعلومات محدثة.",
+  "resultsHeading": "الفنادق المتاحة",
+  "loading": "جار تحميل الفنادق...",
+  "allDestinations": "كل الوجهات",
+  "allCategories": "الكل",
+  "allTunisia": "تونس",
+  "sortBy": "الترتيب حسب",
+  "about": "الوصف الكامل",
+  "amenities": "المرافق",
+  "pricingBreakdown": "الباقات المتاحة",
+  "reservationTitle": "الحجز",
+  "paymentTitle": "الدفع",
+  "paymentSubtitle": "محاكاة دفع قبل التاكيد النهائي.",
+  "hotelLabel": "الفندق",
+  "availability": "التوفر",
+  "priceSummary": "ملخص السعر",
+  "pricePerNight": "السعر / الليلة",
+  "estimatedTotal": "الاجمالي التقديري",
+  "perNight": "لكل ليلة",
+  "perNightShort": "ليلة",
+  "priceUnit": "/ الليلة",
+  "pricingLabel": "اختر الباقة",
+  "estimatedPriceLabel": "سعر تقديري",
+  "autoEstimatedPriceHint": "تقدير تلقائي",
+  "publicInfoLabel": "المعلومات والآراء متاحة",
+  "officialWebsite": "الموقع الرسمي",
+  "googleMaps": "عرض على خرائط Google",
+  "pricingUnavailable": "الاسعار والتوفر غير متاحين حاليا.",
+  "estimatedFromPublicData": "يتم تقدير الاسعار تلقائيا انطلاقا من المعلومات العامة للفندق.",
+  "priceUnavailable": "السعر غير متاح",
+  "realDetailsAvailable": "تفاصيل حقيقية متاحة",
+  "backToList": "العودة الى الفنادق",
+  "backToDetails": "العودة الى التفاصيل",
+  "continueToPayment": "المتابعة الى الدفع ←",
+  "reservationFormTitle": "نموذج حجز الفندق",
+  "reservationFormSubtitle": "ادخل بياناتك وتواريخك وتفضيلات الاقامة.",
+  "payOnline": "دفع تجريبي",
+  "payOnlineDesc": "تأكيد فوري لاغراض الاختبار",
+  "payAtAgency": "الدفع في الوكالة",
+  "payAtAgencyDesc": "اكد الان وادفع لاحقا",
+  "confirmAndPay": "ادفع {{amount}} د.ت ←",
+  "processing": "جار المعالجة...",
+  "agencyHoldNotice": "سيتم الاحتفاظ بحجزك 48 ساعة اذا اخترت الدفع في الوكالة.",
+  "confirmationTitle": "تم تاكيد الحجز",
+  "confirmationMessage": "تم تسجيل اقامتك في {{hotel}} بنجاح تحت المرجع {{reference}}.",
+  "confirmationReference": "المرجع",
+  "paymentStatus": "حالة الدفع",
+  "backHome": "العودة للرئيسية",
+  "resultsCount": "{{count}} فندق لوجهة {{destination}}",
+  "destinationFrom": "ابتداء من {{amount}} د.ت",
+  "nights_one": "ليلة واحدة",
+  "nights_other": "{{count}} ليال",
+  "searchAgain": "ابحث عن فندق اخر",
+  "cardNumber": "رقم البطاقة",
+  "cardName": "الاسم على البطاقة",
+  "cardExpiry": "الانتهاء",
+  "cardCvv": "CVV",
+  "actions": {
+    "details": "التفاصيل",
+    "reserve": "احجز الان",
+    "favorite": "اضف الى المفضلة"
+  },
+  "tabs": {
+    "hotels": "فنادق",
+    "flights": "رحلات",
+    "circuits": "دوائر"
+  },
+  "sections": {
+    "bestDestinations": "افضل الوجهات",
+    "bestDestinationsSubtitle": "المدن التونسية الاكثر طلبا للاقامة الفندقية.",
+    "bestDeals": "افضل العروض",
+    "bestDealsSubtitle": "عروض تنافسية يتم تحديثها حسب بحثك.",
+    "recommendedHotels": "فنادق موصى بها",
+    "recommendedHotelsSubtitle": "اختياراتنا المفضلة لتجربة اقامة راقية في تونس."
+  },
+  "home": {
+    "searchBlockTitle": "ابحث عن فندقك من الصفحة الرئيسية",
+    "destinationPlaceholder": "تونس، الحمامات، جربة...",
+    "embeddedHotelsTitle": "فنادق يمكنك استكشافها الآن",
+    "embeddedHotelsSubtitle": "تم دمج البحث واول مجموعة من الفنادق مباشرة داخل الصفحة الرئيسية.",
+    "seeAllHotels": "عرض كل الفنادق",
+    "heroSlides": {
+      "slide1": {
+        "title": "فنادق تونس مدمجة في الصفحة الرئيسية",
+        "subtitle": "ابحث وقارن واستكشف بطاقات فنادق حقيقية بدون مغادرة الصفحة الرئيسية."
+      },
+      "slide2": {
+        "title": "بيانات عامة حقيقية ثم محسنة",
+        "subtitle": "معلومات الفنادق والصور المتاحة والروابط المفيدة واسعار مقدرة تلقائيا."
+      },
+      "slide3": {
+        "title": "تجربة فنادق اوضح",
+        "subtitle": "نموذج بحث منسجم مع الصفحة الرئيسية وتفاصيل مترجمة وتنقل اكثر سلاسة."
+      }
+    }
+  },
+  "fields": {
+    "destination": "الوجهة",
+    "checkIn": "تسجيل الوصول",
+    "checkOut": "تسجيل المغادرة",
+    "adults": "البالغون",
+    "children": "الاطفال",
+    "rooms": "الغرف",
+    "firstName": "الاسم",
+    "lastName": "اللقب",
+    "email": "البريد الالكتروني",
+    "phone": "الهاتف",
+    "roomType": "نوع الغرفة",
+    "boardType": "الباقة",
+    "specialRequests": "طلبات خاصة"
+  },
+  "boardTypes": {
+    "room_only": "غرفة فقط",
+    "breakfast": "فطور",
+    "half_board": "نصف اقامة",
+    "full_board": "اقامة كاملة",
+    "all_inclusive": "شامل"
+  },
+  "roomTypes": {
+    "standard": "قياسية",
+    "sea_view": "مطلة على البحر",
+    "deluxe": "ديلوكس",
+    "suite": "جناح"
+  },
+  "filters": {
+    "maxBudget": "الميزانية القصوى",
+    "stars": "الفئة"
+  },
+  "sort": {
+    "recommended": "موصى به",
+    "priceAsc": "الاقل سعرا",
+    "priceDesc": "الاعلى سعرا",
+    "rating": "الاعلى تقييما"
+  },
+  "errors": {
+    "noMatches": "لا توجد فنادق تطابق عوامل التصفية.",
+    "detailsUnavailable": "تفاصيل الفندق غير متاحة.",
+    "noSelectedHotel": "لم يتم اختيار فندق.",
+    "noActiveSearch": "انتهت جلسة الحجز. اعد البدء من صفحة الفندق.",
+    "bookingFailed": "تعذر اتمام الحجز.",
+    "bookingUnavailable": "الحجز عبر الانترنت غير متاح لهذا الفندق حاليا."
+  }
+}

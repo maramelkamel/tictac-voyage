@@ -107,7 +107,7 @@ const DetailDrawer = ({ reservation: r, onClose, onStatusChange }) => {
               { label:'Départ',    value:fmtDay(r.check_out) },
               { label:'Voyageurs', value:`${r.adults} adulte${r.adults>1?'s':''}${r.children>0?` + ${r.children} enfant${r.children>1?'s':''}`:''}` },
               { label:'Prix total', value:fmtPrice(r.total_price, r.currency||'TND') },
-              { label:'Réf. Hotelbeds', value:r.hotelbeds_reference || '—' },
+              { label:'Source', value:'OSM (prix estimé)' },
             ].map((row,i,arr) => (
               <div key={i} style={{ display:'flex', justifyContent:'space-between',
                 padding:'6px 0', borderBottom:i<arr.length-1?'1px dashed #e0f2fe':'none', fontSize:13 }}>
@@ -221,7 +221,7 @@ const HotelReservations = () => {
       || r.holder_first_name?.toLowerCase().includes(q)
       || r.holder_last_name?.toLowerCase().includes(q)
       || r.holder_email?.toLowerCase().includes(q)
-      || r.hotelbeds_reference?.toLowerCase().includes(q);
+      || r.hotel_city?.toLowerCase().includes(q);
     return matchStatus && matchSearch;
   });
 

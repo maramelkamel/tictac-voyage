@@ -1,25 +1,27 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const SearchSection = ({ onSearch }) => {
+  const { t } = useTranslation('hotels');
   const [activeTab, setActiveTab] = useState('hotels');
   const [formData, setFormData] = useState({
     destination: '',
     checkIn: '',
     checkOut: '',
-    adults: '2 adultes',
-    children: '0 enfant',
+    adults: '2',
+    children: '0',
     category: 'Toutes',
     type: 'hotels'
   });
 
   const tabs = [
-    { id: 'hotels', label: 'Hôtels' },
-    { id: 'vols', label: 'Vols' },
-    { id: 'circuits', label: 'Circuits' }
+    { id: 'hotels', label: t('tabs.hotels') },
+    { id: 'vols', label: t('tabs.flights') },
+    { id: 'circuits', label: t('tabs.circuits') }
   ];
 
   const destinations = [
-    { value: '', label: 'Choisir une destination' },
+    { value: '', label: t('allDestinations') },
     { value: 'hammamet', label: 'Hammamet' },
     { value: 'sousse', label: 'Sousse' },
     { value: 'djerba', label: 'Djerba' },
@@ -45,7 +47,7 @@ const SearchSection = ({ onSearch }) => {
     <section className="search-section">
       <div className="search-card">
         <div className="search-header">
-          <h3>Rechercher un hébergement</h3>
+          <h3>{t('searchTitle')}</h3>
           <div className="search-tabs">
             {tabs.map(tab => (
               <button
@@ -79,7 +81,7 @@ const SearchSection = ({ onSearch }) => {
 
           <div className="form-field">
             <label>
-              <i className="fas fa-calendar"></i> Arrivée
+              <i className="fas fa-calendar"></i> {t('fields.checkIn')}
             </label>
             <input
               type="date"
@@ -91,7 +93,7 @@ const SearchSection = ({ onSearch }) => {
 
           <div className="form-field">
             <label>
-              <i className="fas fa-calendar"></i> Départ
+              <i className="fas fa-calendar"></i> {t('fields.checkOut')}
             </label>
             <input
               type="date"
@@ -103,43 +105,43 @@ const SearchSection = ({ onSearch }) => {
 
           <div className="form-field">
             <label>
-              <i className="fas fa-user"></i> Adultes
+              <i className="fas fa-user"></i> {t('fields.adults')}
             </label>
             <select
               value={formData.adults}
               onChange={(e) => handleChange('adults', e.target.value)}
             >
-              <option>1 adulte</option>
-              <option>2 adultes</option>
-              <option>3 adultes</option>
-              <option>4 adultes</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
             </select>
           </div>
 
           <div className="form-field">
             <label>
-              <i className="fas fa-child"></i> Enfants
+              <i className="fas fa-child"></i> {t('fields.children')}
             </label>
             <select
               value={formData.children}
               onChange={(e) => handleChange('children', e.target.value)}
             >
-              <option>0 enfant</option>
-              <option>1 enfant</option>
-              <option>2 enfants</option>
-              <option>3 enfants</option>
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
             </select>
           </div>
 
           <div className="form-field">
             <label>
-              <i className="fas fa-star"></i> Catégorie
+              <i className="fas fa-star"></i> {t('filters.stars')}
             </label>
             <select
               value={formData.category}
               onChange={(e) => handleChange('category', e.target.value)}
             >
-              <option>Toutes</option>
+              <option>{t('allCategories')}</option>
               <option>3 étoiles</option>
               <option>4 étoiles</option>
               <option>5 étoiles</option>
@@ -147,7 +149,7 @@ const SearchSection = ({ onSearch }) => {
           </div>
 
           <button type="submit" className="btn btn-primary btn-search">
-            <i className="fas fa-search"></i> Rechercher
+            <i className="fas fa-search"></i> {t('searchButton')}
           </button>
         </form>
       </div>

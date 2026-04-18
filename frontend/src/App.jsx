@@ -45,11 +45,7 @@ import FlightListPage from './pages/flight/FlightsListPage';
 import FlightDetails from './pages/flight/FlightDetailPage';
 import FlightReservations from './pages/admin/flight/FlightReservations';
 import FlightPricingAdmin from './pages/admin/flight/FlightPricingAdmin';
-import HotelDetails from './pages/Hotels/HotelDetails';
-import HotelPayment from './pages/Hotels/HotelPayment';
-import HotelSearch from './pages/Hotels/HotelSearch';
-import HotelListPage from './pages/Hotels/HotelListPage';
-import HotelReservation from './pages/Hotels/HotelReservation';
+
 
 function App() {
   return (
@@ -71,7 +67,7 @@ function App() {
          <Route path="/billeterie/Billeterie" element={<Billeterie/>} />
          <Route path="/VoyagesOrganise/Payment/:id" element={<Payment />} />
          <Route path="/CustomTripAbroad" element={<CustomTripAbroad/>} />
-         <Route path="/hotels/payment" element={<HotelPayment/>}/>
+       
          <Route path="/admin/transport" element={<TransportAdmin/>}/>
            <Route path="/admin/transport/requests"element={<RequestsAdmin />} /> 
            <Route path="/admin" element={<Dashboard />} />
@@ -101,13 +97,12 @@ function App() {
 <Route path="/flights/results" element={<FlightListPage />} />
 <Route path="/flights/reserve"       element={<FlightReservation />} />
 <Route path="/flights/payment"       element={<FlightPayment />} />
-      <Route path="/hotels/:id"                  element={<HotelDetails />} />
+      
       <Route path="/flights/details"     element={<FlightDetails />} />
       <Route path="/admin/flights/reservations"       element={<FlightReservations />} />
       <Route path="/admin/flights/pricing"      element={<FlightPricingAdmin />} />
-<Route path="/hotels/search"      element={<HotelSearch />} />
-<Route path="/hotels/results"     element={<HotelListPage />} />
-<Route path="/hotels/reservation" element={<HotelReservation />} />
+     
+
 </Routes>
       
     </Router>

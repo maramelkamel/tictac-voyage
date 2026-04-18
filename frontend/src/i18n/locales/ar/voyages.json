@@ -30,6 +30,13 @@
     "rating": "{{score}} ({{count}} تقييم)",
     "duration": "{{value}}",
     "departure": "انطلاق {{city}}",
+<<<<<<< ours
     "places": "{{count}} مكان متبقٍ"
   }
 }
+=======
+    "places": "{{count}} مكان متبقٍ",
+    "places_plural": "{{count}} أماكن متبقية"
+  }
+}
+>>>>>>> theirs

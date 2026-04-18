@@ -55,8 +55,8 @@ const PriceEditModal = ({ hotel, onSave, onClose }) => {
     finally { setSaving(false); }
   };
 
-  const originalEUR = parseFloat(hotel._original_amount || 0);
-  const margin      = originalEUR > 0 ? (((currentTND / (originalEUR * 3.38)) - 1) * 100).toFixed(1) : '10.0';
+  const original = parseFloat(hotel._original_amount || 0);
+  const delta = original > 0 ? (currentTND - original).toFixed(2) : '0.00';
 
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:9999,
@@ -86,12 +86,12 @@ const PriceEditModal = ({ hotel, onSave, onClose }) => {
             <div style={{ fontSize:18, fontWeight:800, color:'#0a2832' }}>
               {fmtPrice(hotel._original_amount, hotel._original_currency||'EUR')}
             </div>
-            <div style={{ fontSize:11, color:'#64748b', marginTop:2 }}>Source Hotelbeds</div>
+            <div style={{ fontSize:11, color:'#64748b', marginTop:2 }}>Source OSM (prix estimé)</div>
           </div>
           <div style={{ background:'#f0fdf4', borderRadius:12, padding:'14px 16px' }}>
             <div style={{ fontSize:11, fontWeight:700, color:'#16a34a', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>Prix actuel (TND)</div>
             <div style={{ fontSize:18, fontWeight:800, color:'#0a2832' }}>{fmtPrice(hotel.total_amount, 'TND')}</div>
-            <div style={{ fontSize:11, color:'#64748b', marginTop:2 }}>Marge auto : +{margin}%</div>
+            <div style={{ fontSize:11, color:'#64748b', marginTop:2 }}>Écart : {delta} TND</div>
           </div>
         </div>
 
@@ -122,7 +122,7 @@ const PriceEditModal = ({ hotel, onSave, onClose }) => {
 
         <div style={{ background:'#fff8e1', border:'1px solid #fde68a', borderRadius:8,
           padding:'10px 12px', fontSize:12, color:'#92400e', marginBottom:20 }}>
-          ⚠️ Le prix original Hotelbeds est conservé pour la facturation. Seul le prix affiché client change.
+          ⚠️ Prix issu de sources publiques (OSM/Wikimedia). Les montants affichés sont des estimations.
         </div>
 
         <div style={{ display:'flex', gap:10 }}>
@@ -219,7 +219,7 @@ const HotelPricingAdmin = () => {
             <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
           </svg>
           <div style={{ fontSize:13, color:'#1e40af' }}>
-            Le <strong>prix original</strong> vient de l'API Hotelbeds et ne change jamais.
+            Le <strong>prix original</strong> est une estimation calculée depuis des sources publiques (OSM/Wikimedia).
             Le <strong>prix actuel</strong> inclut +10% de marge agence automatiquement.
             Vous pouvez le remplacer manuellement — le prix original reste utilisé pour la facturation.
           </div>
@@ -337,7 +337,7 @@ const HotelPricingAdmin = () => {
                     <div style={{ fontWeight:700, fontSize:14, color:'#0a2832' }}>
                       {fmtPrice(hotel._original_amount, hotel._original_currency||'EUR')}
                     </div>
-                    <div style={{ fontSize:10, color:'#94a3b8', marginTop:2 }}>Source Hotelbeds</div>
+                    <div style={{ fontSize:10, color:'#94a3b8', marginTop:2 }}>Source OSM (prix estimé)</div>
                   </div>
 
                   {/* Col 3 */}
