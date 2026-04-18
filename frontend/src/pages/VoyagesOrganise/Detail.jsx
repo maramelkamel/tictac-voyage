@@ -6,6 +6,9 @@ import Navbar from  '../../components/Navbar';
 import Footer from '../../components/Footer';
 import '../../styles/detail.css';
 
+// Construit une galerie mixte :
+// - image principale provenant des données du voyage
+// - images d'appoint générées depuis Unsplash pour enrichir visuellement la page détail
 const buildGallery = (mainImage, destination) => {
   const queries = [
     `${destination} travel landscape`, `${destination} architecture`,
@@ -24,6 +27,8 @@ const Details = () => {
   const { t }      = useTranslation('destinations');
   const [lightbox, setLightbox] = useState(null);
 
+  // Si l'utilisateur arrive sur la page sans state React Router,
+  // on affiche un fallback simple au lieu de casser le rendu.
   if (!state?.voyage) {
     return (
       <div className="detail-page">
@@ -41,13 +46,18 @@ const Details = () => {
     );
   }
 
+  // Les données voyage sont injectées depuis la page liste/détail précédente,
+  // ce qui évite ici un nouvel appel backend.
   const { titre, destination, pays, image, prix, duree, rating=4.8, avis=124, description, depart,
     programme=[], inclus=[], nonInclus=[], places, badge } = state.voyage;
   const gallery = buildGallery(image, destination || pays);
 
+  // Action principale de la page détail :
+  // envoyer l'utilisateur vers le formulaire de réservation avec le voyage courant.
   const handleReserver = () =>
     navigate(`/VoyagesOrganise/Reserver/${id}`, { state: { voyage: state.voyage } });
 
+  // Navigation de la lightbox locale pour parcourir la galerie.
   const prevPhoto = () => setLightbox(i => (i - 1 + gallery.length) % gallery.length);
   const nextPhoto = () => setLightbox(i => (i + 1) % gallery.length);
 
@@ -55,6 +65,7 @@ const Details = () => {
     <div className="detail-page">
       <Navbar />
 
+      {/* Hero de détail : résumé visuel + méta-informations importantes du séjour. */}
       <section className="detail-hero">
         <img src={image} alt={titre} className="detail-hero__img" />
         <div className="detail-hero__overlay" />
@@ -83,6 +94,7 @@ const Details = () => {
         </div>
       </section>
 
+      {/* Bloc de synthèse rapide pour les informations clés du voyage. */}
       <div className="detail-stats">
         <div className="container">
           <div className="detail-stats__grid">
@@ -101,6 +113,7 @@ const Details = () => {
         </div>
       </div>
 
+      {/* Corps de page : description, programme, galerie, inclus/non inclus, sidebar prix. */}
       <div className="detail-body">
         <div className="container">
           <div className="detail-layout">
@@ -192,6 +205,7 @@ const Details = () => {
         </div>
       </div>
 
+      {/* Lightbox plein écran pour consulter les photos une par une. */}
       {lightbox !== null && (
         <div className="detail-lightbox" onClick={() => setLightbox(null)}>
           <button className="detail-lb-close" onClick={e => { e.stopPropagation(); setLightbox(null); }}>✕</button>

@@ -18,6 +18,8 @@ const Payment = () => {
   const [loading,   setLoading]   = useState(false);
   const [apiError,  setApiError]  = useState('');
 
+  // Si l'utilisateur recharge la page sans state de navigation,
+  // on ne tente pas de payer avec des données incomplètes.
   if (!state?.voyage || !state?.booking) {
     return (
       <div className="payment-page">
@@ -38,7 +40,8 @@ const Payment = () => {
   const { titre, image, pays, destination, prix, duree, depart } = voyage;
   const personnes = parseInt(booking.personnes || 1, 10);
 
-  // ── POST reservation to backend ───────────────────────────────
+  // Cette fonction représente le vrai pont front -> back du module :
+  // elle enregistre en base la réservation confirmée, avec le mode de paiement choisi.
   const saveReservation = async (paymentMethod) => {
     const payload = {
       voyage_id:         voyage.id || null,
@@ -58,6 +61,8 @@ const Payment = () => {
     return json.data;
   };
 
+  // Mise en forme locale des champs carte.
+  // Ici, on améliore uniquement la saisie visuelle côté frontend.
   const handleCardChange = (e) => {
     const { name, value } = e.target;
     let v = value;
@@ -67,6 +72,8 @@ const Payment = () => {
     setCardForm({ ...cardForm, [name]: v });
   };
 
+  // Parcours "paiement en ligne" :
+  // validation HTML simple, enregistrement backend, puis écran de succès.
   const handleOnlineSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); setApiError('');
@@ -77,6 +84,8 @@ const Payment = () => {
     finally       { setLoading(false); }
   };
 
+  // Parcours "paiement à l'agence" :
+  // on réserve maintenant, puis le règlement réel se fait plus tard en agence.
   const handleAgencyConfirm = async () => {
     setLoading(true); setApiError('');
     try {
@@ -86,7 +95,7 @@ const Payment = () => {
     finally       { setLoading(false); }
   };
 
-  // ── SUCCESS ───────────────────────────────────────────────────
+  // Écran final de confirmation affiché après enregistrement réussi.
   if (submitted) {
     return (
       <div className="payment-page">
@@ -121,7 +130,7 @@ const Payment = () => {
     <div className="payment-page">
       <Navbar />
 
-      {/* Hero bar */}
+      {/* Barre d'étapes pour visualiser la progression du tunnel de réservation. */}
       <div className="payment-hero">
         <div className="container">
           <div className="payment-breadcrumb">
@@ -153,13 +162,13 @@ const Payment = () => {
         </div>
       </div>
 
-      {/* Body */}
+      {/* Corps principal : choix de méthode, formulaire carte ou confirmation agence. */}
       <div className="payment-body">
         <div className="container">
           <div className="payment-layout">
 
             <div>
-              {/* Total banner */}
+              {/* Encadré synthétique du montant calculé à partir des données précédentes. */}
               <div className="payment-total-banner">
                 <div>
                   <div className="payment-total-banner__label">Montant total à régler</div>
@@ -169,14 +178,14 @@ const Payment = () => {
                 <div className="payment-total-banner__badge">🔒 Paiement sécurisé</div>
               </div>
 
-              {/* API error */}
+              {/* Erreur backend/API renvoyée au frontend de manière lisible. */}
               {apiError && (
                 <div style={{ margin: '0 0 16px', padding: '12px 16px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 10, fontSize: 13, color: '#991b1b', fontWeight: 600 }}>
                   ❌ {apiError}
                 </div>
               )}
 
-              {/* Method selection */}
+              {/* L'utilisateur choisit ici son scénario métier de paiement. */}
               <div className="payment-card">
                 <h3 className="payment-card__title">Choisissez votre mode de paiement</h3>
                 <p className="payment-card__subtitle">Sélectionnez l'option qui vous convient le mieux.</p>
@@ -196,7 +205,7 @@ const Payment = () => {
                 </div>
               </div>
 
-              {/* Online form */}
+              {/* Formulaire simulant les données de paiement carte côté interface. */}
               {method === 'online' && (
                 <div className="payment-card">
                   <h3 className="payment-card__title">💳 Informations de paiement</h3>
@@ -259,7 +268,7 @@ const Payment = () => {
                 </div>
               )}
 
-              {/* Agency */}
+              {/* Paiement différé en agence avec coordonnées et carte de localisation. */}
               {method === 'agency' && (
                 <div className="payment-card payment-card--pink">
                   <h3 className="payment-card__title">🏪 Nos coordonnées</h3>
@@ -287,7 +296,7 @@ const Payment = () => {
               )}
             </div>
 
-            {/* Sidebar */}
+            {/* Sidebar : récapitulatif du voyage sélectionné et du prix final. */}
             <aside className="payment-sidebar">
               <div className="payment-trip-card">
                 <img src={image} alt={titre} className="payment-trip-card__img" />

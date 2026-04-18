@@ -1,7 +1,9 @@
 // backend/controllers/voyageOrganiseController.js
 const model = require('../models/voyageOrganiseModel');
 
-/* GET /api/voyages-organises          → public: active only (?public=true) or admin: all */
+/* GET /api/voyages-organises
+   - public=true  : catalogue visible côté client
+   - sans query   : vue plus large utilisée par l'admin */
 const getAll = async (req, res) => {
   try {
     const publicOnly = req.query.public === 'true';
@@ -15,7 +17,8 @@ const getAll = async (req, res) => {
   }
 };
 
-/* GET /api/voyages-organises/:id */
+/* GET /api/voyages-organises/:id
+   Retourne le détail d'un voyage précis. */
 const getOne = async (req, res) => {
   try {
     const voyage = await model.getVoyageById(req.params.id);
@@ -27,7 +30,8 @@ const getOne = async (req, res) => {
   }
 };
 
-/* POST /api/voyages-organises */
+/* POST /api/voyages-organises
+   Création d'un voyage par l'interface d'administration. */
 const create = async (req, res) => {
   try {
     const { title, price, duration } = req.body;
@@ -41,7 +45,8 @@ const create = async (req, res) => {
   }
 };
 
-/* PUT /api/voyages-organises/:id */
+/* PUT /api/voyages-organises/:id
+   Mise à jour complète d'un voyage existant. */
 const update = async (req, res) => {
   try {
     const { title, price, duration } = req.body;
@@ -56,7 +61,8 @@ const update = async (req, res) => {
   }
 };
 
-/* DELETE /api/voyages-organises/:id */
+/* DELETE /api/voyages-organises/:id
+   Suppression d'un voyage du catalogue. */
 const remove = async (req, res) => {
   try {
     const deleted = await model.deleteVoyage(req.params.id);

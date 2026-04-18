@@ -9,10 +9,13 @@ const Reserver = () => {
   const navigate   = useNavigate();
   const { id }     = useParams();
 
-  // ── Pre-fill from logged-in client ───────────────────────────
+  // Pré-remplissage depuis le client connecté :
+  // cela améliore l'expérience en évitant de ressaisir nom, email et téléphone.
   const clientData  = (() => { try { return JSON.parse(localStorage.getItem('client') || '{}'); } catch { return {}; } })();
   const clientEmail = clientData?.email || '';
 
+  // État du formulaire de réservation.
+  // Il sera transmis à l'étape paiement via React Router state.
   const [form, setForm] = useState({
     prenom:    clientData?.firstName  || clientData?.first_name  || '',
     nom:       clientData?.lastName   || clientData?.last_name   || '',
@@ -25,6 +28,7 @@ const Reserver = () => {
 
   const [loading, setLoading] = useState(false);
 
+  // Protection de navigation si la page est ouverte sans voyage sélectionné.
   if (!state?.voyage) {
     return (
       <div>
@@ -42,10 +46,13 @@ const Reserver = () => {
     );
   }
 
+  // Données récapitulatives utilisées pour la vue et pour le calcul local du total.
   const { titre, image, pays, destination, prix, duree, depart, places } = state.voyage;
   const totalPrix = prix * parseInt(form.personnes || 1, 10);
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
+  // Cette étape ne persiste rien en base.
+  // Elle prépare seulement les données et les transmet à la page Payment.
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
@@ -77,7 +84,7 @@ const Reserver = () => {
             <span>Réservation</span>
           </div>
 
-          {/* Logged-in notice */}
+          {/* Message informatif affiché si l'utilisateur a un compte déjà connecté. */}
           {clientEmail && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px', background: '#e0fbfc', border: '1px solid #a5f3fc', borderRadius: 12, marginBottom: 20 }}>
               <i className="fas fa-user-check" style={{ color: '#0e7490', fontSize: 14 }} />
@@ -89,7 +96,7 @@ const Reserver = () => {
 
           <div className="omra-reserve__layout">
 
-            {/* Left: form */}
+            {/* Partie gauche : saisie de la réservation. */}
             <div>
               <div className="omra-reserve__form-card">
                 <div className="omra-reserve__form-header">
@@ -99,7 +106,7 @@ const Reserver = () => {
 
                 <form className="omra-reserve__form-body" onSubmit={handleSubmit}>
 
-                  {/* Name row */}
+                  {/* Identité du client. */}
                   <div className="omra-reserve__form-row">
                     <div className="omra-reserve__field">
                       <label htmlFor="prenom">Prénom *</label>
@@ -113,7 +120,7 @@ const Reserver = () => {
                     </div>
                   </div>
 
-                  {/* Contact row */}
+                  {/* Coordonnées pour le suivi et la confirmation. */}
                   <div className="omra-reserve__form-row">
                     <div className="omra-reserve__field">
                       <label htmlFor="email">
@@ -143,7 +150,7 @@ const Reserver = () => {
                     </div>
                   </div>
 
-                  {/* Voyageurs row */}
+                  {/* Paramètres métiers de la réservation. */}
                   <div className="omra-reserve__form-row">
                     <div className="omra-reserve__field">
                       <label htmlFor="personnes">Nombre de voyageurs</label>
@@ -161,7 +168,7 @@ const Reserver = () => {
                     </div>
                   </div>
 
-                  {/* Notes */}
+                  {/* Champ libre pour besoins particuliers ou préférences. */}
                   <div className="omra-reserve__field">
                     <label htmlFor="notes">Demandes spéciales</label>
                     <textarea id="notes" name="notes" rows={3}
@@ -180,7 +187,7 @@ const Reserver = () => {
               </div>
             </div>
 
-            {/* Right: sticky summary */}
+            {/* Partie droite : récapitulatif sticky du voyage et du prix estimé. */}
             <aside style={{ position: 'sticky', top: 110 }}>
               <div className="omra-reserve__pkg-card">
                 <img src={image} alt={titre} className="omra-reserve__pkg-img" />

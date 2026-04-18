@@ -1,0 +1,826 @@
+VOYAGE ORGANISE EXPLICATION
+
+1. OBJECTIF DU MODULE
+
+Le module "voyage organise" permet a un visiteur ou a un client connecte :
+- de consulter la liste des voyages organises disponibles
+- de filtrer et trier les voyages
+- d'ouvrir la page detail d'un voyage
+- de remplir un formulaire de reservation
+- de choisir un mode de paiement
+- d'enregistrer la reservation dans la base de donnees
+
+Ce module est separe en deux grandes parties :
+- frontend : affichage, navigation, experience utilisateur
+- backend : routes API, validation, acces base de donnees, suivi des reservations
+
+
+2. OUTILS ET PACKAGES UTILISES
+
+FRONTEND
+- React : construit les pages et les composants du module
+- react-router-dom : permet la navigation entre liste, detail, reservation et paiement
+- fetch : envoie les requetes HTTP vers le backend
+- localStorage : recupere les informations du client connecte pour pre-remplir le formulaire
+
+BACKEND
+- Node.js : environnement d'execution du serveur
+- Express : expose les routes API du module
+- pg / PostgreSQL : execute les requetes SQL et stocke les voyages + reservations
+- Nodemailer : envoie les emails quand le statut d'une reservation change
+
+
+3. FICHIERS DU MODULE
+
+FRONTEND
+- frontend/src/pages/VoyagesOrganise/VoyagesOrganise.jsx
+  Liste publique des voyages organises
+
+- frontend/src/pages/VoyagesOrganise/Detail.jsx
+  Detail d'un voyage choisi
+
+- frontend/src/pages/VoyagesOrganise/Reserver.jsx
+  Formulaire de reservation
+
+- frontend/src/pages/VoyagesOrganise/Payment.jsx
+  Choix du mode de paiement et enregistrement final de la reservation
+
+BACKEND
+- backend/routes/voyageOrganiseRoutes.js
+  Routes CRUD du catalogue de voyages
+
+- backend/controllers/voyageOrganiseController.js
+  Logique applicative des voyages
+
+- backend/models/voyageOrganiseModel.js
+  Requetes SQL liees aux voyages organises
+
+- backend/routes/voyageReservationRoutes.js
+  Routes des reservations
+
+- backend/controllers/voyageReservationController.js
+  Logique applicative des reservations
+
+- backend/models/voyageReservationModel.js
+  Requetes SQL liees aux reservations
+
+
+4. PROCESSUS COMPLET DE 0 A LA FIN
+
+ETAPE 1 : AFFICHAGE DE LA LISTE DES VOYAGES
+
+Fichier principal :
+- frontend/src/pages/VoyagesOrganise/VoyagesOrganise.jsx
+
+Ce que fait la page :
+- au chargement, elle appelle l'API publique :
+  GET /api/voyages-organises?public=true
+- elle recupere la liste des voyages actifs depuis la base
+- elle normalise les donnees pour les adapter au composant VoyageCard
+- elle affiche les promotions, les filtres, le tri et les cartes
+
+Important :
+- les filtres de recherche sont geres cote frontend apres chargement de la liste
+- useMemo est utilise pour recalculer la liste finale affichee
+
+
+ETAPE 2 : OUVERTURE DE LA PAGE DETAIL
+
+Fichier :
+- frontend/src/pages/VoyagesOrganise/Detail.jsx
+
+Quand l'utilisateur clique sur "details" :
+- la page liste utilise navigate()
+- l'objet voyage est passe dans state via react-router-dom
+
+La page detail :
+- lit state.voyage
+- affiche les informations principales
+- construit une galerie
+- affiche le programme, les inclus, les non inclus et le bloc prix
+
+Pourquoi cette approche :
+- elle evite un nouvel appel API juste pour afficher le detail
+- elle garde une navigation fluide
+
+
+ETAPE 3 : FORMULAIRE DE RESERVATION
+
+Fichier :
+- frontend/src/pages/VoyagesOrganise/Reserver.jsx
+
+Role :
+- collecter les informations du client
+- pre-remplir nom, prenom, email, telephone si le client est connecte
+- calculer un total estime selon le nombre de voyageurs
+- transmettre les informations a la page paiement
+
+Important :
+- a cette etape, aucune reservation n'est encore ecrite en base
+- les donnees sont seulement preparees cote frontend
+
+Donnees collectees :
+- prenom
+- nom
+- email
+- telephone
+- nombre de voyageurs
+- type de chambre
+- notes
+
+
+ETAPE 4 : CHOIX DU PAIEMENT ET ENREGISTREMENT FINAL
+
+Fichier :
+- frontend/src/pages/VoyagesOrganise/Payment.jsx
+
+Cette page recoit :
+- le voyage choisi
+- les informations du formulaire
+- le prix total estime
+
+Deux cas metier existent :
+
+1. Paiement en ligne
+- l'utilisateur remplit une interface de carte
+- la page appelle saveReservation("online")
+- une requete POST est envoyee a :
+  /api/voyage-reservations
+
+2. Paiement a l'agence
+- l'utilisateur confirme qu'il paiera plus tard en agence
+- la page appelle saveReservation("agency")
+- une requete POST est envoyee au meme endpoint
+
+Important :
+- dans les deux cas, la reservation est enregistree en base
+- le vrai mode de paiement choisi est stocke dans payment_method
+
+
+5. FLUX BACKEND DES VOYAGES
+
+ROUTES
+- backend/routes/voyageOrganiseRoutes.js
+
+Routes disponibles :
+- GET /api/voyages-organises
+- GET /api/voyages-organises/:id
+- POST /api/voyages-organises
+- PUT /api/voyages-organises/:id
+- DELETE /api/voyages-organises/:id
+
+CONTROLLER
+- backend/controllers/voyageOrganiseController.js
+
+Role du controller :
+- lire les parametres de la requete
+- faire les validations minimales
+- appeler la bonne fonction du model
+- construire la reponse JSON
+
+MODEL
+- backend/models/voyageOrganiseModel.js
+
+Role du model :
+- executer les requetes SQL
+- retourner les lignes de la base
+
+Point important :
+- BASE_QUERY calcule reservation_count
+- BASE_QUERY calcule aussi available_spots
+- available_spots depend des reservations confirmees
+
+
+6. FLUX BACKEND DES RESERVATIONS
+
+ROUTES
+- backend/routes/voyageReservationRoutes.js
+
+Routes disponibles :
+- GET /api/voyage-reservations
+- GET /api/voyage-reservations/stats
+- GET /api/voyage-reservations/:id
+- POST /api/voyage-reservations
+- PATCH /api/voyage-reservations/:id/status
+- DELETE /api/voyage-reservations/:id
+
+CONTROLLER
+- backend/controllers/voyageReservationController.js
+
+Role du controller :
+- verifier les champs obligatoires
+- verifier que payment_method est valide
+- creer la reservation
+- mettre a jour le statut
+- declencher un email si le statut devient confirmed, cancelled ou completed
+
+MODEL
+- backend/models/voyageReservationModel.js
+
+Role du model :
+- inserer la reservation dans public.voyage_reservations
+- recuperer les reservations avec jointure vers le voyage
+- produire les statistiques admin
+
+
+7. DONNEES ENREGISTREES EN BASE
+
+Quand l'utilisateur confirme sur la page Payment, on enregistre :
+- voyage_id
+- first_name
+- last_name
+- email
+- phone
+- chambre_type
+- number_of_persons
+- total_price
+- payment_method
+- notes
+
+Important :
+- le systeme enregistre la reservation, pas une offre temporaire
+- cela permet de suivre le client, son statut et le mode de paiement choisi
+
+
+8. ROLE DE CHAQUE ETAPE METIER
+
+VoyagesOrganise.jsx
+- afficher et filtrer l'offre publique
+
+Detail.jsx
+- convaincre l'utilisateur avec les details du sejour
+
+Reserver.jsx
+- collecter les informations necessaires a la reservation
+
+Payment.jsx
+- finaliser le choix de paiement
+- enregistrer la reservation dans la base
+
+voyageOrganiseController.js / voyageOrganiseModel.js
+- gerer le catalogue des voyages
+
+voyageReservationController.js / voyageReservationModel.js
+- gerer le cycle de vie des reservations
+
+
+9. LOGIQUE GLOBALE DU PARCOURS UTILISATEUR
+
+1. L'utilisateur consulte la liste des voyages
+2. Il filtre ou trie les voyages
+3. Il ouvre la page detail d'un voyage
+4. Il clique sur reserver
+5. Il remplit le formulaire
+6. Il passe a l'etape paiement
+7. Il choisit paiement en ligne ou paiement a l'agence
+8. Le frontend appelle le backend
+9. Le backend valide et enregistre la reservation
+10. Le frontend affiche l'ecran de succes
+
+
+10. POURQUOI DES COMMENTAIRES DANS LE CODE
+
+Les commentaires ajoutes dans les fichiers du module ont pour objectif :
+- d'expliquer le role de chaque bloc
+- de rendre le code plus simple a comprendre pour un enseignant ou un encadrant
+- de faciliter la maintenance future
+- de documenter le flux fonctionnel sans modifier la logique existante
+
+
+11. RESUME
+
+Le module "voyage organise" suit une architecture classique mais propre :
+- frontend pour l'affichage et la navigation
+- backend pour la logique metier et la persistence
+- base de donnees pour stocker les voyages et les reservations
+
+Le frontend gere l'experience utilisateur de bout en bout, tandis que le backend assure :
+- la validation
+- l'enregistrement
+- la mise a jour des statuts
+- la communication avec la base
+
+Ainsi, le module permet de passer d'une simple consultation de voyages a une reservation complete et traçable.
+
+
+Le module VoyagesOrganise suit ce parcours :
+
+VoyagesOrganise.jsx
+Affiche la liste des voyages organisés
+
+Detail.jsx
+Affiche le détail d’un voyage
+
+Reserver.jsx
+Récupère les informations du client
+
+Payment.jsx
+Finalise la réservation et l’enregistre dans la base
+
+backend/routes + controllers + models
+Gèrent les API et l’accès PostgreSQL
+
+1. Frontend : liste des voyages
+Fichier :
+VoyagesOrganise.jsx
+
+Fonctions importantes :
+
+normalize(v)
+Rôle :
+transforme une ligne brute venant du backend en objet exploitable par l’interface.
+
+Exemple :
+
+title devient titre
+image_url devient image
+price devient prix
+available_spots devient places
+Pourquoi c’est utile :
+le backend renvoie une structure base de données, alors que les composants frontend ont besoin d’une structure plus simple et plus lisible.
+
+useEffect(() => { fetchVoyages() }, [])
+Rôle :
+charge les voyages au démarrage de la page.
+
+Ce qu’il fait :
+
+appelle GET /api/voyages-organises?public=true
+récupère j.data
+applique normalize sur chaque voyage
+stocke le résultat dans voyages
+clearFilters()
+Rôle :
+remet à zéro les filtres avancés.
+
+clearSearch()
+Rôle :
+vide les champs de recherche :
+
+destination
+date
+personnes
+durée
+useMemo(...) avec displayed
+Rôle :
+calcule la liste finale affichée.
+
+Il applique :
+
+filtre destination
+filtre nombre de personnes
+filtre durée
+filtre date de départ
+filtre catégorie
+filtres avancés
+tri final
+Pourquoi useMemo :
+pour éviter de recalculer toute la liste à chaque rendu si rien n’a changé.
+
+handleDetails(voyage)
+Rôle :
+ouvre la page détail du voyage.
+
+Navigation :
+/VoyagesOrganise/Detail/:id
+
+handleReserver(voyage)
+Rôle :
+envoie l’utilisateur vers la réservation directe.
+
+2. Frontend : détail d’un voyage
+Fichier :
+Detail.jsx
+
+Fonctions importantes :
+
+buildGallery(mainImage, destination)
+Rôle :
+fabrique une galerie d’images autour du voyage.
+
+Ce qu’elle fait :
+
+garde l’image principale du voyage
+ajoute des images externes basées sur la destination
+handleReserver()
+Rôle :
+redirige vers la page réservation avec le voyage courant.
+
+prevPhoto() et nextPhoto()
+Rôle :
+naviguent dans la lightbox photo.
+
+Logique importante :
+
+la page utilise state.voyage venant de React Router
+donc elle n’a pas besoin de refaire un fetch backend
+si state.voyage n’existe pas, elle affiche “Voyage introuvable”
+Cela veut dire :
+
+la page dépend du flux de navigation précédent
+elle n’est pas basée ici sur un chargement autonome par id
+3. Frontend : formulaire de réservation
+Fichier :
+Reserver.jsx
+
+Rôle global :
+collecter les informations nécessaires avant le paiement.
+
+Variables importantes :
+
+clientData
+Rôle :
+lit les données du client connecté depuis localStorage
+
+clientEmail
+Rôle :
+récupère l’email du compte connecté
+
+form
+Rôle :
+contient les champs du formulaire :
+
+prenom
+nom
+email
+telephone
+personnes
+chambre
+notes
+Fonctions importantes :
+
+handleChange(e)
+Rôle :
+met à jour le champ modifié dans form
+
+handleSubmit(e)
+Rôle :
+ne sauvegarde pas encore en base
+mais prépare le passage vers Payment.jsx
+
+Ce qu’elle fait :
+
+bloque le submit HTML
+active un petit chargement
+calcule le total
+navigue vers /VoyagesOrganise/Payment/:id
+transmet :
+voyage
+booking
+totalPrix
+Point très important :
+
+dans Reserver.jsx, rien n’est enregistré en base
+
+c’est juste une étape de préparation
+
+totalPrix
+Rôle :
+calcule le prix total estimé :
+prix * nombre_de_personnes
+
+4. Frontend : paiement et enregistrement
+Fichier :
+Payment.jsx
+
+C’est la page la plus importante du flux métier.
+
+Variables importantes :
+
+method
+contient le mode de paiement :
+
+online
+agency
+cardType
+type de carte choisi
+
+cardForm
+contient les champs carte :
+
+numéro
+nom
+expiration
+cvv
+adresse
+submitted
+indique si la réservation a réussi
+
+apiError
+contient l’erreur backend si l’API échoue
+
+Fonctions importantes :
+
+saveReservation(paymentMethod)
+Rôle :
+c’est la fonction clé du module côté frontend.
+
+Ce qu’elle fait :
+
+construit payload
+envoie un POST à :
+http://localhost:5000/api/voyage-reservations
+vérifie json.success
+retourne la réservation créée
+Données envoyées :
+
+voyage_id
+first_name
+last_name
+email
+phone
+chambre_type
+number_of_persons
+total_price
+payment_method
+notes
+handleCardChange(e)
+Rôle :
+formate les champs carte côté interface.
+
+Exemple :
+
+ajoute des espaces au numéro
+transforme MMYY en MM/YY
+limite le cvv
+Important :
+c’est de la mise en forme UI, pas un vrai paiement bancaire réel.
+
+handleOnlineSubmit(e)
+Rôle :
+confirme une réservation avec paiement en ligne.
+
+Ce qu’elle fait :
+
+appelle saveReservation('online')
+si succès : submitted = true
+sinon : affiche l’erreur
+handleAgencyConfirm()
+Rôle :
+confirme une réservation avec paiement à l’agence.
+
+Ce qu’elle fait :
+
+appelle saveReservation('agency')
+si succès : écran de confirmation
+Important :
+
+dans les deux cas, la réservation est enregistrée en base
+seul payment_method change
+5. Backend : routes des voyages
+Fichier :
+voyageOrganiseRoutes.js
+
+Routes :
+
+GET /api/voyages-organises
+POST /api/voyages-organises
+GET /api/voyages-organises/:id
+PUT /api/voyages-organises/:id
+DELETE /api/voyages-organises/:id
+Rôle :
+faire le lien entre Express et le controller.
+
+6. Backend : controller des voyages
+Fichier :
+voyageOrganiseController.js
+
+Fonctions :
+
+getAll(req, res)
+Rôle :
+retourne tous les voyages ou seulement les actifs.
+
+Logique :
+
+si req.query.public === 'true'
+alors model.getActiveVoyages()
+sinon
+model.getAllVoyages()
+getOne(req, res)
+Rôle :
+retourne un voyage précis par id
+
+create(req, res)
+Rôle :
+crée un voyage côté admin
+
+Vérifie :
+
+title
+price
+duration
+update(req, res)
+Rôle :
+modifie un voyage existant
+
+remove(req, res)
+Rôle :
+supprime un voyage
+
+Le controller :
+
+valide
+appelle le model
+construit la réponse JSON
+7. Backend : model des voyages
+Fichier :
+voyageOrganiseModel.js
+
+Élément central :
+
+BASE_QUERY
+Rôle :
+requête commune utilisée pour les voyages.
+
+Elle calcule :
+
+reservation_count
+available_spots
+Très important :
+available_spots est calculé avec :
+
+v.spots
+moins le nombre de réservations confirmed
+Donc :
+
+les places disponibles sont calculées dynamiquement
+elles ne sont pas juste stockées en dur
+Fonctions :
+
+getAllVoyages()
+retourne tous les voyages
+
+getActiveVoyages()
+retourne seulement les voyages actifs
+
+getVoyageById(id)
+retourne un voyage unique
+
+createVoyage(data)
+insère un voyage en base
+
+updateVoyage(id, data)
+met à jour un voyage
+
+deleteVoyage(id)
+supprime un voyage
+
+Détail utile :
+
+programme
+inclus
+non_inclus
+sont stockés en JSON
+8. Backend : routes des réservations
+Fichier :
+voyageReservationRoutes.js
+
+Routes :
+
+GET /api/voyage-reservations/stats
+GET /api/voyage-reservations
+POST /api/voyage-reservations
+GET /api/voyage-reservations/:id
+DELETE /api/voyage-reservations/:id
+PATCH /api/voyage-reservations/:id/status
+9. Backend : controller des réservations
+Fichier :
+voyageReservationController.js
+
+Fonctions :
+
+getAll(req, res)
+Rôle :
+récupère les réservations avec filtres :
+
+statut
+mode de paiement
+email
+getStats(req, res)
+Rôle :
+retourne des statistiques globales
+
+getOne(req, res)
+Rôle :
+retourne une réservation précise
+
+create(req, res)
+Rôle :
+enregistre une réservation en base
+
+Vérifie :
+
+first_name
+last_name
+email
+total_price
+payment_method
+Vérifie aussi que payment_method est dans :
+
+online
+agency
+updateStatus(req, res)
+Rôle :
+modifie le statut métier d’une réservation
+
+Statuts acceptés :
+
+pending
+confirmed
+cancelled
+completed
+En plus :
+si le statut devient important, un email est envoyé via sendReservationStatusEmail
+
+remove(req, res)
+Rôle :
+supprime une réservation
+
+10. Backend : model des réservations
+Fichier :
+voyageReservationModel.js
+
+Fonctions :
+
+getAllReservations(filters)
+Rôle :
+construit dynamiquement la requête SQL selon les filtres
+
+getReservationById(id)
+Rôle :
+charge une réservation avec jointure sur le voyage
+
+createReservation(data)
+Rôle :
+insère la réservation en base
+
+updateStatus(id, status)
+Rôle :
+change le statut et renvoie aussi voyage_title
+
+deleteReservation(id)
+Rôle :
+supprime une réservation
+
+getStats()
+Rôle :
+calcule :
+
+total
+pending
+confirmed
+completed
+cancelled
+online_payments
+agency_payments
+11. Ce qui se passe vraiment de bout en bout
+Flux complet :
+
+VoyagesOrganise.jsx
+charge les voyages depuis l’API
+
+utilisateur clique sur un voyage
+handleDetails() ou handleReserver()
+
+Detail.jsx
+affiche les détails
+
+Reserver.jsx
+collecte les données client
+
+Payment.jsx
+choisit le mode de paiement
+
+saveReservation()
+envoie les données au backend
+
+voyageReservationController.create()
+valide les données
+
+voyageReservationModel.createReservation()
+insère en base PostgreSQL
+
+retour JSON succès
+
+Payment.jsx
+affiche la confirmation
+
+12. Point très important pour votre rapport
+Vous pouvez expliquer que :
+
+le frontend gère :
+
+affichage
+navigation
+saisie utilisateur
+pré-remplissage
+calcul du total estimé
+le backend gère :
+
+validation
+logique métier
+persistance des réservations
+calcul des places disponibles
+statistiques admin
+envoi d’emails de suivi

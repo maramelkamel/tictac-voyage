@@ -1,200 +1,239 @@
-// src/components/HotelCard.jsx
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
-// ── Helpers ────────────────────────────────────────────────────
-const fmtPrice = (amount, currency = 'TND') => {
-  const n = parseFloat(amount || 0);
-  return isNaN(n) ? '—' : n.toLocaleString('fr-FR', { minimumFractionDigits: 2 });
-};
+const HotelCard = ({ hotel, searchParams, onSelect }) => {
+  const navigate = useNavigate();
+  const { t, i18n } = useTranslation('hotels');
+  const locale = i18n.resolvedLanguage === 'en' ? 'en-US' : i18n.resolvedLanguage === 'ar' ? 'ar-TN' : 'fr-FR';
 
-const StarRating = ({ stars, size = 12 }) => (
-  <div style={{ display: 'flex', gap: 2 }}>
-    {[1,2,3,4,5].map(i => (
-      <svg key={i} viewBox="0 0 24 24" width={size} height={size}
-        fill={i <= stars ? '#f59e0b' : 'none'}
-        stroke={i <= stars ? '#f59e0b' : '#d1d5db'} strokeWidth="1.5">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-      </svg>
-    ))}
-  </div>
-);
+  const {
+    id,
+    name = 'Hotel',
+    photos = [],
+    main_image,
+    star_rating = 0,
+    review_score = 0,
+    city = '',
+    country = '',
+    amenities = [],
+    total_amount = 0,
+    total_currency = 'TND',
+  } = hotel;
 
-// ── HotelCard ──────────────────────────────────────────────────
-const HotelCard = ({ hotel, checkIn, checkOut, onSelect }) => {
-  const [imgErr, setImgErr] = useState(false);
-  const price    = parseFloat(hotel.total_amount || 0);
-  const currency = hotel.total_currency || 'TND';
+  const photo = main_image || photos?.[0] || '';
+  const stars = Math.max(0, Math.round(Number(star_rating) || 0));
+  const destination = [city, country].filter(Boolean).join(', ');
+  const price = Number(total_amount || 0);
 
-  const nights = checkIn && checkOut
-    ? Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000)
-    : 1;
-
-  const pricePerNight = nights > 0 ? (price / nights) : price;
+  const handleViewDetails = () => {
+    if (onSelect) onSelect(hotel);
+    navigate(`/hotels/${id}`, {
+      state: { hotel, searchParams },
+    });
+  };
 
   return (
-    <div style={{
-      background:   '#fff',
-      borderRadius: 16,
-      border:       '1px solid #f1f5f9',
-      boxShadow:    '0 2px 12px rgba(0,0,0,0.06)',
-      overflow:     'hidden',
-      display:      'flex',
-      transition:   'box-shadow .2s, transform .2s',
-    }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 24px rgba(0,0,0,0.10)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; e.currentTarget.style.transform = 'none'; }}
-    >
-      {/* Image */}
-      <div style={{ width: 220, minWidth: 220, position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
-        {hotel.main_image && !imgErr ? (
-          <img
-            src={hotel.main_image}
-            alt={hotel.name}
-            onError={() => setImgErr(true)}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          />
+    <div className="hotel-card" onClick={handleViewDetails}>
+      <div className="hotel-card__img-wrap">
+        {photo ? (
+          <img src={photo} alt={name} className="hotel-card__img" />
         ) : (
-          <div style={{ width: '100%', height: '100%', minHeight: 160,
-            background: 'linear-gradient(135deg,#f0f9ff,#e0f2fe)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" width="40" height="40">
-              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
-          </div>
+          <div className="hotel-card__img-placeholder">🏨</div>
         )}
-        {/* Stars overlay */}
-        <div style={{ position: 'absolute', bottom: 8, left: 8,
-          background: 'rgba(0,0,0,0.55)', borderRadius: 8, padding: '4px 8px' }}>
-          <StarRating stars={hotel.stars} />
-        </div>
-        {/* Override badge */}
-        {hotel._price_overridden && (
-          <div style={{ position: 'absolute', top: 8, left: 8,
-            background: '#d97706', color: '#fff', borderRadius: 6,
-            padding: '2px 8px', fontSize: 10, fontWeight: 700 }}>
-            Prix spécial
+        {stars > 0 && (
+          <div className="hotel-card__stars-badge">
+            {'⭐'.repeat(Math.min(stars, 5))}
           </div>
         )}
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0a2832', margin: '0 0 4px',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {hotel.name}
-            </h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 12, color: '#64748b' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                  width="12" height="12" style={{ marginRight: 3, verticalAlign: 'middle' }}>
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                  <circle cx="12" cy="9" r="2.5"/>
-                </svg>
-                {hotel.city || hotel.destination_name}
-              </span>
-              {hotel.category_name && (
-                <span style={{ background: '#f0f9ff', color: '#0369a1', borderRadius: 6,
-                  padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>
-                  {hotel.category_name}
-                </span>
-              )}
-            </div>
-          </div>
+      <div className="hotel-card__body">
+        <div className="hotel-card__name">{name}</div>
 
-          {/* Price */}
-          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 2 }}>
-              {nights > 1 ? `${nights} nuits` : 'par nuit'}
-            </div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--secondary, #e67e22)', lineHeight: 1 }}>
-              {fmtPrice(price, currency)}
-              <span style={{ fontSize: 13, fontWeight: 700, marginLeft: 4 }}>{currency}</span>
-            </div>
-            {nights > 1 && (
-              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
-                ≈ {fmtPrice(pricePerNight)} TND/nuit
-              </div>
-            )}
+        {destination && (
+          <div className="hotel-card__location">
+            <span className="hotel-card__location-icon">📍</span>
+            {destination}
           </div>
-        </div>
-
-        {/* Description excerpt */}
-        {hotel.description && (
-          <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.5, margin: 0,
-            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-            overflow: 'hidden' }}>
-            {hotel.description}
-          </p>
         )}
 
-        {/* Facilities chips */}
-        {hotel.facilities?.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {hotel.facilities.slice(0, 5).map((f, i) => (
-              <span key={i} style={{ fontSize: 11, background: '#f8fafc', border: '1px solid #e2e8f0',
-                borderRadius: 6, padding: '2px 8px', color: '#64748b' }}>
-                {f}
+        {review_score > 0 && (
+          <div className="hotel-card__rating">
+            {t('ratingLabel', { score: review_score })}
+          </div>
+        )}
+
+        {amenities.length > 0 && (
+          <div className="hotel-card__amenities">
+            {amenities.slice(0, 3).map((amenity, index) => (
+              <span key={index} className="hotel-card__amenity-tag">
+                {typeof amenity === 'string' ? amenity : amenity?.description || amenity?.type}
               </span>
             ))}
-            {hotel.facilities.length > 5 && (
-              <span style={{ fontSize: 11, color: '#94a3b8' }}>+{hotel.facilities.length - 5}</span>
+            {amenities.length > 3 && (
+              <span className="hotel-card__amenity-tag hotel-card__amenity-more">
+                +{amenities.length - 3}
+              </span>
             )}
           </div>
         )}
 
-        {/* Footer */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          marginTop: 'auto', paddingTop: 8, borderTop: '1px solid #f1f5f9' }}>
-          <div style={{ display: 'flex', gap: 12 }}>
-            {/* Board */}
-            {hotel.board_name && (
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#16a34a',
-                display: 'flex', alignItems: 'center', gap: 4 }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12">
-                  <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
-                  <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
-                </svg>
-                {hotel.board_name}
-              </span>
-            )}
-            {/* Available rooms */}
-            {hotel.available_rooms > 0 && (
-              <span style={{ fontSize: 12, fontWeight: 600,
-                color: hotel.available_rooms <= 3 ? '#dc2626' : '#64748b',
-                display: 'flex', alignItems: 'center', gap: 4 }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-                </svg>
-                {hotel.available_rooms <= 3
-                  ? `⚡ Plus que ${hotel.available_rooms} chambre${hotel.available_rooms > 1 ? 's' : ''} !`
-                  : `${hotel.available_rooms} chambres`}
-              </span>
+        <div className="hotel-card__footer">
+          <div className="hotel-card__price-block">
+            {price > 0 ? (
+              <>
+                <span className="hotel-card__price">
+                  {price.toLocaleString(locale, { minimumFractionDigits: 0 })}
+                </span>
+                <span className="hotel-card__currency"> {total_currency}</span>
+                <div className="hotel-card__price-label">{t('fromStay')}</div>
+              </>
+            ) : (
+              <span className="hotel-card__price-na">{t('priceUnavailable')}</span>
             )}
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 11, color: '#94a3b8' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                width="10" height="10" style={{ marginRight: 3 }}>
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0110 0v4"/>
-              </svg>
-              Taxes incluses
-            </span>
-            <button onClick={() => onSelect(hotel)}
-              style={{
-                background:   'linear-gradient(135deg, var(--secondary, #e67e22), #d35400)',
-                color:        '#fff', border: 'none', padding: '9px 18px',
-                borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                whiteSpace:   'nowrap',
-              }}>
-              Voir →
-            </button>
-          </div>
+          <button
+            className="hotel-card__cta"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewDetails();
+            }}
+          >
+            {t('viewDetails')}
+          </button>
         </div>
       </div>
+
+      <style>{`
+        .hotel-card {
+          background: var(--white);
+          border-radius: var(--radius-lg);
+          box-shadow: var(--shadow-md);
+          overflow: hidden;
+          cursor: pointer;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          display: flex;
+          flex-direction: column;
+        }
+        .hotel-card:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--shadow-lg);
+        }
+        .hotel-card__img-wrap {
+          position: relative;
+          height: 200px;
+          background: var(--gray-100);
+          overflow: hidden;
+        }
+        .hotel-card__img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+        }
+        .hotel-card:hover .hotel-card__img {
+          transform: scale(1.04);
+        }
+        .hotel-card__img-placeholder {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 3rem;
+          background: var(--gray-50);
+          color: var(--gray-300);
+        }
+        .hotel-card__stars-badge {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: rgba(255,255,255,0.92);
+          border-radius: var(--radius-full);
+          padding: 4px 10px;
+          font-size: 12px;
+          backdrop-filter: blur(4px);
+        }
+        .hotel-card__body {
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          flex: 1;
+        }
+        .hotel-card__name {
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--primary);
+          line-height: 1.3;
+        }
+        .hotel-card__location,
+        .hotel-card__rating {
+          font-size: 13px;
+          color: var(--gray-400);
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .hotel-card__amenities {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+        .hotel-card__amenity-tag {
+          background: var(--gray-50);
+          color: var(--gray-500);
+          font-size: 11px;
+          padding: 3px 8px;
+          border-radius: var(--radius-full);
+          border: 1px solid var(--gray-100);
+        }
+        .hotel-card__amenity-more {
+          background: var(--primary);
+          color: var(--white);
+          border-color: var(--primary);
+        }
+        .hotel-card__footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-top: auto;
+          padding-top: 12px;
+          border-top: 1px solid var(--gray-100);
+          gap: 12px;
+        }
+        .hotel-card__price {
+          font-size: 20px;
+          font-weight: 800;
+          color: var(--primary);
+        }
+        .hotel-card__currency {
+          font-size: 12px;
+          color: var(--gray-400);
+        }
+        .hotel-card__price-label,
+        .hotel-card__price-na {
+          font-size: 12px;
+          color: var(--gray-300);
+        }
+        .hotel-card__cta {
+          background: var(--accent);
+          color: var(--white);
+          border: none;
+          border-radius: var(--radius-full);
+          padding: 9px 18px;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: background 0.18s ease, transform 0.15s ease;
+          white-space: nowrap;
+        }
+        .hotel-card__cta:hover {
+          background: var(--accent-dark);
+          transform: translateY(-1px);
+        }
+      `}</style>
     </div>
   );
 };

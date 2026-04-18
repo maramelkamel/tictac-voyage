@@ -2,6 +2,7 @@
 const pool = require('../config/db');
 
 const getAllReservations = async ({ status, payment_method, email } = {}) => {
+  // Construction dynamique de la requête selon les filtres reçus depuis l'admin.
   let q = `
     SELECT r.*, v.title AS voyage_title, v.pays, v.destination
     FROM public.voyage_reservations r
@@ -18,6 +19,7 @@ const getAllReservations = async ({ status, payment_method, email } = {}) => {
 };
 
 const getReservationById = async (id) => {
+  // Charge la réservation et enrichit la réponse avec des infos du voyage lié.
   const { rows } = await pool.query(`
     SELECT r.*, v.title AS voyage_title, v.pays, v.destination
     FROM public.voyage_reservations r
@@ -28,6 +30,8 @@ const getReservationById = async (id) => {
 };
 
 const createReservation = async (data) => {
+  // Enregistre seulement la réservation confirmée par le client,
+  // pas l'offre affichée à l'écran.
   const { voyage_id, first_name, last_name, email, phone, chambre_type, number_of_persons, total_price, payment_method, notes } = data;
   const { rows } = await pool.query(`
     INSERT INTO public.voyage_reservations
@@ -38,8 +42,8 @@ const createReservation = async (data) => {
   return rows[0];
 };
 
-// ── BUG FIX: scalar subquery so voyage_title is present in the returned row
-//    (plain RETURNING * on an UPDATE has no JOIN, so title was always undefined) ──
+// Mise à jour du statut avec récupération du titre du voyage lié
+// pour alimenter l'email envoyé au client.
 const updateStatus = async (id, status) => {
   const { rows } = await pool.query(`
     UPDATE public.voyage_reservations
@@ -52,6 +56,7 @@ const updateStatus = async (id, status) => {
 };
 
 const deleteReservation = async (id) => {
+  // Suppression d'une réservation.
   const { rows } = await pool.query(
     'DELETE FROM public.voyage_reservations WHERE id=$1 RETURNING id', [id]
   );
@@ -59,6 +64,7 @@ const deleteReservation = async (id) => {
 };
 
 const getStats = async () => {
+  // Agrégats simples pour les compteurs du back-office.
   const { rows } = await pool.query(`
     SELECT
       COUNT(*)::int                                           AS total,

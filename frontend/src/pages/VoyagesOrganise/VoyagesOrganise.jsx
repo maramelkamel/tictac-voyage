@@ -14,7 +14,8 @@ import { FILTERS }           from '../../data/VoyagesOrganiseData';
 
 const API = 'http://localhost:5000/api/voyages-organises?public=true';
 
-// ── DB row → VoyageCard shape ─────────────────────────────────────
+// Transforme la forme brute renvoyée par le backend/SQL
+// vers la forme attendue par les composants UI du module voyage organisé.
 const normalize = (v) => ({
   id:             v.id,
   titre:          v.title,
@@ -47,11 +48,15 @@ const normalize = (v) => ({
 const VoyagesOrganise = () => {
   const navigate = useNavigate();
 
+  // État principal de la page liste :
+  // - voyages : données prêtes à afficher
+  // - loading/error : gestion d'expérience utilisateur pendant le fetch
   const [voyages,  setVoyages]  = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState('');
 
-  // ── Search bar state (4 fields) ──────────────────────────────────
+  // Champs manipulés par la barre de recherche côté frontend.
+  // Ils filtrent localement les voyages déjà récupérés depuis l'API.
   const [search, setSearch] = useState({
     destination: '',
     dateDepart:  '',
@@ -59,7 +64,8 @@ const VoyagesOrganise = () => {
     duree:       '',
   });
 
-  // ── Filter / sort state ──────────────────────────────────────────
+  // États d'affichage supplémentaires :
+  // catégorie active, tri, filtres avancés et pagination locale.
   const [activeFilter,  setFilter]       = useState('Tous');
   const [sortBy,        setSortBy]        = useState('populaire');
   const [showFilters,   setShowFilters]   = useState(false);
@@ -71,7 +77,9 @@ const VoyagesOrganise = () => {
   const { promos } = usePromotions('categorie', 'voyages_internationaux');
   const activeFilterCount = [continent, budget, saison].filter(Boolean).length;
 
-  // ── Fetch voyages ─────────────────────────────────────────────────
+  // Au chargement de la page, on récupère la liste publique des voyages organisés.
+  // Le backend calcule déjà des informations utiles comme reservation_count
+  // et available_spots, puis cette page normalise le résultat pour la carte.
   useEffect(() => {
     const fetchVoyages = async () => {
       try {
@@ -98,11 +106,16 @@ const VoyagesOrganise = () => {
     setVisibleCount(6);
   };
 
-  // ── Main filter + sort pipeline ───────────────────────────────────
+  // Pipeline principal de préparation de l'affichage :
+  // 1. filtrage par recherche
+  // 2. filtrage par onglet/catégorie
+  // 3. filtres avancés
+  // 4. tri final
+  // useMemo évite de recalculer la liste à chaque rendu inutile.
   const displayed = useMemo(() => {
     let filtered = voyages.filter((v) => {
 
-      // 1. DESTINATION — match pays or destination text
+      // 1. DESTINATION : compare la recherche avec le pays et la destination.
       if (search.destination) {
         const q = search.destination.toLowerCase();
         const okPays = v.pays?.toLowerCase().includes(q);
@@ -110,30 +123,30 @@ const VoyagesOrganise = () => {
         if (!okPays && !okDest) return false;
       }
 
-      // 2. PERSONNES — need enough available spots
+      // 2. PERSONNES : vérifie que le voyage a assez de places disponibles.
       if (search.personnes) {
         const needed = parseInt(search.personnes, 10);
         if (!isNaN(needed) && needed > 0 && v.places < needed) return false;
       }
 
-      // 3. DURÉE — exact match in days
+      // 3. DURÉE : filtre exact sur la durée numérique du séjour.
       if (search.duree) {
         const wantDays = parseInt(search.duree, 10);
         if (!isNaN(wantDays) && v.durationDays !== wantDays) return false;
       }
 
-      // 4. À PARTIR DE — show voyages departing on or after the chosen date
-      //    Uses departure_date column (ISO) if available; otherwise skips date filter
+      // 4. DATE DE DÉPART : conserve seulement les départs à partir de la date choisie.
+      // Si departure_date n'existe pas pour une ligne donnée, ce filtre est ignoré.
       if (search.dateDepart && v.departureDate) {
         const chosen  = new Date(search.dateDepart);
         const departs = new Date(v.departureDate);
         if (!isNaN(chosen.getTime()) && !isNaN(departs.getTime()) && departs < chosen) return false;
       }
 
-      // 5. CATEGORY TAB
+      // 5. ONGLET DE CATÉGORIE.
       if (activeFilter !== 'Tous' && v.categorie && v.categorie !== activeFilter) return false;
 
-      // 6. ADVANCED FILTERS
+      // 6. FILTRES AVANCÉS.
       if (continent && v.continent !== continent) return false;
       if (saison && v.saison !== saison && v.saison !== 'toute-annee') return false;
       if (budget && v.budget !== budget) return false;
@@ -158,6 +171,8 @@ const VoyagesOrganise = () => {
   // Active search count badge
   const activeSearchCount = [search.destination, search.dateDepart, search.personnes, search.duree].filter(Boolean).length;
 
+  // Navigation vers les pages suivantes du parcours utilisateur :
+  // liste -> détail -> réservation.
   const handleDetails  = (voyage) => navigate(`/VoyagesOrganise/Detail/${voyage.id}`,   { state: { voyage } });
   const handleReserver = (voyage) => navigate(`/VoyagesOrganise/Reserver/${voyage.id}`, { state: { voyage } });
 
@@ -165,7 +180,7 @@ const VoyagesOrganise = () => {
     <div>
       <Navbar />
 
-      {/* Hero */}
+          {/* Hero : introduit le module et branche la recherche principale. */}
       <section className="omra-hero">
         <div className="omra-hero__bg" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1600&q=80')" }} />
         <div className="omra-hero__pattern" />
@@ -183,7 +198,7 @@ const VoyagesOrganise = () => {
         </div>
       </section>
 
-      {/* Main section */}
+          {/* Zone centrale : promotions, filtres, cartes et pagination. */}
       <section className="omra-section omra-section--gray">
         <div className="container">
           <div className="omra-section__header">
@@ -194,7 +209,7 @@ const VoyagesOrganise = () => {
 
           <PromotionsSection promos={promos} />
 
-          {/* Active search chips */}
+          {/* Badges de recherche active : ils permettent de retirer rapidement un critère. */}
           {activeSearchCount > 0 && (
             <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:16, alignItems:'center' }}>
               <span style={{ fontSize:12, color:'#64748b', fontWeight:600 }}>Recherche active :</span>
@@ -208,7 +223,7 @@ const VoyagesOrganise = () => {
             </div>
           )}
 
-          {/* Category filters */}
+          {/* Filtres métier par catégorie de voyage. */}
           <div className="omra-filters-bar">
             <div className="omra-filters">
               {FILTERS.map((f) => (
@@ -221,7 +236,7 @@ const VoyagesOrganise = () => {
             <p className="omra-filters-count"><strong>{displayed.length}</strong> voyages disponibles</p>
           </div>
 
-          {/* Advanced filters + sort */}
+          {/* Filtres secondaires et tri sans refaire d'appel backend. */}
           <div className="vsm-filters-section" style={{ margin:'0 0 30px', background:'transparent', padding:0 }}>
             <div className="vsm-filters-toolbar" style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:15 }}>
               <button className={`vsm-filters-toggle ${showFilters ? 'open' : ''}`}
@@ -246,7 +261,7 @@ const VoyagesOrganise = () => {
             />
           </div>
 
-          {/* Loading */}
+          {/* État d'attente pendant la récupération initiale des voyages. */}
           {loading && (
             <div style={{ textAlign:'center', padding:'80px 20px' }}>
               <div style={{ width:44, height:44, border:'3px solid #e2e8f0', borderTopColor:'#0F4C5C', borderRadius:'50%', animation:'spin .7s linear infinite', margin:'0 auto 16px' }}/>
@@ -254,14 +269,14 @@ const VoyagesOrganise = () => {
             </div>
           )}
 
-          {/* Error */}
+          {/* Erreur réseau/API affichée proprement à l'utilisateur. */}
           {error && !loading && (
             <div style={{ textAlign:'center', padding:'60px 20px', color:'#e92f64' }}>
               <p style={{ fontSize:16, fontWeight:600 }}>{error}</p>
             </div>
           )}
 
-          {/* Cards */}
+          {/* Rendu final des cartes, gestion du "voir plus" et de l'état vide. */}
           {!loading && !error && (
             <>
               <div className="omra-cards-grid">
@@ -308,7 +323,8 @@ const VoyagesOrganise = () => {
   );
 };
 
-// ── Small chip component for active search display ────────────────
+// Petit composant de présentation utilisé uniquement pour afficher
+// les critères de recherche actifs sous forme de badges supprimables.
 const Chip = ({ label, onClear }) => (
   <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:999, background:'#e0fbfc', color:'#0e7490', fontSize:12, fontWeight:600 }}>
     {label}

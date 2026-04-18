@@ -1,6 +1,10 @@
 // backend/models/voyageOrganiseModel.js
 const pool = require('../config/db');
 
+// Requête de base partagée :
+// - récupère les champs du voyage
+// - compte le volume de réservations
+// - calcule les places encore disponibles à partir des réservations confirmées
 const BASE_QUERY = `
   SELECT v.*,
     COALESCE(COUNT(r.id), 0)::int AS reservation_count,
@@ -13,6 +17,7 @@ const BASE_QUERY = `
 `;
 
 const getAllVoyages = async () => {
+  // Vue complète, typiquement utile côté admin.
   const { rows } = await pool.query(
     BASE_QUERY + ' GROUP BY v.id ORDER BY v.created_at DESC'
   );
@@ -20,6 +25,7 @@ const getAllVoyages = async () => {
 };
 
 const getActiveVoyages = async () => {
+  // Vue publique limitée aux voyages actifs.
   const { rows } = await pool.query(
     BASE_QUERY + ' WHERE v.is_active = true GROUP BY v.id ORDER BY v.created_at DESC'
   );
@@ -27,6 +33,7 @@ const getActiveVoyages = async () => {
 };
 
 const getVoyageById = async (id) => {
+  // Détail d'un voyage avec les mêmes agrégats que la liste.
   const { rows } = await pool.query(
     BASE_QUERY + ' WHERE v.id = $1 GROUP BY v.id',
     [id]
@@ -35,6 +42,8 @@ const getVoyageById = async (id) => {
 };
 
 const createVoyage = async (data) => {
+  // Insertion d'un voyage organisé avec sérialisation JSON
+  // des champs liste (programme, inclus, non inclus).
   const {
     title, subtitle, description, image_url, price, old_price,
     duration, departure, spots, rating, reviews, badge,
@@ -65,6 +74,7 @@ const createVoyage = async (data) => {
 };
 
 const updateVoyage = async (id, data) => {
+  // Mise à jour miroir de la création, pour garder le même format de stockage.
   const {
     title, subtitle, description, image_url, price, old_price,
     duration, departure, spots, rating, reviews, badge,
@@ -96,6 +106,7 @@ const updateVoyage = async (id, data) => {
 };
 
 const deleteVoyage = async (id) => {
+  // Suppression simple avec retour de l'identifiant supprimé pour confirmation.
   const { rows } = await pool.query(
     'DELETE FROM public.voyages_organises WHERE id=$1 RETURNING id', [id]
   );

@@ -2,7 +2,8 @@
 const model                          = require('../models/voyageReservationModel');
 const { sendReservationStatusEmail } = require('../utils/mailer');
 
-/* GET /api/voyage-reservations */
+/* GET /api/voyage-reservations
+   Liste filtrable des réservations pour les écrans admin et le suivi client. */
 const getAll = async (req, res) => {
   try {
     const { status, payment_method, email } = req.query;
@@ -14,7 +15,8 @@ const getAll = async (req, res) => {
   }
 };
 
-/* GET /api/voyage-reservations/stats */
+/* GET /api/voyage-reservations/stats
+   Petits indicateurs agrégés pour le tableau de bord admin. */
 const getStats = async (req, res) => {
   try {
     const stats = await model.getStats();
@@ -25,7 +27,8 @@ const getStats = async (req, res) => {
   }
 };
 
-/* GET /api/voyage-reservations/:id */
+/* GET /api/voyage-reservations/:id
+   Détail d'une réservation. */
 const getOne = async (req, res) => {
   try {
     const r = await model.getReservationById(req.params.id);
@@ -37,7 +40,9 @@ const getOne = async (req, res) => {
   }
 };
 
-/* POST /api/voyage-reservations */
+/* POST /api/voyage-reservations
+   Point d'entrée utilisé par la page Payment du frontend.
+   C'est ici que la réservation voyage organisé est réellement enregistrée en base. */
 const create = async (req, res) => {
   try {
     const { first_name, last_name, email, total_price, payment_method } = req.body;
@@ -54,7 +59,8 @@ const create = async (req, res) => {
   }
 };
 
-/* PATCH /api/voyage-reservations/:id/status */
+/* PATCH /api/voyage-reservations/:id/status
+   Change l'état métier de la réservation et déclenche éventuellement un email. */
 const updateStatus = async (req, res) => {
   try {
     const { id }     = req.params;
@@ -68,7 +74,7 @@ const updateStatus = async (req, res) => {
     if (!r)
       return res.status(404).json({ success: false, message: 'Réservation introuvable' });
 
-    // 🔔 Send email for meaningful status changes
+    // Envoi d'email uniquement pour les statuts significatifs côté client.
     if (['confirmed', 'cancelled', 'completed'].includes(status)) {
       sendReservationStatusEmail({
         email:     r.email,
@@ -94,7 +100,8 @@ const updateStatus = async (req, res) => {
   }
 };
 
-/* DELETE /api/voyage-reservations/:id */
+/* DELETE /api/voyage-reservations/:id
+   Suppression d'une réservation depuis l'administration. */
 const remove = async (req, res) => {
   try {
     const deleted = await model.deleteReservation(req.params.id);

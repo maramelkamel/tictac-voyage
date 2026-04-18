@@ -1,0 +1,35 @@
+{
+  "not_found": "Trip not found.",
+  "back_to_voyages": "← Back to trips",
+  "about_title": "📖 About this trip",
+  "programme_title": "🗓️ Day-by-day program",
+  "gallery_title": "📸 Photo gallery",
+  "included_title": "✅ Included",
+  "not_included_title": "❌ Not included",
+  "day_label": "Day {{number}}",
+  "photos_more": "+{{count}} photos",
+  "reserve_btn": "Book this trip →",
+  "back_btn": "← Back to list",
+  "price_note": "No immediate payment. An advisor will contact you within 24h.",
+  "spots_warning": "🔥 Only {{count}} spots left!",
+  "per_person_taxes": "per person · taxes included",
+  "rating_label": "{{score}} ({{count}} reviews)",
+  "perks": {
+    "cancel": "Free cancellation within 48h",
+    "guide": "French-speaking guide included",
+    "support": "24/7 assistance",
+    "transfer": "Airport transfers included"
+  },
+  "stats": {
+    "destination": "Destination",
+    "duration": "Duration",
+    "departure": "Departure",
+    "places": "Remaining spots"
+  },
+  "hero": {
+    "rating": "{{score}} ({{count}} reviews)",
+    "duration": "{{value}}",
+    "departure": "Departure {{city}}",
+    "places": "{{count}} spots left"
+  }
+}
