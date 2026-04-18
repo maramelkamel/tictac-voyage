@@ -500,6 +500,7 @@ const ClientProfile = () => {
                 { label:'Omra',         value:omraRes.length },
                 { label:'Voyages',      value:voyageRes.length },
                 { label:'Circuits',     value:circuitRes.length },
+                { label:'Vols',         value:flightRes.length },
                 { label:'Transport',    value:transRes.length },
                 { label:'Sur Mesure',   value:customRes.length },
               ].map(s => (
