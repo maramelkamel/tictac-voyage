@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { getFavoritePath } from '../utils/favorites';
 
 const API = 'http://localhost:5000/api';
 
@@ -428,6 +429,10 @@ const ClientProfile = () => {
   };
 
   const handleTabChange = (tab) => { setActiveTab(tab); setSearchParams({ tab }); };
+  const handleFavoriteOpen = (favorite) => {
+    const path = favorite.item_data?.detailPath || getFavoritePath(favorite.item_type, favorite.item_id);
+    if (path) navigate(path);
+  };
 
   const handleSaveProfile = async () => {
     setSaving(true);
@@ -815,6 +820,7 @@ const ClientProfile = () => {
                         const tm = typeMap[fav.item_type] || { label:fav.item_type, bg:'#f1f5f9', color:'#64748b' };
                         return (
                           <div key={fav.id} style={{ background:'#fff', borderRadius:14, border:'1px solid #e2e8f0', overflow:'hidden', boxShadow:'0 2px 8px rgba(0,0,0,.04)', transition:'transform .2s', cursor:'pointer' }}
+                            onClick={() => handleFavoriteOpen(fav)}
                             onMouseEnter={e=>e.currentTarget.style.transform='translateY(-4px)'}
                             onMouseLeave={e=>e.currentTarget.style.transform='translateY(0)'}>
                             {data.image && <img src={data.image} alt={data.title} style={{ width:'100%', height:140, objectFit:'cover' }}/>}
@@ -824,6 +830,11 @@ const ClientProfile = () => {
                                 <i className="fas fa-heart" style={{ color:'#e92f64', fontSize:14 }}/>
                               </div>
                               <p style={{ fontWeight:700, fontSize:14, color:'#0f172a', marginBottom:4 }}>{data.title||'—'}</p>
+                              {(data.pays || data.destination || data.subtitle || data.region) && (
+                                <p style={{ fontSize:12, color:'#64748b', marginBottom:4 }}>
+                                  {[data.pays, data.destination, data.subtitle, data.region].filter(Boolean).join(' • ')}
+                                </p>
+                              )}
                               {data.price && <p style={{ fontSize:13, fontWeight:700, color:'#0F4C5C' }}>{Number(data.price).toLocaleString('fr-TN')} TND</p>}
                               <p style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>Ajouté le {fDate(fav.created_at)}</p>
                             </div>

@@ -8,6 +8,8 @@ import Chatbot from '../../components/Chatbot';
 import { statsData } from '../../data/OmraData';
 import '../../styles/omrastyle.css';
 import { usePromotions }  from '../../hooks/usePromotions';
+import { useFavorites } from '../../hooks/useFavorites';
+import { buildFavoriteItemData, getFavoriteKey } from '../../utils/favorites';
 import PromotionsSection  from '../admin/promotions/PromotionsSection';
 
 const API = 'http://localhost:5000/api/omra/packages?public=true';
@@ -19,6 +21,7 @@ const Omra = () => {
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState('');
   const { promos } = usePromotions('categorie', 'omra');
+  const { favoriteIds, isAuthenticated, toggleFavorite } = useFavorites('omra');
 
   // ── Fetch + normalize packages from API ──────────────────────
   useEffect(() => {
@@ -61,6 +64,23 @@ const Omra = () => {
 
   const handleSearch = (params) => {
     console.log('Search params:', params);
+  };
+
+  const handleFavoriteToggle = async (pkg) => {
+    if (!isAuthenticated) {
+      navigate('/SignIn');
+      return;
+    }
+
+    try {
+      await toggleFavorite({
+        itemType: 'omra',
+        itemId: pkg.id,
+        itemData: buildFavoriteItemData('omra', pkg),
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // ── Build filter buttons dynamically from packages ───────────
@@ -193,6 +213,8 @@ const Omra = () => {
                     pkg={pkg}
                     onDetails={handleDetails}
                     onReserve={handleReserve}
+                    isFavorite={favoriteIds.has(getFavoriteKey(pkg.id))}
+                    onFavoriteToggle={handleFavoriteToggle}
                   />
                 ))
               )}

@@ -260,10 +260,40 @@
   background: #e8306a;
 }
 
-.omra-card__rating {
+.omra-card__heart {
   position: absolute;
   top: 14px;
   right: 14px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(15, 76, 92, 0.14);
+  transition: transform 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  z-index: 2;
+}
+
+.omra-card__heart:hover {
+  transform: scale(1.08);
+  color: #e8306a;
+  box-shadow: 0 12px 24px rgba(232, 48, 106, 0.2);
+}
+
+.omra-card__heart--active {
+  color: #e8306a;
+  background: #fff1f5;
+}
+
+.omra-card__rating {
+  position: absolute;
+  top: 14px;
+  right: 60px;
   background: rgba(10, 40, 50, 0.75);
   backdrop-filter: blur(8px);
   color: #fbbf24;

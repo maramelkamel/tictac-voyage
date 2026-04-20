@@ -10,6 +10,8 @@ import Navbar                from '../../components/Navbar';
 import Footer                from '../../components/Footer';
 import SortFilter            from '../../components/SortFilter';
 import AdvancedFilters       from '../../components/AdvancedFilters';
+import { useFavorites }      from '../../hooks/useFavorites';
+import { buildFavoriteItemData, getFavoriteKey } from '../../utils/favorites';
 import { FILTERS }           from '../../data/VoyagesOrganiseData';
 
 const API = 'http://localhost:5000/api/voyages-organises?public=true';
@@ -75,6 +77,7 @@ const VoyagesOrganise = () => {
   const [visibleCount,  setVisibleCount]  = useState(6);
 
   const { promos } = usePromotions('categorie', 'voyages_internationaux');
+  const { favoriteIds, isAuthenticated, toggleFavorite } = useFavorites('voyage');
   const activeFilterCount = [continent, budget, saison].filter(Boolean).length;
 
   // Au chargement de la page, on récupère la liste publique des voyages organisés.
@@ -175,6 +178,22 @@ const VoyagesOrganise = () => {
   // liste -> détail -> réservation.
   const handleDetails  = (voyage) => navigate(`/VoyagesOrganise/Detail/${voyage.id}`,   { state: { voyage } });
   const handleReserver = (voyage) => navigate(`/VoyagesOrganise/Reserver/${voyage.id}`, { state: { voyage } });
+  const handleFavoriteToggle = async (voyage) => {
+    if (!isAuthenticated) {
+      navigate('/SignIn');
+      return;
+    }
+
+    try {
+      await toggleFavorite({
+        itemType: 'voyage',
+        itemId: voyage.id,
+        itemData: buildFavoriteItemData('voyage', voyage),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div>
@@ -281,7 +300,14 @@ const VoyagesOrganise = () => {
             <>
               <div className="omra-cards-grid">
                 {paginatedVoyages.map((v) => (
-                  <VoyageCard key={v.id} voyage={v} onDetails={handleDetails} onReserver={handleReserver} />
+                  <VoyageCard
+                    key={v.id}
+                    voyage={v}
+                    onDetails={handleDetails}
+                    onReserver={handleReserver}
+                    isFavorite={favoriteIds.has(getFavoriteKey(v.id))}
+                    onFavoriteToggle={handleFavoriteToggle}
+                  />
                 ))}
               </div>
 

@@ -1,8 +1,13 @@
 import { useState } from 'react';
 
-const OmraCard = ({ pkg, onDetails, onReserve }) => {
+const OmraCard = ({
+  pkg,
+  onDetails,
+  onReserve,
+  isFavorite = false,
+  onFavoriteToggle,
+}) => {
   const [hovered,  setHovered]  = useState(false);
-  const [favorite, setFavorite] = useState(false);
 
   const badgeColors = {
     promo:   'linear-gradient(135deg, #D4A017, #F0C040)',
@@ -96,7 +101,10 @@ const OmraCard = ({ pkg, onDetails, onReserve }) => {
         {/* Favorite button — only when not full */}
         {!isFull && (
           <button
-            onClick={() => setFavorite(f => !f)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onFavoriteToggle && onFavoriteToggle(pkg);
+            }}
             aria-label="Ajouter aux favoris"
             style={{
               position: 'absolute', top: 12, right: 14,
@@ -104,12 +112,12 @@ const OmraCard = ({ pkg, onDetails, onReserve }) => {
               background: 'rgba(255,255,255,0.92)', borderRadius: '50%',
               border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: favorite ? '#e53e3e' : 'var(--gray-400)', fontSize: 15,
+              color: isFavorite ? '#e53e3e' : 'var(--gray-400)', fontSize: 15,
               transition: 'all 0.25s ease',
-              transform: favorite ? 'scale(1.15)' : 'scale(1)',
+              transform: isFavorite ? 'scale(1.15)' : 'scale(1)',
             }}
           >
-            <i className={favorite ? 'fas fa-heart' : 'far fa-heart'} />
+            <i className={isFavorite ? 'fas fa-heart' : 'far fa-heart'} />
           </button>
         )}
 

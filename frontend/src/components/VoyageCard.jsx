@@ -1,6 +1,12 @@
 import React from 'react';
 
-const VoyageCard = ({ voyage, onDetails, onReserver }) => {
+const VoyageCard = ({
+  voyage,
+  onDetails,
+  onReserver,
+  isFavorite = false,
+  onFavoriteToggle,
+}) => {
   const {
     titre,
     destination,
@@ -26,6 +32,17 @@ const VoyageCard = ({ voyage, onDetails, onReserver }) => {
         {badge && (
           <span className="omra-card__badge">{badge}</span>
         )}
+
+        <button
+          className={`omra-card__heart ${isFavorite ? 'omra-card__heart--active' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onFavoriteToggle && onFavoriteToggle(voyage);
+          }}
+          aria-label={isFavorite ? `Retirer ${titre} des favoris` : `Ajouter ${titre} aux favoris`}
+        >
+          <i className={isFavorite ? 'fas fa-heart' : 'far fa-heart'} />
+        </button>
 
         <div className="omra-card__rating">
           ⭐ {rating}
