@@ -1,6 +1,6 @@
 // backend/controllers/circuitReservationController.js
 const model                          = require('../models/circuitReservationModel');
-const { sendReservationStatusEmail } = require('../utils/mailer');
+const { sendReservationStatusEmail, sendAgencyReservationEmail } = require('../utils/mailer');
 
 /* GET /api/circuit-reservations */
 const getAll = async (req, res) => {
@@ -40,13 +40,35 @@ const getOne = async (req, res) => {
 /* POST /api/circuit-reservations */
 const create = async (req, res) => {
   try {
-    const { first_name, last_name, email, total_price, payment_method } = req.body;
+    const {
+      first_name, last_name, email, total_price, payment_method,
+      chambre_type, number_of_persons, applied_promotion, reservation_title,
+    } = req.body;
     if (!first_name || !last_name || !email || !total_price || !payment_method)
       return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
     if (!['online', 'agency'].includes(payment_method))
       return res.status(400).json({ success: false, message: 'Mode de paiement invalide' });
 
     const r = await model.createReservation(req.body);
+    if (payment_method === 'agency') {
+      sendAgencyReservationEmail({
+        email,
+        firstName: first_name,
+        type: 'circuit',
+        title: reservation_title || `Circuit #${r.circuit_id || ''}`,
+        details: {
+          'Chambre': chambre_type || r.chambre_type || 'double',
+          'Personnes': `${number_of_persons || r.number_of_persons || 1} personne(s)`,
+          'Paiement': "A l'agence",
+          'Total': total_price ? `${Number(total_price).toLocaleString('fr-TN')} DT` : null,
+          'Code promo': applied_promotion?.code_promo || null,
+        },
+        promotionReminder: applied_promotion?.date_fin ? {
+          code: applied_promotion.code_promo,
+          date_fin: applied_promotion.date_fin,
+        } : null,
+      }).catch(err => console.error('Circuit agency email failed:', err.message));
+    }
     res.status(201).json({ success: true, data: r, message: 'Réservation enregistrée' });
   } catch (err) {
     console.error('circuitReservationController.create:', err);

@@ -2,9 +2,27 @@
 const pool                   = require('../config/db');   // ← BUG FIX: was require('../db')
 const { sendPromotionEmail } = require('../utils/mailer');
 
-const VALID_CATEGORIES = ['omra', 'hotels', 'vols', 'circuits', 'voyages_internationaux'];
+const VALID_CATEGORIES = [
+  'omra',
+  'hotels',
+  'vols',
+  'circuits',
+  'voyages_internationaux',
+  'voyages_sur_mesure',
+  'transfert_mise_a_disposition',
+];
 const VALID_TYPES      = ['pourcentage', 'montant_fixe'];
 const VALID_DISPLAY    = ['card', 'banner'];
+
+const getCategoryKeys = (categorie) => {
+  switch (categorie) {
+    case 'transfert_mise_a_disposition':
+    case 'transport':
+      return ['transfert_mise_a_disposition', 'transport'];
+    default:
+      return [categorie];
+  }
+};
 
 /* ── GET /api/promotions ── */
 const getAll = async (req, res) => {
@@ -36,12 +54,13 @@ const getAccueil = async (req, res) => {
 /* ── GET /api/promotions/categorie/:categorie ── */
 const getByCategorie = async (req, res) => {
   try {
+    const categoryKeys = getCategoryKeys(req.params.categorie);
     const { rows } = await pool.query(`
       SELECT * FROM promotions
-      WHERE categorie = $1 AND is_active = true
+      WHERE categorie = ANY($1) AND is_active = true
         AND date_debut <= CURRENT_DATE AND date_fin >= CURRENT_DATE
       ORDER BY created_at DESC
-    `, [req.params.categorie]);
+    `, [categoryKeys]);
     res.json({ success: true, data: rows });
   } catch (err) {
     console.error('promotionsController.getByCategorie:', err);

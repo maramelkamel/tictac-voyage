@@ -1,6 +1,6 @@
 // backend/controllers/voyageReservationController.js
 const model                          = require('../models/voyageReservationModel');
-const { sendReservationStatusEmail } = require('../utils/mailer');
+const { sendReservationStatusEmail, sendAgencyReservationEmail } = require('../utils/mailer');
 
 /* GET /api/voyage-reservations
    Liste filtrable des réservations pour les écrans admin et le suivi client. */
@@ -45,13 +45,35 @@ const getOne = async (req, res) => {
    C'est ici que la réservation voyage organisé est réellement enregistrée en base. */
 const create = async (req, res) => {
   try {
-    const { first_name, last_name, email, total_price, payment_method } = req.body;
+    const {
+      first_name, last_name, email, total_price, payment_method,
+      chambre_type, number_of_persons, applied_promotion, reservation_title,
+    } = req.body;
     if (!first_name || !last_name || !email || !total_price || !payment_method)
       return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
     if (!['online', 'agency'].includes(payment_method))
       return res.status(400).json({ success: false, message: 'Mode de paiement invalide' });
 
     const r = await model.createReservation(req.body);
+    if (payment_method === 'agency') {
+      sendAgencyReservationEmail({
+        email,
+        firstName: first_name,
+        type: 'voyage',
+        title: reservation_title || `Voyage #${r.voyage_id || ''}`,
+        details: {
+          'Chambre': chambre_type || r.chambre_type || 'double',
+          'Personnes': `${number_of_persons || r.number_of_persons || 1} personne(s)`,
+          'Paiement': "A l'agence",
+          'Total': total_price ? `${Number(total_price).toLocaleString('fr-TN')} TND` : null,
+          'Code promo': applied_promotion?.code_promo || null,
+        },
+        promotionReminder: applied_promotion?.date_fin ? {
+          code: applied_promotion.code_promo,
+          date_fin: applied_promotion.date_fin,
+        } : null,
+      }).catch(err => console.error('Voyage agency email failed:', err.message));
+    }
     res.status(201).json({ success: true, data: r, message: 'Réservation enregistrée' });
   } catch (err) {
     console.error('voyageReservationController.create:', err);

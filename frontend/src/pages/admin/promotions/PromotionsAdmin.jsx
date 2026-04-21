@@ -7,6 +7,8 @@ const CATEGORIES = [
   { value: 'vols',                   label: 'Vols' },
   { value: 'circuits',               label: 'Circuits' },
   { value: 'voyages_internationaux', label: 'Voyages internationaux' },
+  { value: 'voyages_sur_mesure',     label: 'Voyages sur mesure' },
+  { value: 'transfert_mise_a_disposition', label: 'Transfert et mise a dispo' },
 ];
 
 const BADGE_STYLE = {
@@ -15,6 +17,8 @@ const BADGE_STYLE = {
   vols:                   { background:'#FFEBEE', color:'#B71C1C' },
   circuits:               { background:'#E8F5E9', color:'#1B5E20' },
   voyages_internationaux: { background:'#F3E5F5', color:'#4A148C' },
+  voyages_sur_mesure:     { background:'#E0F2FE', color:'#0C4A6E' },
+  transfert_mise_a_disposition: { background:'#ECFCCB', color:'#3F6212' },
 };
 
 const empty = {

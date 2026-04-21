@@ -1,6 +1,6 @@
 // backend/controllers/omraReservationController.js
 const resModel                   = require('../models/omraReservationModel');
-const { sendReservationStatusEmail } = require('../utils/mailer');
+const { sendReservationStatusEmail, sendAgencyReservationEmail } = require('../utils/mailer');
 
 /* GET /api/omra/reservations/stats */
 const getStats = async (req, res) => {
@@ -44,6 +44,7 @@ const create = async (req, res) => {
     const {
       first_name, last_name, email, phone,
       gender, passport_number, total_price, payment_method,
+      chambre_type, number_of_persons, applied_promotion, reservation_title,
     } = req.body;
 
     if (!first_name || !last_name || !email || !phone ||
@@ -54,6 +55,26 @@ const create = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Mode de paiement invalide' });
 
     const reservation = await resModel.createReservation(req.body);
+
+    if (payment_method === 'agency') {
+      sendAgencyReservationEmail({
+        email,
+        firstName: first_name,
+        type: 'omra',
+        title: reservation_title || `Forfait Omra #${reservation.package_id || ''}`,
+        details: {
+          'Chambre': chambre_type || reservation.chambre_type || 'double',
+          'Personnes': `${number_of_persons || reservation.number_of_persons || 1} personne(s)`,
+          'Paiement': "A l'agence",
+          'Total': total_price ? `${Number(total_price).toLocaleString('fr-TN')} TND` : null,
+          'Code promo': applied_promotion?.code_promo || null,
+        },
+        promotionReminder: applied_promotion?.date_fin ? {
+          code: applied_promotion.code_promo,
+          date_fin: applied_promotion.date_fin,
+        } : null,
+      }).catch(err => console.error('Omra agency email failed:', err.message));
+    }
     res.status(201).json({
       success: true,
       data: reservation,
