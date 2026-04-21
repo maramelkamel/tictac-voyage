@@ -3,6 +3,8 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import Chatbot from '../../components/Chatbot';
 import '../../styles/Transport.css';
+import { usePromotions } from '../../hooks/usePromotions';
+import PromotionsSection from '../admin/promotions/PromotionsSection';
 
 const API_URL = 'http://localhost:5000/api/requests';
 
@@ -22,6 +24,7 @@ const Transport = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError,   setSubmitError]   = useState('');
   const [errors,        setErrors]        = useState({});
+  const { promos } = usePromotions('categorie', 'transfert_mise_a_disposition');
 
   const [formData, setFormData] = useState({
     fullName:          clientName,
@@ -212,6 +215,14 @@ const Transport = () => {
         </section>
 
         {/* ─── MAIN ─── */}
+        {promos.length > 0 && (
+          <section>
+            <div className="transport-container" style={{ paddingTop: 24 }}>
+              <PromotionsSection promos={promos} />
+            </div>
+          </section>
+        )}
+
         <section className="transport-main">
           <div className="transport-container">
 
