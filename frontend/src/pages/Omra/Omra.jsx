@@ -1,3 +1,4 @@
+// src/pages/Omra/Omra.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
@@ -12,7 +13,19 @@ import { useFavorites } from '../../hooks/useFavorites';
 import { buildFavoriteItemData, getFavoriteKey } from '../../utils/favorites';
 import PromotionsSection  from '../admin/promotions/PromotionsSection';
 
-const API = 'http://localhost:5000/api/omra/packages?public=true';
+const API        = 'http://localhost:5000/api/omra/packages?public=true';
+const COVERS_API = 'http://localhost:5000/api/omra/packages/omra-covers';
+
+// ── Defaults affichés si l'API covers ne répond pas ──
+const DEFAULT_COVERS = {
+  hero: {
+    bg_image:     '',
+    tag:          'Pelerinage et Spiritualite',
+    title:        'Votre Voyage',
+    title_accent: 'Spirituel Ideal',
+    sub:          'Accomplissez votre Omra en toute serenite avec nos forfaits tout compris, concus pour une experience spirituelle inoubliable.',
+  },
+};
 
 const Omra = () => {
   const navigate = useNavigate();
@@ -20,23 +33,21 @@ const Omra = () => {
   const [packages, setPackages]         = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState('');
+  const [covers, setCovers]             = useState(DEFAULT_COVERS);
+
   const { promos } = usePromotions('categorie', 'omra');
   const { favoriteIds, isAuthenticated, toggleFavorite } = useFavorites('omra');
 
-  // ── Fetch + normalize packages from API ──────────────────────
   useEffect(() => {
+    // ── Charger les forfaits ──────────────────────────────────
     fetch(API)
       .then(r => r.json())
       .then(json => {
         const normalized = (json.data || []).map(pkg => ({
           ...pkg,
-          // ✅ fix image field name (DB uses image_url)
           image:    pkg.image_url || pkg.image || '',
-          // ✅ fix old price field name + convert to number
           oldPrice: pkg.old_price ? Number(pkg.old_price) : null,
-          // ✅ convert price to number
           price:    Number(pkg.price),
-          // ✅ DB returns ["Vol A/R", ...] but OmraCard expects [{icon, label}]
           includes: Array.isArray(pkg.includes)
             ? pkg.includes.map(item =>
                 typeof item === 'string'
@@ -52,7 +63,22 @@ const Omra = () => {
         setError('Impossible de charger les forfaits.');
         setLoading(false);
       });
+
+    // ── Charger l'apparence (hero) ────────────────────────────
+    fetch(COVERS_API)
+      .then(r => r.json())
+      .then(json => {
+        if (json.success && json.data) {
+          setCovers({
+            hero: { ...DEFAULT_COVERS.hero, ...(json.data.hero || {}) },
+          });
+        }
+      })
+      .catch(() => {/* garde les defaults */});
   }, []);
+
+  // Helper avec fallback
+  const getHero = () => covers.hero || DEFAULT_COVERS.hero;
 
   const handleDetails = (pkg) => {
     navigate(`/Omra/Details/${pkg.id}`, { state: { pkg } });
@@ -71,7 +97,6 @@ const Omra = () => {
       navigate('/SignIn');
       return;
     }
-
     try {
       await toggleFavorite({
         itemType: 'omra',
@@ -83,7 +108,6 @@ const Omra = () => {
     }
   };
 
-  // ── Build filter buttons dynamically from packages ───────────
   const filters = ['Tous', ...new Set(packages.map(p => {
     if (p.badge) return p.badge;
     if (p.title.toLowerCase().includes('économ')) return 'Économique';
@@ -105,24 +129,48 @@ const Omra = () => {
     <>
       <Navbar />
 
-      {/* Hero */}
-      <section className="omra-hero">
-        <div className="omra-hero__bg" />
+      {/* ══════════════════════════════════════════════════════
+          HERO — entièrement dynamique
+      ══════════════════════════════════════════════════════ */}
+      <section className="omra-hero" style={{ position:'relative' }}>
+        {/* Image de fond dynamique */}
+        {getHero().bg_image ? (
+          <img
+            src={getHero().bg_image}
+            alt="hero background"
+            style={{
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%',
+              objectFit: 'cover',
+              zIndex: 0,
+            }}
+            onError={e => { e.target.style.display = 'none'; }}
+          />
+        ) : (
+          <div className="omra-hero__bg" />
+        )}
         <div className="omra-hero__pattern" />
         <div className="omra-hero__overlay" />
-        <div className="container omra-hero__content">
+
+        <div className="container omra-hero__content" style={{ position:'relative', zIndex:1 }}>
+          {/* Tag dynamique */}
           <div className="omra-hero__tag">
             <i className="fas fa-kaaba" style={{ color: '#e8306a' }} />
-            Pelerinage et Spiritualite
+            {getHero().tag || 'Pelerinage et Spiritualite'}
           </div>
+
+          {/* Titre dynamique */}
           <h1 className="omra-hero__title">
-            Votre Voyage<br />
-            <span>Spirituel Ideal</span>
+            {getHero().title || 'Votre Voyage'}<br />
+            <span>{getHero().title_accent || 'Spirituel Ideal'}</span>
           </h1>
+
+          {/* Sous-titre dynamique */}
           <p className="omra-hero__subtitle">
-            Accomplissez votre Omra en toute serenite avec nos forfaits tout compris,
-            concus pour une experience spirituelle inoubliable.
+            {getHero().sub ||
+              'Accomplissez votre Omra en toute serenite avec nos forfaits tout compris, concus pour une experience spirituelle inoubliable.'}
           </p>
+
           <div className="omra-hero__search-wrapper">
             <OmraSearchBar onSearch={handleSearch} />
           </div>
@@ -148,14 +196,16 @@ const Omra = () => {
         </div>
       </section>
 
-      {/* Packages */}
+      {/* Promotions */}
       {promos.length > 0 && (
-  <section style={{ padding: '16px 0 0' }}>
-    <div className="container">
-      <PromotionsSection promos={promos} />
-    </div>
-  </section>
-)}
+        <section style={{ padding: '16px 0 0' }}>
+          <div className="container">
+            <PromotionsSection promos={promos} />
+          </div>
+        </section>
+      )}
+
+      {/* Packages */}
       <section className="omra-section omra-section--gray">
         <div className="container">
           <div className="omra-section__header">
@@ -183,7 +233,6 @@ const Omra = () => {
             ))}
           </div>
 
-          {/* Loading */}
           {loading && (
             <div style={{ textAlign: 'center', padding: '60px 0' }}>
               <div style={{ width: 40, height: 40, border: '3px solid #e2e8f0', borderTopColor: '#e8306a', borderRadius: '50%', animation: 'spin .7s linear infinite', margin: '0 auto 16px' }} />
@@ -191,7 +240,6 @@ const Omra = () => {
             </div>
           )}
 
-          {/* Error */}
           {error && !loading && (
             <div style={{ textAlign: 'center', padding: '60px 0', color: '#e8306a' }}>
               <i className="fas fa-exclamation-circle" style={{ fontSize: 40, marginBottom: 12, display: 'block' }} />
@@ -199,7 +247,6 @@ const Omra = () => {
             </div>
           )}
 
-          {/* Cards */}
           {!loading && !error && (
             <div className="omra-cards-grid">
               {filtered.length === 0 ? (
@@ -288,8 +335,9 @@ const Omra = () => {
         </div>
       </section>
 
-    
       <Footer />
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </>
   );
 };

@@ -1,3 +1,4 @@
+// src/pages/Circuits/Circuits.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
@@ -30,6 +31,13 @@ const DIFF_META = {
 
 // ── Defaults affichés si l'API covers ne répond pas ──
 const DEFAULT_COVERS = {
+  hero: {
+    bg_image:     '',
+    tag:          'Circuits touristiques - Tunisie',
+    title:        'Explorez la Tunisie',
+    title_accent: 'du Nord au Sud',
+    sub:          'Des circuits soigneusement conçus pour vous faire découvrir les trésors du pays, entre mer, désert, culture et authenticité.',
+  },
   nord: {
     image_url:        '',
     card_title:       'Circuit Nord',
@@ -129,31 +137,33 @@ const normalize = (circuit) => ({
 
 export default function Circuits() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('nord');
-  const [hovered, setHovered] = useState(null);
-  const [allCircuits, setAllCircuits] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [covers, setCovers] = useState(DEFAULT_COVERS);
-  const [search, setSearch] = useState({ date: '', duration: '', persons: '' });
+  const [activeTab,    setActiveTab]    = useState('nord');
+  const [hovered,      setHovered]      = useState(null);
+  const [allCircuits,  setAllCircuits]  = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [covers,       setCovers]       = useState(DEFAULT_COVERS);
+  const [search,       setSearch]       = useState({ date: '', duration: '', persons: '' });
 
-  const { promos } = usePromotions('categorie', 'circuits');
+  const { promos }                              = usePromotions('categorie', 'circuits');
   const { favoriteIds, isAuthenticated, toggleFavorite } = useFavorites('circuit');
 
   useEffect(() => {
+    // Charger les circuits
     fetch(API)
-      .then((r) => r.json())
-      .then((json) => setAllCircuits((json.data || []).map(normalize)))
+      .then(r => r.json())
+      .then(json => setAllCircuits((json.data || []).map(normalize)))
       .catch(console.error)
       .finally(() => setLoading(false));
 
-    // Charger les textes/images des sections Nord/Sud
+    // Charger l'apparence (hero + Nord + Sud)
     fetch(COVERS_API)
-      .then((r) => r.json())
-      .then((json) => {
+      .then(r => r.json())
+      .then(json => {
         if (json.success && json.data) {
           setCovers({
-            nord: { ...DEFAULT_COVERS.nord, ...json.data.nord },
-            sud:  { ...DEFAULT_COVERS.sud,  ...json.data.sud  },
+            hero: { ...DEFAULT_COVERS.hero, ...(json.data.hero || {}) },
+            nord: { ...DEFAULT_COVERS.nord, ...(json.data.nord || {}) },
+            sud:  { ...DEFAULT_COVERS.sud,  ...(json.data.sud  || {}) },
           });
         }
       })
@@ -161,20 +171,19 @@ export default function Circuits() {
   }, []);
 
   const applyFilters = (list) => {
-    let result = list.filter((circuit) => circuit.region === activeTab);
-
+    let result = list.filter(circuit => circuit.region === activeTab);
     if (search.persons) {
       const people = search.persons === '10+' ? 10 : parseInt(search.persons, 10);
-      if (!Number.isNaN(people)) result = result.filter((c) => c.places >= people);
+      if (!Number.isNaN(people)) result = result.filter(c => c.places >= people);
     }
     if (search.duration) {
       const duration = parseInt(search.duration, 10);
-      if (!Number.isNaN(duration)) result = result.filter((c) => c.durationDays === duration);
+      if (!Number.isNaN(duration)) result = result.filter(c => c.durationDays === duration);
     }
     if (search.date) {
       const chosenDate = new Date(search.date);
       if (!Number.isNaN(chosenDate.getTime())) {
-        result = result.filter((c) => {
+        result = result.filter(c => {
           if (!c.departureDate) return true;
           const dep = new Date(c.departureDate);
           return Number.isNaN(dep.getTime()) || dep >= chosenDate;
@@ -185,11 +194,11 @@ export default function Circuits() {
   };
 
   const circuits = applyFilters(allCircuits);
-  const nordMin  = allCircuits.filter((c) => c.region === 'nord').reduce((m, c) => Math.min(m, c.price), 9999);
-  const sudMin   = allCircuits.filter((c) => c.region === 'sud' ).reduce((m, c) => Math.min(m, c.price), 9999);
+  const nordMin  = allCircuits.filter(c => c.region === 'nord').reduce((m, c) => Math.min(m, c.price), 9999);
+  const sudMin   = allCircuits.filter(c => c.region === 'sud' ).reduce((m, c) => Math.min(m, c.price), 9999);
 
   const handleDetails  = (circuit) => navigate(`/circuits/CircuitDetails/${circuit.id}`, { state: { circuit } });
-  const handleReserver = (circuit) => navigate(`/circuits/CircuitReserver/${circuit.id}`, { state: { circuit } });
+  const handleReserver = (circuit) => navigate(`/circuits/CircuitReserver/${circuit.id}`,  { state: { circuit } });
 
   const handleFavoriteToggle = async (circuit) => {
     if (!isAuthenticated) { navigate('/SignIn'); return; }
@@ -198,33 +207,60 @@ export default function Circuits() {
     } catch (error) { console.error(error); }
   };
 
-  // Helpers pour accéder aux données de covers avec fallback
+  // Helpers avec fallback
+  const getHero  = () => covers.hero || DEFAULT_COVERS.hero;
   const getCover = (region) => covers[region] || DEFAULT_COVERS[region];
 
   return (
     <div className="ci-page">
       <Navbar />
 
+      {/* ══════════════════════════════════════════════════════
+          HERO — entièrement dynamique
+      ══════════════════════════════════════════════════════ */}
       <section className="ci-hero">
-        <div className="ci-hero__bg" />
+        {/* Image de fond dynamique */}
+        {getHero().bg_image ? (
+          <img
+            src={getHero().bg_image}
+            alt="hero background"
+            style={{
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%',
+              objectFit: 'cover',
+              zIndex: 0,
+            }}
+            onError={e => { e.target.style.display = 'none'; }}
+          />
+        ) : (
+          <div className="ci-hero__bg" />
+        )}
         <div className="ci-hero__overlay" />
         <div className="ci-hero__geo ci-hero__geo--1" />
         <div className="ci-hero__geo ci-hero__geo--2" />
 
-        <div className="ci-hero__content">
+        <div className="ci-hero__content" style={{ position: 'relative', zIndex: 1 }}>
+          {/* Tag dynamique */}
           <span className="ci-hero__tag">
             <IconMap />
-            Circuits touristiques - Tunisie
+            {getHero().tag || 'Circuits touristiques - Tunisie'}
           </span>
+
+          {/* Titre dynamique */}
           <h1 className="ci-hero__title">
-            Explorez la Tunisie
+            {getHero().title || 'Explorez la Tunisie'}
             <br />
-            <span className="ci-hero__title--accent">du Nord au Sud</span>
+            <span className="ci-hero__title--accent">
+              {getHero().title_accent || 'du Nord au Sud'}
+            </span>
           </h1>
+
+          {/* Sous-titre dynamique */}
           <p className="ci-hero__sub">
-            Des circuits soigneusement conçus pour vous faire découvrir les trésors du pays,
-            entre mer, désert, culture et authenticité.
+            {getHero().sub ||
+              'Des circuits soigneusement conçus pour vous faire découvrir les trésors du pays, entre mer, désert, culture et authenticité.'}
           </p>
+
           <div className="ci-searchbar-shell">
             <CircuitSearchBar initialValues={search} onSearch={setSearch} />
           </div>
@@ -239,7 +275,9 @@ export default function Circuits() {
         </section>
       )}
 
-      {/* ── SECTION SÉLECTION NORD / SUD ── */}
+      {/* ══════════════════════════════════════════════════════
+          SECTION SÉLECTION NORD / SUD
+      ══════════════════════════════════════════════════════ */}
       <section className="ci-split ci-split--overlap">
         <div className="ci-container">
           <div className={`ci-split__inner ci-split__inner--${activeTab}`}>
@@ -249,7 +287,6 @@ export default function Circuits() {
               className={`ci-split__card ci-split__card--nord${activeTab === 'nord' ? ' active' : ''}`}
               onClick={() => setActiveTab('nord')}
             >
-              {/* Image de couverture dynamique */}
               {getCover('nord').image_url && (
                 <img
                   src={getCover('nord').image_url}
@@ -265,12 +302,8 @@ export default function Circuits() {
                 <h2>{getCover('nord').card_title}</h2>
                 <p>{getCover('nord').card_description}</p>
                 <div className="ci-split__card-stats">
-                  <span>
-                    <strong>{allCircuits.filter((c) => c.region === 'nord').length}</strong> circuits
-                  </span>
-                  <span>
-                    dès <strong>{nordMin < 9999 ? `${nordMin} DT` : '-'}</strong>
-                  </span>
+                  <span><strong>{allCircuits.filter(c => c.region === 'nord').length}</strong> circuits</span>
+                  <span>dès <strong>{nordMin < 9999 ? `${nordMin} DT` : '-'}</strong></span>
                 </div>
               </div>
               {activeTab === 'nord' && <div className="ci-split__card-active-bar" />}
@@ -287,7 +320,6 @@ export default function Circuits() {
               className={`ci-split__card ci-split__card--sud${activeTab === 'sud' ? ' active' : ''}`}
               onClick={() => setActiveTab('sud')}
             >
-              {/* Image de couverture dynamique */}
               {getCover('sud').image_url && (
                 <img
                   src={getCover('sud').image_url}
@@ -303,12 +335,8 @@ export default function Circuits() {
                 <h2>{getCover('sud').card_title}</h2>
                 <p>{getCover('sud').card_description}</p>
                 <div className="ci-split__card-stats">
-                  <span>
-                    <strong>{allCircuits.filter((c) => c.region === 'sud').length}</strong> circuits
-                  </span>
-                  <span>
-                    dès <strong>{sudMin < 9999 ? `${sudMin} DT` : '-'}</strong>
-                  </span>
+                  <span><strong>{allCircuits.filter(c => c.region === 'sud').length}</strong> circuits</span>
+                  <span>dès <strong>{sudMin < 9999 ? `${sudMin} DT` : '-'}</strong></span>
                 </div>
               </div>
               {activeTab === 'sud' && <div className="ci-split__card-active-bar" />}
@@ -318,7 +346,9 @@ export default function Circuits() {
         </div>
       </section>
 
-      {/* ── SECTION LISTE DES CIRCUITS ── */}
+      {/* ══════════════════════════════════════════════════════
+          SECTION LISTE DES CIRCUITS
+      ══════════════════════════════════════════════════════ */}
       <section className="ci-section">
         <div className="ci-container">
           <div className="ci-section__head">
@@ -326,44 +356,31 @@ export default function Circuits() {
               <span className={`ci-section__badge ci-section__badge--${activeTab}`}>
                 {activeTab === 'nord' ? 'Circuit Nord' : 'Circuit Sud'}
               </span>
-              {/* Titre et sous-titre dynamiques */}
               <h2 className="ci-section__title">{getCover(activeTab).hero_title}</h2>
               <p className="ci-section__sub">{getCover(activeTab).hero_sub}</p>
             </div>
             <div className="ci-section__head-right">
               <div className="ci-section__switcher">
-                <button
-                  className={`ci-switcher-btn${activeTab === 'nord' ? ' active' : ''}`}
-                  onClick={() => setActiveTab('nord')}
-                >
-                  Nord
-                </button>
-                <button
-                  className={`ci-switcher-btn${activeTab === 'sud' ? ' active' : ''}`}
-                  onClick={() => setActiveTab('sud')}
-                >
-                  Sud
-                </button>
+                <button className={`ci-switcher-btn${activeTab === 'nord' ? ' active' : ''}`} onClick={() => setActiveTab('nord')}>Nord</button>
+                <button className={`ci-switcher-btn${activeTab === 'sud'  ? ' active' : ''}`} onClick={() => setActiveTab('sud') }>Sud</button>
               </div>
             </div>
           </div>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '80px 0' }}>
+            <div style={{ textAlign:'center', padding:'80px 0' }}>
               <div style={{ width:44, height:44, border:'3px solid #e2e8f0', borderTopColor:'#0F4C5C', borderRadius:'50%', animation:'spin .7s linear infinite', margin:'0 auto 16px' }} />
-              <p style={{ color: '#94a3b8' }}>Chargement des circuits...</p>
+              <p style={{ color:'#94a3b8' }}>Chargement des circuits...</p>
             </div>
           ) : circuits.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <p style={{ fontSize: 16, color: '#64748b' }}>
-                Aucun circuit ne correspond à votre recherche pour le moment.
-              </p>
+            <div style={{ textAlign:'center', padding:'60px 20px' }}>
+              <p style={{ fontSize:16, color:'#64748b' }}>Aucun circuit ne correspond à votre recherche pour le moment.</p>
             </div>
           ) : (
             <div className="ci-grid">
               {circuits.map((circuit, index) => {
-                const tagMeta  = TAG_COLORS[circuit.tagColor] || TAG_COLORS.teal;
-                const diffMeta = DIFF_META[circuit.difficulty] || DIFF_META.Facile;
+                const tagMeta    = TAG_COLORS[circuit.tagColor] || TAG_COLORS.teal;
+                const diffMeta   = DIFF_META[circuit.difficulty] || DIFF_META.Facile;
                 const isHovered  = hovered === circuit.id;
                 const isFull     = circuit.places <= 0;
                 const isFavorite = favoriteIds.has(getFavoriteKey(circuit.id));
@@ -372,28 +389,23 @@ export default function Circuits() {
                   <div
                     key={circuit.id}
                     className={`ci-card${isHovered ? ' ci-card--hovered' : ''}`}
-                    style={{ animationDelay: `${index * 0.08}s` }}
+                    style={{ animationDelay:`${index * 0.08}s` }}
                     onMouseEnter={() => setHovered(circuit.id)}
                     onMouseLeave={() => setHovered(null)}
                   >
                     <div className="ci-card__img-wrap">
                       <img src={circuit.image} alt={circuit.title} className="ci-card__img" loading="lazy" />
                       <div className="ci-card__img-overlay" />
-
                       {circuit.tag && (
-                        <span className="ci-card__tag" style={{ background: tagMeta.bg, color: tagMeta.color }}>
+                        <span className="ci-card__tag" style={{ background:tagMeta.bg, color:tagMeta.color }}>
                           {circuit.tag}
                         </span>
                       )}
-                      <span className="ci-card__duration">
-                        <IconClock />
-                        {circuit.duration}
-                      </span>
+                      <span className="ci-card__duration"><IconClock />{circuit.duration}</span>
                       {circuit.badge && <span className="ci-card__badge-top">{circuit.badge}</span>}
-
                       <button
                         className={`ci-card__heart${isFavorite ? ' ci-card__heart--active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); handleFavoriteToggle(circuit); }}
+                        onClick={e => { e.stopPropagation(); handleFavoriteToggle(circuit); }}
                         title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                         aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                       >
@@ -409,24 +421,18 @@ export default function Circuits() {
                         </p>
                       )}
                       <p className="ci-card__desc">{circuit.description}</p>
-
                       <div className="ci-card__highlights">
                         {circuit.highlights.slice(0, 4).map((h, i) => (
-                          <span key={i} className="ci-card__highlight">
-                            <IconCheck />
-                            {h}
-                          </span>
+                          <span key={i} className="ci-card__highlight"><IconCheck />{h}</span>
                         ))}
                       </div>
-
                       <div className="ci-card__meta">
                         <span className="ci-card__meta-item"><IconUsers />{circuit.group}</span>
                         <span className="ci-card__diff" style={{ background:diffMeta.bg, color:diffMeta.color }}>
                           <IconStar />{circuit.difficulty}
                         </span>
                       </div>
-
-                      <div style={{ marginTop:8, fontSize:11, fontWeight:600, color: isFull ? '#e92f64' : circuit.places <= 5 ? '#f97316' : '#065f46' }}>
+                      <div style={{ marginTop:8, fontSize:11, fontWeight:600, color:isFull?'#e92f64':circuit.places<=5?'#f97316':'#065f46' }}>
                         {isFull ? 'Complet' : circuit.places <= 5 ? `Plus que ${circuit.places} places !` : `${circuit.places} places disponibles`}
                       </div>
                     </div>
@@ -456,8 +462,7 @@ export default function Circuits() {
                           disabled={isFull}
                           style={{ opacity:isFull?0.5:1, cursor:isFull?'not-allowed':'pointer' }}
                         >
-                          Réserver
-                          <IconArrow />
+                          Réserver<IconArrow />
                         </button>
                       </div>
                     </div>
@@ -503,8 +508,7 @@ export default function Circuits() {
             <p>Notre équipe conçoit des circuits 100% personnalisés selon vos envies, votre budget et votre rythme.</p>
             <div className="ci-cta__btns">
               <button className="ci-cta__btn ci-cta__btn--primary" onClick={() => navigate('/CustomTripAbroad')}>
-                Créer mon circuit sur mesure
-                <IconArrow />
+                Créer mon circuit sur mesure<IconArrow />
               </button>
               <button className="ci-cta__btn ci-cta__btn--outline" onClick={() => navigate('/Contact')}>
                 Nous contacter

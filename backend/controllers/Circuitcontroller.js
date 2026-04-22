@@ -1,9 +1,17 @@
 // backend/controllers/circuitController.js
+
 const model = require('../models/circuitModel');
 
 const KEY = 'circuit-covers';
 
 const DEFAULT = {
+  hero: {
+    bg_image:     '',
+    tag:          'Circuits touristiques - Tunisie',
+    title:        'Explorez la Tunisie',
+    title_accent: 'du Nord au Sud',
+    sub:          'Des circuits soigneusement conçus pour vous faire découvrir les trésors du pays, entre mer, désert, culture et authenticité.',
+  },
   nord: {
     image_url:        '',
     card_title:       'Circuit Nord',
@@ -34,11 +42,11 @@ const getCircuitCovers = async (req, res) => {
 
 const updateCircuitCovers = async (req, res) => {
   try {
-    const { nord, sud } = req.body;
+    const { hero, nord, sud } = req.body;
     if (!nord || !sud) {
       return res.status(400).json({ success: false, message: 'Les données nord et sud sont obligatoires' });
     }
-    const saved = await model.setSetting(KEY, { nord, sud });
+    const saved = await model.setSetting(KEY, { hero: hero || DEFAULT.hero, nord, sud });
     res.json({ success: true, data: saved, message: 'Apparence mise à jour' });
   } catch (err) {
     console.error('[settings] updateCircuitCovers:', err.message);

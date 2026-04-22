@@ -1,5 +1,38 @@
 // backend/controllers/omraController.js
 const omraModel = require('../models/omraModel');
+const KEY='omra-covers'
+const DEFAULT = {
+  hero: {
+    bg_image:     '',
+    tag:          'Pelerinage et Spiritualite',
+    title:        'Votre Voyage',
+    title_accent: 'Spirituel Ideal',
+    sub:          'Accomplissez votre Omra en toute serenite avec nos forfaits tout compris, concus pour une experience spirituelle inoubliable. ',
+  },};
+
+  const getOmraCovers = async (req, res) => {
+    try {
+      const data = await omraModel.getSetting(KEY);
+      res.json({ success: true, data: data ?? DEFAULT });
+    } catch (err) {
+      console.error('[settings] getOmraCovers:', err.message);
+      res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+  };
+  
+  const updateOmraCovers = async (req, res) => {
+    try {
+      const { hero, nord, sud } = req.body;
+     
+      const saved = await omraModel.setSetting(KEY, { hero: hero || DEFAULT.hero });
+      res.json({ success: true, data: saved, message: 'Apparence mise à jour' });
+    } catch (err) {
+      console.error('[settings] updateOmraCovers:', err.message);
+      res.status(500).json({ success: false, message: 'Erreur serveur' });
+    }
+  };
+  
+
 
 /* GET /api/omra/packages — admin: all | public: active only */
 const getAll = async (req, res) => {
@@ -74,4 +107,4 @@ const remove = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getOne, create, update, remove };
+module.exports = { getAll, getOne, create, update, remove , getOmraCovers,updateOmraCovers};

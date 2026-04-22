@@ -14,6 +14,34 @@ const SPOTS_QUERY = `
   LEFT JOIN public.omra_reservations r ON r.package_id = p.id
 `;
 
+
+const ensureTable = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS public.settings (
+      key        VARCHAR(100) PRIMARY KEY,
+      value      JSONB        NOT NULL,
+      updated_at TIMESTAMPTZ  DEFAULT NOW()
+    )
+  `);
+};
+
+const getSetting = async (key) => {
+  await ensureTable();
+  const { rows } = await pool.query('SELECT value FROM public.settings WHERE key = $1', [key]);
+  return rows[0]?.value ?? null;
+};
+
+const setSetting = async (key, value) => {
+  await ensureTable();
+  const { rows } = await pool.query(`
+    INSERT INTO public.settings (key, value, updated_at)
+    VALUES ($1, $2, NOW())
+    ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()
+    RETURNING value
+  `, [key, JSON.stringify(value)]);
+  return rows[0].value;
+};
+
 /* GET all packages (admin — includes inactive) */
 const getAllPackages = async () => {
   const { rows } = await pool.query(`
@@ -129,4 +157,6 @@ module.exports = {
   createPackage,
   updatePackage,
   deletePackage,
+  getSetting,
+   setSetting,
 };

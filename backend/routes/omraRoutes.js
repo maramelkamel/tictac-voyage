@@ -4,7 +4,8 @@
 const express = require('express');
 const router  = express.Router();
 const ctrl    = require('../controllers/omraController');
-
+router.get('/omra-covers', ctrl.getOmraCovers);
+router.put('/omra-covers', ctrl.updateOmraCovers);
 // GET  /api/omra/packages          → all packages (admin) or active (public?public=true)
 // POST /api/omra/packages          → create package
 router.route('/')

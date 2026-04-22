@@ -2,11 +2,287 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
-const API_PKG = 'http://localhost:5000/api/omra/packages';
-const fPrice = (p) => p ? Number(p).toLocaleString('fr-TN') + ' TND' : '—';
+const API_PKG    = 'http://localhost:5000/api/omra/packages';
+const COVERS_API = 'http://localhost:5000/api/omra/packages/omra-covers';
+const fPrice     = (p) => p ? Number(p).toLocaleString('fr-TN') + ' TND' : '—';
 
-const EMPTY = { title:'', subtitle:'', description:'', image_url:'', price:'', old_price:'', duration:'', departure:'', spots:'50', badge:'', is_active:true };
+const EMPTY = {
+  title:'', subtitle:'', description:'', image_url:'', price:'', old_price:'',
+  duration:'', departure:'', spots:'50', badge:'', is_active:true,
+};
 
+const DEFAULT_COVERS = {
+  hero: {
+    bg_image:     '',
+    tag:          'Pelerinage et Spiritualite',
+    title:        'Votre Voyage',
+    title_accent: 'Spirituel Ideal',
+    sub:          'Accomplissez votre Omra en toute serenite avec nos forfaits tout compris, concus pour une experience spirituelle inoubliable.',
+  },
+};
+
+/* ══════════════════════════════════════════════════════════════
+   MODAL FIELD HELPER
+   ══════════════════════════════════════════════════════════════ */
+const ModalField = ({ label, req, children }) => (
+  <div className="al-field">
+    <label className="al-label">{label} {req && <span className="al-required">*</span>}</label>
+    {children}
+  </div>
+);
+
+/* ══════════════════════════════════════════════════════════════
+   MODAL COVERS — Hero Omra
+   ══════════════════════════════════════════════════════════════ */
+const CoversModal = ({ covers, onClose, onSaved, notify }) => {
+  const [form, setForm] = useState({
+    hero: { ...DEFAULT_COVERS.hero, ...(covers?.hero || {}) },
+  });
+  const [loading, setLoading] = useState(false);
+
+  const setHero = (key, val) => setForm(p => ({ ...p, hero: { ...p.hero, [key]: val } }));
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(COVERS_API, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(form),
+      });
+      const json = await res.json();
+      if (json.success) {
+        notify('Apparence mise à jour ✅');
+        onSaved(form);
+      } else {
+        notify(json.message || 'Erreur', 'error');
+      }
+    } catch {
+      notify('Erreur réseau', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="al-overlay" onClick={onClose}>
+      <div
+        className="al-modal"
+        style={{ maxWidth: 760, maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* ── Header ── */}
+        <div className="al-modal__header" style={{ flexShrink: 0 }}>
+          <div className="al-modal__title-wrap">
+            <div className="al-modal__icon" style={{ background: 'linear-gradient(135deg,#be185d,#e8306a)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <path d="M21 15l-5-5L5 21"/>
+              </svg>
+            </div>
+            <div>
+              <h2>Apparence de la page Omra</h2>
+              <p style={{ fontSize:12, color:'var(--g400)', marginTop:2 }}>
+                Modifiez le bandeau hero de la page Omra
+              </p>
+            </div>
+          </div>
+          <button className="al-modal__close" onClick={onClose}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* ── Tab bar (single tab: hero) ── */}
+        <div style={{ padding: '0 24px', borderBottom: '1px solid var(--g200)', flexShrink: 0 }}>
+          <div style={{ display: 'flex' }}>
+            <button
+              type="button"
+              style={{
+                padding: '12px 20px', border: 'none', background: 'transparent',
+                cursor: 'pointer', fontSize: 13, fontWeight: 700,
+                color: 'var(--primary)',
+                borderBottom: '2px solid var(--primary)',
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}
+            >
+              🖼️ Hero (Bandeau)
+            </button>
+          </div>
+        </div>
+
+        {/* ── Scrollable body ── */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+          {/* Aperçu live hero */}
+          <div>
+            <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:10 }}>
+              Aperçu du bandeau hero
+            </p>
+            <div style={{
+              borderRadius: 16, overflow: 'hidden', position: 'relative', height: 200,
+              background: 'linear-gradient(135deg,#7c1034 0%,#b91c4a 50%,#7c1034 100%)',
+              border: '2px solid var(--g200)', boxShadow: '0 4px 20px rgba(0,0,0,.1)',
+            }}>
+              {form.hero.bg_image && (
+                <img
+                  src={form.hero.bg_image} alt="hero bg"
+                  style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:.4 }}
+                  onError={e => { e.target.style.display='none'; }}
+                />
+              )}
+              <div style={{ position:'absolute', inset:0, background:'rgba(10,10,30,.55)' }}/>
+              {/* Motif géométrique décoratif */}
+              <div style={{
+                position:'absolute', inset:0, opacity:.08,
+                backgroundImage:'radial-gradient(circle at 20% 50%, #fff 1px, transparent 1px), radial-gradient(circle at 80% 20%, #fff 1px, transparent 1px)',
+                backgroundSize:'40px 40px',
+              }}/>
+              <div style={{
+                position:'relative', padding:'28px 32px',
+                display:'flex', flexDirection:'column', justifyContent:'center',
+                height:'100%', color:'#fff',
+              }}>
+                <span style={{
+                  display:'inline-flex', alignItems:'center', gap:6,
+                  background:'rgba(255,255,255,.15)', backdropFilter:'blur(8px)',
+                  border:'1px solid rgba(255,255,255,.25)', borderRadius:999,
+                  padding:'4px 14px', fontSize:11, fontWeight:700, color:'#fff',
+                  width:'fit-content', marginBottom:12,
+                }}>
+                  🕋 {form.hero.tag || 'Pelerinage et Spiritualite'}
+                </span>
+                <h1 style={{ fontSize:24, fontWeight:900, lineHeight:1.2, margin:0 }}>
+                  {form.hero.title || 'Votre Voyage'}
+                  <br/>
+                  <span style={{ color:'#f472b6' }}>
+                    {form.hero.title_accent || 'Spirituel Ideal'}
+                  </span>
+                </h1>
+                <p style={{ fontSize:12, color:'rgba(255,255,255,.8)', marginTop:8, lineHeight:1.5, maxWidth:480 }}>
+                  {form.hero.sub || 'Accomplissez votre Omra en toute serenite...'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Image de fond */}
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:8, borderBottom:'1px solid var(--g100)' }}>
+              🖼️ Image de fond du bandeau
+            </p>
+            <div className="al-field">
+              <label className="al-label">URL de l'image de fond</label>
+              <input
+                className="al-input"
+                placeholder="https://images.unsplash.com/..."
+                value={form.hero.bg_image}
+                onChange={e => setHero('bg_image', e.target.value)}
+              />
+            </div>
+            {/* Suggestions */}
+            <div>
+              <p style={{ fontSize:11, color:'var(--g400)', marginBottom:6 }}>Suggestions rapides :</p>
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                {[
+                  { label:'La Mecque',    url:'https://images.unsplash.com/photo-1518684079-3c830dcef090?w=1600&q=80' },
+                  { label:'Kaaba',        url:'https://images.unsplash.com/photo-1564769625905-50e93615e769?w=1600&q=80' },
+                  { label:'Médine',       url:'https://images.unsplash.com/photo-1574483074773-65a6d6083e28?w=1600&q=80' },
+                  { label:'Pèlerins',     url:'https://images.unsplash.com/photo-1590012314607-cda9d9b699ae?w=1600&q=80' },
+                  { label:'Mosquée',      url:'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=1600&q=80' },
+                ].map(s => (
+                  <button
+                    key={s.label}
+                    type="button"
+                    onClick={() => setHero('bg_image', s.url)}
+                    style={{
+                      padding:'4px 12px', borderRadius:999, fontSize:11, fontWeight:600,
+                      border:'1.5px solid var(--g200)',
+                      background: form.hero.bg_image === s.url ? 'rgba(232,48,106,.1)' : 'var(--g50)',
+                      color: form.hero.bg_image === s.url ? '#e8306a' : 'var(--g600)',
+                      borderColor: form.hero.bg_image === s.url ? '#e8306a' : 'var(--g200)',
+                      cursor:'pointer', transition:'all .15s',
+                    }}
+                    onMouseEnter={e => { if(form.hero.bg_image !== s.url){ e.currentTarget.style.borderColor='#e8306a'; e.currentTarget.style.color='#e8306a'; }}}
+                    onMouseLeave={e => { if(form.hero.bg_image !== s.url){ e.currentTarget.style.borderColor='var(--g200)'; e.currentTarget.style.color='var(--g600)'; }}}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Textes */}
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:8, borderBottom:'1px solid var(--g100)' }}>
+              ✍️ Textes du bandeau
+            </p>
+            <div className="al-field">
+              <label className="al-label">Tag / Étiquette (au-dessus du titre)</label>
+              <input
+                className="al-input"
+                placeholder="Ex: Pelerinage et Spiritualite"
+                value={form.hero.tag}
+                onChange={e => setHero('tag', e.target.value)}
+              />
+            </div>
+            <div className="al-row-2">
+              <div className="al-field">
+                <label className="al-label">Titre principal</label>
+                <input
+                  className="al-input"
+                  placeholder="Ex: Votre Voyage"
+                  value={form.hero.title}
+                  onChange={e => setHero('title', e.target.value)}
+                />
+              </div>
+              <div className="al-field">
+                <label className="al-label">Titre accentué (en couleur)</label>
+                <input
+                  className="al-input"
+                  placeholder="Ex: Spirituel Ideal"
+                  value={form.hero.title_accent}
+                  onChange={e => setHero('title_accent', e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="al-field">
+              <label className="al-label">Sous-titre / description</label>
+              <textarea
+                className="al-textarea"
+                rows={3}
+                placeholder="Ex: Accomplissez votre Omra en toute serenite..."
+                value={form.hero.sub}
+                onChange={e => setHero('sub', e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Footer ── */}
+        <div className="al-form-footer" style={{ flexShrink:0, borderTop:'1px solid var(--g200)', padding:'16px 24px' }}>
+          <button type="button" className="al-btn al-btn--ghost" onClick={onClose}>Annuler</button>
+          <button
+            type="button"
+            className="al-btn al-btn--primary"
+            disabled={loading}
+            onClick={handleSave}
+            style={{ background:'linear-gradient(135deg,#be185d,#e8306a)', borderColor:'transparent' }}
+          >
+            {loading ? 'Enregistrement...' : '💾 Enregistrer l\'apparence'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════════════════
+   MODAL CRÉATION / ÉDITION FORFAIT
+   ══════════════════════════════════════════════════════════════ */
 const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
   const [form, setForm] = useState(pkg ? {
     title:       pkg.title       || '',
@@ -242,7 +518,6 @@ const OmraDetail = ({ pkg, onClose, onEdit, onDelete, isMain }) => {
         </div>
       </div>
 
-      {/* Footer boutons */}
       <div style={{ padding:'14px 18px', borderTop:'1px solid var(--g100)', display:'flex', gap:8, position:'sticky', bottom:0, background:'#fff' }}>
         <button className="al-btn al-btn--primary" style={{ flex:1 }} onClick={() => { onEdit(pkg); onClose(); }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14, height:14 }}>
@@ -272,14 +547,15 @@ const OmraDetail = ({ pkg, onClose, onEdit, onDelete, isMain }) => {
    MAIN COMPONENT
    ══════════════════════════════════════════════════════════════ */
 const OmraPackages = () => {
-  const [packages,  setPackages]  = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [toast,     setToast]     = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [editPkg,   setEditPkg]   = useState(null);
-  const [selected,  setSelected]  = useState(null);
+  const [packages,    setPackages]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [toast,       setToast]       = useState(null);
+  const [showModal,   setShowModal]   = useState(false);
+  const [showCovers,  setShowCovers]  = useState(false);
+  const [editPkg,     setEditPkg]     = useState(null);
+  const [selected,    setSelected]    = useState(null);
+  const [covers,      setCovers]      = useState(null);
 
-  // ── Role check ────────────────────────────────────────────────
   const isMain = (() => {
     try { return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main'; }
     catch { return false; }
@@ -300,9 +576,16 @@ const OmraPackages = () => {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchPackages(); }, []);
+  const fetchCovers = async () => {
+    try {
+      const r = await fetch(COVERS_API);
+      const j = await r.json();
+      if (j.success) setCovers(j.data);
+    } catch { /* silently ignore */ }
+  };
 
-  // ── Delete guarded by role ─────────────────────────────────────
+  useEffect(() => { fetchPackages(); fetchCovers(); }, []);
+
   const handleDelete = async (id) => {
     if (!isMain) {
       notify('❌ Seul l\'administrateur principal peut supprimer un forfait', 'error');
@@ -327,10 +610,26 @@ const OmraPackages = () => {
       title="Forfaits Omra"
       breadcrumb={[{ label: 'Omra' }, { label: 'Forfaits', active: true }]}
       actions={
-        <button className="al-btn al-btn--primary" onClick={() => { setEditPkg(null); setShowModal(true); }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
-          Nouveau forfait
-        </button>
+        <div style={{ display:'flex', gap:8 }}>
+          {/* ── Bouton Apparence page (comme Circuits) ── */}
+          <button
+            className="al-btn al-btn--ghost"
+            onClick={() => setShowCovers(true)}
+            title="Modifier l'apparence de la page Omra (hero)"
+            style={{ display:'flex', alignItems:'center', gap:6 }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:15, height:15 }}>
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <path d="M21 15l-5-5L5 21"/>
+            </svg>
+            Apparence page
+          </button>
+          <button className="al-btn al-btn--primary" onClick={() => { setEditPkg(null); setShowModal(true); }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Nouveau forfait
+          </button>
+        </div>
       }
       toast={toast}
     >
@@ -351,6 +650,46 @@ const OmraPackages = () => {
           </div>
         ))}
       </div>
+
+      {/* ── Mini preview du hero actuel (comme Circuits) ── */}
+      {covers && (
+        <div style={{ margin:'0 32px 16px' }}>
+          <div
+            onClick={() => setShowCovers(true)}
+            style={{
+              borderRadius:12, overflow:'hidden', position:'relative', height:70,
+              cursor:'pointer', border:'1.5px solid var(--g200)',
+              background:'linear-gradient(135deg,#7c1034,#b91c4a)',
+              transition:'transform .15s, box-shadow .15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,.15)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow=''; }}
+          >
+            {covers.hero?.bg_image && (
+              <img
+                src={covers.hero.bg_image} alt="hero"
+                style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:.4 }}
+                onError={e => { e.target.style.display='none'; }}
+              />
+            )}
+            <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,.35)' }}/>
+            <div style={{ position:'relative', padding:'10px 14px', display:'flex', alignItems:'center', gap:8, height:'100%' }}>
+              <span style={{ fontSize:20 }}>🕋</span>
+              <div>
+                <p style={{ fontSize:12, fontWeight:700, color:'#fff', margin:0 }}>
+                  {covers.hero?.title || 'Votre Voyage'}{' '}
+                  <span style={{ color:'#f9a8d4' }}>{covers.hero?.title_accent || 'Spirituel Ideal'}</span>
+                </p>
+                <p style={{ fontSize:10, color:'rgba(255,255,255,.7)', margin:0 }}>Hero Omra · Cliquer pour modifier</p>
+              </div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" style={{ width:14, height:14, marginLeft:'auto', opacity:.7 }}>
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ display:'flex', margin:'0 32px 32px', background:'#fff', borderRadius:16, border:'1px solid var(--g200)', boxShadow:'0 4px 12px rgba(15,76,92,.08)', overflow:'hidden' }}>
         <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>
@@ -433,7 +772,6 @@ const OmraPackages = () => {
                             <button className="al-action-btn al-action-btn--edit" onClick={() => { setEditPkg(pkg); setShowModal(true); }} title="Modifier">
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </button>
-                            {/* ── Delete: grayed out for non-main ── */}
                             <button
                               className="al-action-btn al-action-btn--delete"
                               onClick={() => handleDelete(pkg.id)}
@@ -472,6 +810,15 @@ const OmraPackages = () => {
           pkg={editPkg}
           onClose={() => { setShowModal(false); setEditPkg(null); }}
           onSaved={() => { setShowModal(false); setEditPkg(null); fetchPackages(); }}
+          notify={notify}
+        />
+      )}
+
+      {showCovers && (
+        <CoversModal
+          covers={covers}
+          onClose={() => setShowCovers(false)}
+          onSaved={(newCovers) => { setCovers(newCovers); setShowCovers(false); }}
           notify={notify}
         />
       )}
