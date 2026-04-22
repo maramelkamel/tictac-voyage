@@ -47,6 +47,7 @@ import FlightReservations from './pages/admin/flight/FlightReservations';
 import FlightPricingAdmin from './pages/admin/flight/FlightPricingAdmin';
 
 
+
 function App() {
   return (
     <Router>
@@ -101,6 +102,13 @@ function App() {
       <Route path="/flights/details"     element={<FlightDetails />} />
       <Route path="/admin/flights/reservations"       element={<FlightReservations />} />
       <Route path="/admin/flights/pricing"      element={<FlightPricingAdmin />} />
+      
+
+         
+
+
+
+        
      
 
 </Routes>

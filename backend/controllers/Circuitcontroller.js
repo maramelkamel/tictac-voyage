@@ -1,6 +1,51 @@
 // backend/controllers/circuitController.js
 const model = require('../models/circuitModel');
 
+const KEY = 'circuit-covers';
+
+const DEFAULT = {
+  nord: {
+    image_url:        '',
+    card_title:       'Circuit Nord',
+    card_description: 'Patrimoine, côtes sauvages, sites romains et forêts de pins du Tell.',
+    hero_title:       'Découvrez le Nord de la Tunisie',
+    hero_sub:         'Médinas historiques, côtes coralliennes, vestiges romains et montagnes verdoyantes.',
+    icon:             '🏛',
+  },
+  sud: {
+    image_url:        '',
+    card_title:       'Circuit Sud',
+    card_description: 'Désert doré, ksour berbères, oasis de palmiers et nuits sous les étoiles.',
+    hero_title:       'Aventures dans le Grand Sud',
+    hero_sub:         'Sahara infini, villages berbères millénaires, oasis enchanteresses et ciels étoilés.',
+    icon:             '🏜',
+  },
+};
+
+const getCircuitCovers = async (req, res) => {
+  try {
+    const data = await model.getSetting(KEY);
+    res.json({ success: true, data: data ?? DEFAULT });
+  } catch (err) {
+    console.error('[settings] getCircuitCovers:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
+const updateCircuitCovers = async (req, res) => {
+  try {
+    const { nord, sud } = req.body;
+    if (!nord || !sud) {
+      return res.status(400).json({ success: false, message: 'Les données nord et sud sont obligatoires' });
+    }
+    const saved = await model.setSetting(KEY, { nord, sud });
+    res.json({ success: true, data: saved, message: 'Apparence mise à jour' });
+  } catch (err) {
+    console.error('[settings] updateCircuitCovers:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
 const getAll = async (req, res) => {
   try {
     const data = req.query.public === 'true' ? await model.getActiveCircuits() : await model.getAllCircuits();
@@ -43,4 +88,4 @@ const remove = async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: 'Erreur serveur' }); }
 };
 
-module.exports = { getAll, getOne, create, update, remove };
+module.exports = { getAll, getOne, create, update, remove, getCircuitCovers, updateCircuitCovers };

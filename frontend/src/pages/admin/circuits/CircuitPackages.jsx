@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
-const API    = 'http://localhost:5000/api/circuits';
-const fPrice = (p) => p ? Number(p).toLocaleString('fr-TN') + ' DT' : '—';
+const API        = 'http://localhost:5000/api/circuits';
+const COVERS_API = 'http://localhost:5000/api/circuits/circuit-covers';
+const fPrice     = (p) => p ? Number(p).toLocaleString('fr-TN') + ' DT' : '—';
 
 const EMPTY = {
   title:'', subtitle:'', description:'', image_url:'', price:'', old_price:'',
@@ -12,14 +13,299 @@ const EMPTY = {
   group_size:'', is_active:true,
 };
 
-// ── FIX: defined OUTSIDE PkgModal so React doesn't recreate it
-//    on every keystroke (which would unmount inputs and lose focus) ──
+const DEFAULT_COVERS = {
+  nord: {
+    image_url: '',
+    card_title: 'Circuit Nord',
+    card_description: 'Patrimoine, côtes sauvages, sites romains et forêts de pins du Tell.',
+    hero_title: 'Découvrez le Nord de la Tunisie',
+    hero_sub: 'Médinas historiques, côtes coralliennes, vestiges romains et montagnes verdoyantes.',
+    icon: '🏛',
+  },
+  sud: {
+    image_url: '',
+    card_title: 'Circuit Sud',
+    card_description: 'Désert doré, ksour berbères, oasis de palmiers et nuits sous les étoiles.',
+    hero_title: 'Aventures dans le Grand Sud',
+    hero_sub: 'Sahara infini, villages berbères millénaires, oasis enchanteresses et ciels étoilés.',
+    icon: '🏜',
+  },
+};
+
 const ModalField = ({ label, req, children }) => (
   <div className="al-field">
     <label className="al-label">{label} {req && <span className="al-required">*</span>}</label>
     {children}
   </div>
 );
+
+/* ══════════════════════════════════════════════════════════════
+   MODAL COVERS — Changement photos + textes Nord / Sud
+   ══════════════════════════════════════════════════════════════ */
+const CoversModal = ({ covers, onClose, onSaved, notify }) => {
+  const [activeRegion, setActiveRegion] = useState('nord');
+  const [form, setForm] = useState({
+    nord: { ...DEFAULT_COVERS.nord, ...(covers?.nord || {}) },
+    sud:  { ...DEFAULT_COVERS.sud,  ...(covers?.sud  || {}) },
+  });
+  const [loading, setLoading] = useState(false);
+
+  const set = (region, key, value) =>
+    setForm(prev => ({ ...prev, [region]: { ...prev[region], [key]: value } }));
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(COVERS_API, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(form),
+      });
+      const json = await res.json();
+      if (json.success) {
+        notify('Apparence mise à jour ✅');
+        onSaved(form);
+      } else {
+        notify(json.message || 'Erreur', 'error');
+      }
+    } catch {
+      notify('Erreur réseau', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const r = form[activeRegion];
+  const isNord = activeRegion === 'nord';
+
+  return (
+    <div className="al-overlay" onClick={onClose}>
+      <div
+        className="al-modal"
+        style={{ maxWidth: 720, maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="al-modal__header" style={{ flexShrink: 0 }}>
+          <div className="al-modal__title-wrap">
+            <div className="al-modal__icon" style={{ background: 'linear-gradient(135deg,#7c3aed,#a855f7)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <path d="M21 15l-5-5L5 21"/>
+              </svg>
+            </div>
+            <div>
+              <h2>Apparence des sections</h2>
+              <p style={{ fontSize:12, color:'var(--g400)', marginTop:2 }}>
+                Modifiez les images et textes des cartes Nord / Sud
+              </p>
+            </div>
+          </div>
+          <button className="al-modal__close" onClick={onClose}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Tab switcher */}
+        <div style={{ padding: '0 24px', borderBottom: '1px solid var(--g200)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 0 }}>
+            {['nord','sud'].map(reg => (
+              <button
+                key={reg}
+                type="button"
+                onClick={() => setActiveRegion(reg)}
+                style={{
+                  padding: '12px 24px',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: activeRegion === reg ? 'var(--primary)' : 'var(--g400)',
+                  borderBottom: activeRegion === reg ? '2px solid var(--primary)' : '2px solid transparent',
+                  transition: 'all .15s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <span>{reg === 'nord' ? '🏛️' : '🏜️'}</span>
+                {reg === 'nord' ? 'Circuit Nord' : 'Circuit Sud'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Scrollable body */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+          {/* Live preview card */}
+          <div>
+            <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:10 }}>
+              Aperçu carte
+            </p>
+            <div style={{
+              borderRadius: 16,
+              overflow: 'hidden',
+              position: 'relative',
+              height: 160,
+              background: isNord
+                ? 'linear-gradient(135deg,#0f4c5c,#1a7a8a)'
+                : 'linear-gradient(135deg,#92400e,#c2410c)',
+              border: '2px solid var(--g200)',
+              boxShadow: '0 4px 20px rgba(0,0,0,.1)',
+            }}>
+              {r.image_url && (
+                <img
+                  src={r.image_url}
+                  alt="cover"
+                  style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:.6 }}
+                  onError={e => { e.target.style.display='none'; }}
+                />
+              )}
+              <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,.35)' }}/>
+              <div style={{ position:'relative', padding:'20px 24px', height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-end', color:'#fff' }}>
+                <div style={{ fontSize:28, marginBottom:6 }}>{r.icon || (isNord ? '🏛' : '🏜')}</div>
+                <h3 style={{ fontSize:18, fontWeight:800, margin:0, lineHeight:1.2 }}>{r.card_title || '—'}</h3>
+                <p style={{ fontSize:12, margin:'4px 0 0', opacity:.85, lineHeight:1.4 }}>{r.card_description || '—'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Section IMAGE */}
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:8, borderBottom:'1px solid var(--g100)' }}>
+              🖼️ Image de couverture
+            </p>
+            <div className="al-field">
+              <label className="al-label">URL de l'image</label>
+              <input
+                className="al-input"
+                placeholder="https://images.unsplash.com/..."
+                value={r.image_url}
+                onChange={e => set(activeRegion, 'image_url', e.target.value)}
+              />
+            </div>
+            {/* Quick suggestions */}
+            <div>
+              <p style={{ fontSize:11, color:'var(--g400)', marginBottom:6 }}>Suggestions rapides :</p>
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                {(isNord ? [
+                  { label:'Sidi Bou Saïd', url:'https://images.unsplash.com/photo-1569949381669-ecf31ae8e613?w=1200' },
+                  { label:'Carthage',      url:'https://images.unsplash.com/photo-1539020140153-e479b8e28f32?w=1200' },
+                  { label:'Tabarka',       url:'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=1200' },
+                  { label:'Bizerte',       url:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200' },
+                ] : [
+                  { label:'Sahara',        url:'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200' },
+                  { label:'Tozeur',        url:'https://images.unsplash.com/photo-1597149197088-fd60ba02a7d0?w=1200' },
+                  { label:'Dunes dorées',  url:'https://images.unsplash.com/photo-1502791451862-7bd8c1df43a7?w=1200' },
+                  { label:'Oasis',         url:'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1200' },
+                ]).map(s => (
+                  <button
+                    key={s.label}
+                    type="button"
+                    onClick={() => set(activeRegion, 'image_url', s.url)}
+                    style={{
+                      padding:'4px 12px', borderRadius:999, fontSize:11, fontWeight:600,
+                      border:'1.5px solid var(--g200)', background:'var(--g50)', color:'var(--g600)',
+                      cursor:'pointer', transition:'all .15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor='var(--primary)'; e.currentTarget.style.color='var(--primary)'; e.currentTarget.style.background='rgba(15,76,92,.06)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor='var(--g200)'; e.currentTarget.style.color='var(--g600)'; e.currentTarget.style.background='var(--g50)'; }}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Section CARTE (split card) */}
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:8, borderBottom:'1px solid var(--g100)' }}>
+              🃏 Textes de la carte (section sélection Nord / Sud)
+            </p>
+            <div className="al-row-2">
+              <div className="al-field">
+                <label className="al-label">Titre de la carte</label>
+                <input
+                  className="al-input"
+                  placeholder="Ex: Circuit Nord"
+                  value={r.card_title}
+                  onChange={e => set(activeRegion, 'card_title', e.target.value)}
+                />
+              </div>
+              <div className="al-field">
+                <label className="al-label">Icône (emoji)</label>
+                <input
+                  className="al-input"
+                  placeholder="🏛 ou 🏜"
+                  value={r.icon}
+                  onChange={e => set(activeRegion, 'icon', e.target.value)}
+                  style={{ fontSize:18 }}
+                />
+              </div>
+            </div>
+            <div className="al-field">
+              <label className="al-label">Description courte (sous le titre de la carte)</label>
+              <textarea
+                className="al-textarea"
+                rows={2}
+                placeholder="Ex: Patrimoine, côtes sauvages, sites romains..."
+                value={r.card_description}
+                onChange={e => set(activeRegion, 'card_description', e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Section HERO (liste circuits) */}
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:8, borderBottom:'1px solid var(--g100)' }}>
+              🎯 Textes de la section liste (sous la sélection)
+            </p>
+            <div className="al-field">
+              <label className="al-label">Titre principal de la section</label>
+              <input
+                className="al-input"
+                placeholder="Ex: Découvrez le Nord de la Tunisie"
+                value={r.hero_title}
+                onChange={e => set(activeRegion, 'hero_title', e.target.value)}
+              />
+            </div>
+            <div className="al-field">
+              <label className="al-label">Sous-titre / description de la section</label>
+              <textarea
+                className="al-textarea"
+                rows={2}
+                placeholder="Ex: Médinas historiques, côtes coralliennes..."
+                value={r.hero_sub}
+                onChange={e => set(activeRegion, 'hero_sub', e.target.value)}
+              />
+            </div>
+          </div>
+
+        </div>
+
+        {/* Footer */}
+        <div className="al-form-footer" style={{ flexShrink:0, borderTop:'1px solid var(--g200)', padding:'16px 24px' }}>
+          <button type="button" className="al-btn al-btn--ghost" onClick={onClose}>Annuler</button>
+          <button
+            type="button"
+            className="al-btn al-btn--primary"
+            disabled={loading}
+            onClick={handleSave}
+            style={{ background:'linear-gradient(135deg,#7c3aed,#a855f7)', borderColor:'transparent' }}
+          >
+            {loading ? 'Enregistrement...' : '💾 Enregistrer l\'apparence'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /* ══════════════════════════════════════════════════════════════
    MODAL CRÉATION / ÉDITION
@@ -308,12 +594,14 @@ const CircuitDetail = ({ circuit, onClose, onEdit, onDelete, isMain }) => {
    MAIN
    ══════════════════════════════════════════════════════════════ */
 const CircuitPackages = () => {
-  const [circuits,  setCircuits]  = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [toast,     setToast]     = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [editPkg,   setEditPkg]   = useState(null);
-  const [selected,  setSelected]  = useState(null);
+  const [circuits,    setCircuits]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [toast,       setToast]       = useState(null);
+  const [showModal,   setShowModal]   = useState(false);
+  const [showCovers,  setShowCovers]  = useState(false);
+  const [editPkg,     setEditPkg]     = useState(null);
+  const [selected,    setSelected]    = useState(null);
+  const [covers,      setCovers]      = useState(null);
 
   const isMain = (() => {
     try { return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main'; }
@@ -328,7 +616,17 @@ const CircuitPackages = () => {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchCircuits(); }, []);
+  const fetchCovers = async () => {
+    try {
+      const r = await fetch(COVERS_API);
+      const j = await r.json();
+      if (j.success) setCovers(j.data);
+    } catch {
+      // silently ignore — defaults will be used
+    }
+  };
+
+  useEffect(() => { fetchCircuits(); fetchCovers(); }, []);
 
   const handleDelete = async (id) => {
     if (!isMain) { notify('❌ Seul l\'administrateur principal peut supprimer un circuit', 'error'); return; }
@@ -350,10 +648,27 @@ const CircuitPackages = () => {
     <AdminLayout title="Circuits Tunisie"
       breadcrumb={[{ label:'Circuits' }, { label:'Catalogue', active:true }]}
       actions={
-        <button className="al-btn al-btn--primary" onClick={() => { setEditPkg(null); setShowModal(true); }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
-          Nouveau circuit
-        </button>
+        <div style={{ display:'flex', gap:8 }}>
+          {/* Bouton Apparence Nord/Sud */}
+          <button
+            className="al-btn al-btn--ghost"
+            onClick={() => setShowCovers(true)}
+            title="Modifier l'apparence des sections Nord / Sud"
+            style={{ display:'flex', alignItems:'center', gap:6 }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:15, height:15 }}>
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <path d="M21 15l-5-5L5 21"/>
+            </svg>
+            Apparence sections
+          </button>
+
+          <button className="al-btn al-btn--primary" onClick={() => { setEditPkg(null); setShowModal(true); }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Nouveau circuit
+          </button>
+        </div>
       }
       toast={toast}>
 
@@ -370,6 +685,51 @@ const CircuitPackages = () => {
           </div>
         ))}
       </div>
+
+      {/* Mini preview des covers actuelles */}
+      {covers && (
+        <div style={{ margin:'0 32px 16px', display:'flex', gap:12 }}>
+          {['nord','sud'].map(reg => (
+            <div
+              key={reg}
+              onClick={() => setShowCovers(true)}
+              style={{
+                flex:1, borderRadius:12, overflow:'hidden', position:'relative', height:70,
+                cursor:'pointer', border:'1.5px solid var(--g200)',
+                background: reg==='nord'
+                  ? 'linear-gradient(135deg,#0f4c5c,#1a7a8a)'
+                  : 'linear-gradient(135deg,#92400e,#c2410c)',
+                transition:'transform .15s, box-shadow .15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,.15)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow=''; }}
+            >
+              {covers[reg]?.image_url && (
+                <img
+                  src={covers[reg].image_url}
+                  alt={reg}
+                  style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:.5 }}
+                  onError={e => { e.target.style.display='none'; }}
+                />
+              )}
+              <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,.3)' }}/>
+              <div style={{ position:'relative', padding:'10px 14px', display:'flex', alignItems:'center', gap:8, height:'100%' }}>
+                <span style={{ fontSize:22 }}>{reg==='nord'?'🏛️':'🏜️'}</span>
+                <div>
+                  <p style={{ fontSize:12, fontWeight:700, color:'#fff', margin:0 }}>
+                    {covers[reg]?.card_title || (reg==='nord'?'Circuit Nord':'Circuit Sud')}
+                  </p>
+                  <p style={{ fontSize:10, color:'rgba(255,255,255,.7)', margin:0 }}>Cliquer pour modifier</p>
+                </div>
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" style={{ width:14, height:14, marginLeft:'auto', opacity:.7 }}>
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div style={{ display:'flex', margin:'0 32px 32px', background:'#fff', borderRadius:16, border:'1px solid var(--g200)', boxShadow:'0 4px 12px rgba(15,76,92,.08)', overflow:'hidden' }}>
         <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>
@@ -452,6 +812,15 @@ const CircuitPackages = () => {
           onClose={() => { setShowModal(false); setEditPkg(null); }}
           onSaved={() => { setShowModal(false); setEditPkg(null); fetchCircuits(); }}
           notify={notify}/>
+      )}
+
+      {showCovers && (
+        <CoversModal
+          covers={covers}
+          onClose={() => setShowCovers(false)}
+          onSaved={(newCovers) => { setCovers(newCovers); setShowCovers(false); }}
+          notify={notify}
+        />
       )}
     </AdminLayout>
   );

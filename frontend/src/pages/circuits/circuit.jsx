@@ -9,22 +9,43 @@ import { useFavorites } from '../../hooks/useFavorites';
 import { buildFavoriteItemData, getFavoriteKey } from '../../utils/favorites';
 import PromotionsSection from '../admin/promotions/PromotionsSection';
 
-const API = 'http://localhost:5000/api/circuits?public=true';
+const API        = 'http://localhost:5000/api/circuits?public=true';
+const COVERS_API = 'http://localhost:5000/api/circuits/circuit-covers';
 
 const TAG_COLORS = {
-  teal: { bg: 'rgba(30,202,211,.13)', color: '#0e7490' },
-  blue: { bg: 'rgba(59,130,246,.12)', color: '#1d4ed8' },
-  green: { bg: 'rgba(16,185,129,.12)', color: '#065f46' },
-  orange: { bg: 'rgba(249,115,22,.12)', color: '#c2410c' },
-  accent: { bg: 'rgba(233,47,100,.12)', color: '#E92F64' },
-  violet: { bg: 'rgba(139,92,246,.12)', color: '#5b21b6' },
+  teal:   { bg: 'rgba(30,202,211,.13)',  color: '#0e7490' },
+  blue:   { bg: 'rgba(59,130,246,.12)',  color: '#1d4ed8' },
+  green:  { bg: 'rgba(16,185,129,.12)',  color: '#065f46' },
+  orange: { bg: 'rgba(249,115,22,.12)',  color: '#c2410c' },
+  accent: { bg: 'rgba(233,47,100,.12)',  color: '#E92F64' },
+  violet: { bg: 'rgba(139,92,246,.12)',  color: '#5b21b6' },
 };
 
 const DIFF_META = {
-  Facile: { color: '#10b981', bg: '#d1fae5' },
-  Modere: { color: '#f97316', bg: '#fff7ed' },
-  'Modéré': { color: '#f97316', bg: '#fff7ed' },
-  Aventure: { color: '#E92F64', bg: 'rgba(233,47,100,.1)' },
+  Facile:    { color: '#10b981', bg: '#d1fae5' },
+  Modere:    { color: '#f97316', bg: '#fff7ed' },
+  'Modéré':  { color: '#f97316', bg: '#fff7ed' },
+  Aventure:  { color: '#E92F64', bg: 'rgba(233,47,100,.1)' },
+};
+
+// ── Defaults affichés si l'API covers ne répond pas ──
+const DEFAULT_COVERS = {
+  nord: {
+    image_url:        '',
+    card_title:       'Circuit Nord',
+    card_description: 'Patrimoine, côtes sauvages, sites romains et forêts de pins du Tell.',
+    hero_title:       'Découvrez le Nord de la Tunisie',
+    hero_sub:         'Médinas historiques, côtes coralliennes, vestiges romains et montagnes verdoyantes.',
+    icon:             '🏛',
+  },
+  sud: {
+    image_url:        '',
+    card_title:       'Circuit Sud',
+    card_description: 'Désert doré, ksour berbères, oasis de palmiers et nuits sous les étoiles.',
+    hero_title:       'Aventures dans le Grand Sud',
+    hero_sub:         'Sahara infini, villages berbères millénaires, oasis enchanteresses et ciels étoilés.',
+    icon:             '🏜',
+  },
 };
 
 const IconClock = () => (
@@ -112,21 +133,31 @@ export default function Circuits() {
   const [hovered, setHovered] = useState(null);
   const [allCircuits, setAllCircuits] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState({
-    date: '',
-    duration: '',
-    persons: '',
-  });
+  const [covers, setCovers] = useState(DEFAULT_COVERS);
+  const [search, setSearch] = useState({ date: '', duration: '', persons: '' });
 
   const { promos } = usePromotions('categorie', 'circuits');
   const { favoriteIds, isAuthenticated, toggleFavorite } = useFavorites('circuit');
 
   useEffect(() => {
     fetch(API)
-      .then((response) => response.json())
+      .then((r) => r.json())
       .then((json) => setAllCircuits((json.data || []).map(normalize)))
       .catch(console.error)
       .finally(() => setLoading(false));
+
+    // Charger les textes/images des sections Nord/Sud
+    fetch(COVERS_API)
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setCovers({
+            nord: { ...DEFAULT_COVERS.nord, ...json.data.nord },
+            sud:  { ...DEFAULT_COVERS.sud,  ...json.data.sud  },
+          });
+        }
+      })
+      .catch(() => {/* garde les defaults */});
   }, []);
 
   const applyFilters = (list) => {
@@ -134,62 +165,41 @@ export default function Circuits() {
 
     if (search.persons) {
       const people = search.persons === '10+' ? 10 : parseInt(search.persons, 10);
-      if (!Number.isNaN(people)) {
-        result = result.filter((circuit) => circuit.places >= people);
-      }
+      if (!Number.isNaN(people)) result = result.filter((c) => c.places >= people);
     }
-
     if (search.duration) {
       const duration = parseInt(search.duration, 10);
-      if (!Number.isNaN(duration)) {
-        result = result.filter((circuit) => circuit.durationDays === duration);
-      }
+      if (!Number.isNaN(duration)) result = result.filter((c) => c.durationDays === duration);
     }
-
     if (search.date) {
       const chosenDate = new Date(search.date);
       if (!Number.isNaN(chosenDate.getTime())) {
-        result = result.filter((circuit) => {
-          if (!circuit.departureDate) return true;
-          const departureDate = new Date(circuit.departureDate);
-          return Number.isNaN(departureDate.getTime()) || departureDate >= chosenDate;
+        result = result.filter((c) => {
+          if (!c.departureDate) return true;
+          const dep = new Date(c.departureDate);
+          return Number.isNaN(dep.getTime()) || dep >= chosenDate;
         });
       }
     }
-
     return result;
   };
 
   const circuits = applyFilters(allCircuits);
-  const nordMin = allCircuits
-    .filter((circuit) => circuit.region === 'nord')
-    .reduce((min, circuit) => Math.min(min, circuit.price), 9999);
-  const sudMin = allCircuits
-    .filter((circuit) => circuit.region === 'sud')
-    .reduce((min, circuit) => Math.min(min, circuit.price), 9999);
+  const nordMin  = allCircuits.filter((c) => c.region === 'nord').reduce((m, c) => Math.min(m, c.price), 9999);
+  const sudMin   = allCircuits.filter((c) => c.region === 'sud' ).reduce((m, c) => Math.min(m, c.price), 9999);
 
-  const handleDetails = (circuit) =>
-    navigate(`/circuits/CircuitDetails/${circuit.id}`, { state: { circuit } });
-
-  const handleReserver = (circuit) =>
-    navigate(`/circuits/CircuitReserver/${circuit.id}`, { state: { circuit } });
+  const handleDetails  = (circuit) => navigate(`/circuits/CircuitDetails/${circuit.id}`, { state: { circuit } });
+  const handleReserver = (circuit) => navigate(`/circuits/CircuitReserver/${circuit.id}`, { state: { circuit } });
 
   const handleFavoriteToggle = async (circuit) => {
-    if (!isAuthenticated) {
-      navigate('/SignIn');
-      return;
-    }
-
+    if (!isAuthenticated) { navigate('/SignIn'); return; }
     try {
-      await toggleFavorite({
-        itemType: 'circuit',
-        itemId: circuit.id,
-        itemData: buildFavoriteItemData('circuit', circuit),
-      });
-    } catch (error) {
-      console.error(error);
-    }
+      await toggleFavorite({ itemType:'circuit', itemId:circuit.id, itemData:buildFavoriteItemData('circuit', circuit) });
+    } catch (error) { console.error(error); }
   };
+
+  // Helpers pour accéder aux données de covers avec fallback
+  const getCover = (region) => covers[region] || DEFAULT_COVERS[region];
 
   return (
     <div className="ci-page">
@@ -212,10 +222,9 @@ export default function Circuits() {
             <span className="ci-hero__title--accent">du Nord au Sud</span>
           </h1>
           <p className="ci-hero__sub">
-            Des circuits soigneusement concus pour vous faire decouvrir les tresors du pays,
-            entre mer, desert, culture et authenticite.
+            Des circuits soigneusement conçus pour vous faire découvrir les trésors du pays,
+            entre mer, désert, culture et authenticité.
           </p>
-
           <div className="ci-searchbar-shell">
             <CircuitSearchBar initialValues={search} onSearch={setSearch} />
           </div>
@@ -230,25 +239,37 @@ export default function Circuits() {
         </section>
       )}
 
+      {/* ── SECTION SÉLECTION NORD / SUD ── */}
       <section className="ci-split ci-split--overlap">
         <div className="ci-container">
           <div className={`ci-split__inner ci-split__inner--${activeTab}`}>
+
+            {/* Carte Nord */}
             <div
               className={`ci-split__card ci-split__card--nord${activeTab === 'nord' ? ' active' : ''}`}
               onClick={() => setActiveTab('nord')}
             >
+              {/* Image de couverture dynamique */}
+              {getCover('nord').image_url && (
+                <img
+                  src={getCover('nord').image_url}
+                  alt="Circuit Nord"
+                  style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:.45, borderRadius:'inherit' }}
+                  onError={e => { e.target.style.display='none'; }}
+                />
+              )}
               <div className="ci-split__card-bg ci-split__card-bg--nord" />
               <div className="ci-split__card-overlay" />
               <div className="ci-split__card-content">
-                <div className="ci-split__card-icon">🏛</div>
-                <h2>Circuit Nord</h2>
-                <p>Patrimoine, cotes sauvages, sites romains et forets de pins du Tell.</p>
+                <div className="ci-split__card-icon">{getCover('nord').icon || '🏛'}</div>
+                <h2>{getCover('nord').card_title}</h2>
+                <p>{getCover('nord').card_description}</p>
                 <div className="ci-split__card-stats">
                   <span>
-                    <strong>{allCircuits.filter((circuit) => circuit.region === 'nord').length}</strong> circuits
+                    <strong>{allCircuits.filter((c) => c.region === 'nord').length}</strong> circuits
                   </span>
                   <span>
-                    des <strong>{nordMin < 9999 ? `${nordMin} DT` : '-'}</strong>
+                    dès <strong>{nordMin < 9999 ? `${nordMin} DT` : '-'}</strong>
                   </span>
                 </div>
               </div>
@@ -261,31 +282,43 @@ export default function Circuits() {
               <div className="ci-split__divider-line" />
             </div>
 
+            {/* Carte Sud */}
             <div
               className={`ci-split__card ci-split__card--sud${activeTab === 'sud' ? ' active' : ''}`}
               onClick={() => setActiveTab('sud')}
             >
+              {/* Image de couverture dynamique */}
+              {getCover('sud').image_url && (
+                <img
+                  src={getCover('sud').image_url}
+                  alt="Circuit Sud"
+                  style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:.45, borderRadius:'inherit' }}
+                  onError={e => { e.target.style.display='none'; }}
+                />
+              )}
               <div className="ci-split__card-bg ci-split__card-bg--sud" />
               <div className="ci-split__card-overlay ci-split__card-overlay--sud" />
               <div className="ci-split__card-content">
-                <div className="ci-split__card-icon">🏜</div>
-                <h2>Circuit Sud</h2>
-                <p>Desert dore, ksour berberes, oasis de palmiers et nuits sous les etoiles.</p>
+                <div className="ci-split__card-icon">{getCover('sud').icon || '🏜'}</div>
+                <h2>{getCover('sud').card_title}</h2>
+                <p>{getCover('sud').card_description}</p>
                 <div className="ci-split__card-stats">
                   <span>
-                    <strong>{allCircuits.filter((circuit) => circuit.region === 'sud').length}</strong> circuits
+                    <strong>{allCircuits.filter((c) => c.region === 'sud').length}</strong> circuits
                   </span>
                   <span>
-                    des <strong>{sudMin < 9999 ? `${sudMin} DT` : '-'}</strong>
+                    dès <strong>{sudMin < 9999 ? `${sudMin} DT` : '-'}</strong>
                   </span>
                 </div>
               </div>
               {activeTab === 'sud' && <div className="ci-split__card-active-bar" />}
             </div>
+
           </div>
         </div>
       </section>
 
+      {/* ── SECTION LISTE DES CIRCUITS ── */}
       <section className="ci-section">
         <div className="ci-container">
           <div className="ci-section__head">
@@ -293,14 +326,9 @@ export default function Circuits() {
               <span className={`ci-section__badge ci-section__badge--${activeTab}`}>
                 {activeTab === 'nord' ? 'Circuit Nord' : 'Circuit Sud'}
               </span>
-              <h2 className="ci-section__title">
-                {activeTab === 'nord' ? 'Decouvrez le Nord de la Tunisie' : 'Aventures dans le Grand Sud'}
-              </h2>
-              <p className="ci-section__sub">
-                {activeTab === 'nord'
-                  ? 'Medinas historiques, cotes coraliennes, vestiges romains et montagnes verdoyantes.'
-                  : 'Sahara infini, villages berberes millenaires, oasis enchanteresses et ciels etoiles.'}
-              </p>
+              {/* Titre et sous-titre dynamiques */}
+              <h2 className="ci-section__title">{getCover(activeTab).hero_title}</h2>
+              <p className="ci-section__sub">{getCover(activeTab).hero_sub}</p>
             </div>
             <div className="ci-section__head-right">
               <div className="ci-section__switcher">
@@ -322,32 +350,22 @@ export default function Circuits() {
 
           {loading ? (
             <div style={{ textAlign: 'center', padding: '80px 0' }}>
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  border: '3px solid #e2e8f0',
-                  borderTopColor: '#0F4C5C',
-                  borderRadius: '50%',
-                  animation: 'spin .7s linear infinite',
-                  margin: '0 auto 16px',
-                }}
-              />
+              <div style={{ width:44, height:44, border:'3px solid #e2e8f0', borderTopColor:'#0F4C5C', borderRadius:'50%', animation:'spin .7s linear infinite', margin:'0 auto 16px' }} />
               <p style={{ color: '#94a3b8' }}>Chargement des circuits...</p>
             </div>
           ) : circuits.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
               <p style={{ fontSize: 16, color: '#64748b' }}>
-                Aucun circuit ne correspond a votre recherche pour le moment.
+                Aucun circuit ne correspond à votre recherche pour le moment.
               </p>
             </div>
           ) : (
             <div className="ci-grid">
               {circuits.map((circuit, index) => {
-                const tagMeta = TAG_COLORS[circuit.tagColor] || TAG_COLORS.teal;
+                const tagMeta  = TAG_COLORS[circuit.tagColor] || TAG_COLORS.teal;
                 const diffMeta = DIFF_META[circuit.difficulty] || DIFF_META.Facile;
-                const isHovered = hovered === circuit.id;
-                const isFull = circuit.places <= 0;
+                const isHovered  = hovered === circuit.id;
+                const isFull     = circuit.places <= 0;
                 const isFavorite = favoriteIds.has(getFavoriteKey(circuit.id));
 
                 return (
@@ -367,20 +385,15 @@ export default function Circuits() {
                           {circuit.tag}
                         </span>
                       )}
-
                       <span className="ci-card__duration">
                         <IconClock />
                         {circuit.duration}
                       </span>
-
                       {circuit.badge && <span className="ci-card__badge-top">{circuit.badge}</span>}
 
                       <button
                         className={`ci-card__heart${isFavorite ? ' ci-card__heart--active' : ''}`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleFavoriteToggle(circuit);
-                        }}
+                        onClick={(e) => { e.stopPropagation(); handleFavoriteToggle(circuit); }}
                         title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                         aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                       >
@@ -391,86 +404,59 @@ export default function Circuits() {
                     <div className="ci-card__body">
                       <h3 className="ci-card__title">{circuit.title}</h3>
                       {circuit.subtitle && (
-                        <p style={{ fontSize: 12, color: '#64748b', marginBottom: 8, fontStyle: 'italic' }}>
+                        <p style={{ fontSize:12, color:'#64748b', marginBottom:8, fontStyle:'italic' }}>
                           {circuit.subtitle}
                         </p>
                       )}
                       <p className="ci-card__desc">{circuit.description}</p>
 
                       <div className="ci-card__highlights">
-                        {circuit.highlights.slice(0, 4).map((highlight, highlightIndex) => (
-                          <span key={highlightIndex} className="ci-card__highlight">
+                        {circuit.highlights.slice(0, 4).map((h, i) => (
+                          <span key={i} className="ci-card__highlight">
                             <IconCheck />
-                            {highlight}
+                            {h}
                           </span>
                         ))}
                       </div>
 
                       <div className="ci-card__meta">
-                        <span className="ci-card__meta-item">
-                          <IconUsers />
-                          {circuit.group}
-                        </span>
-                        <span className="ci-card__diff" style={{ background: diffMeta.bg, color: diffMeta.color }}>
-                          <IconStar />
-                          {circuit.difficulty}
+                        <span className="ci-card__meta-item"><IconUsers />{circuit.group}</span>
+                        <span className="ci-card__diff" style={{ background:diffMeta.bg, color:diffMeta.color }}>
+                          <IconStar />{circuit.difficulty}
                         </span>
                       </div>
 
-                      <div
-                        style={{
-                          marginTop: 8,
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: isFull ? '#e92f64' : circuit.places <= 5 ? '#f97316' : '#065f46',
-                        }}
-                      >
-                        {isFull
-                          ? 'Complet'
-                          : circuit.places <= 5
-                            ? `Plus que ${circuit.places} places !`
-                            : `${circuit.places} places disponibles`}
+                      <div style={{ marginTop:8, fontSize:11, fontWeight:600, color: isFull ? '#e92f64' : circuit.places <= 5 ? '#f97316' : '#065f46' }}>
+                        {isFull ? 'Complet' : circuit.places <= 5 ? `Plus que ${circuit.places} places !` : `${circuit.places} places disponibles`}
                       </div>
                     </div>
 
                     <div className="ci-card__footer">
                       <div className="ci-card__price">
-                        <span className="ci-card__price-from">a partir de</span>
+                        <span className="ci-card__price-from">à partir de</span>
                         <span className="ci-card__price-val">{circuit.price} DT</span>
                         <span className="ci-card__price-per">/ pers.</span>
                         {circuit.oldPrice && (
-                          <span
-                            style={{
-                              fontSize: 11,
-                              color: '#94a3b8',
-                              textDecoration: 'line-through',
-                              marginLeft: 6,
-                            }}
-                          >
+                          <span style={{ fontSize:11, color:'#94a3b8', textDecoration:'line-through', marginLeft:6 }}>
                             {circuit.oldPrice} DT
                           </span>
                         )}
                       </div>
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ display:'flex', gap:8 }}>
                         <button
                           className="ci-card__btn"
-                          style={{
-                            background: 'transparent',
-                            border: '1.5px solid var(--ci-teal)',
-                            color: 'var(--ci-teal)',
-                            padding: '8px 14px',
-                          }}
+                          style={{ background:'transparent', border:'1.5px solid var(--ci-teal)', color:'var(--ci-teal)', padding:'8px 14px' }}
                           onClick={() => handleDetails(circuit)}
                         >
-                          Details
+                          Détails
                         </button>
                         <button
                           className="ci-card__btn"
                           onClick={() => !isFull && handleReserver(circuit)}
                           disabled={isFull}
-                          style={{ opacity: isFull ? 0.5 : 1, cursor: isFull ? 'not-allowed' : 'pointer' }}
+                          style={{ opacity:isFull?0.5:1, cursor:isFull?'not-allowed':'pointer' }}
                         >
-                          Reserver
+                          Réserver
                           <IconArrow />
                         </button>
                       </div>
@@ -491,38 +477,14 @@ export default function Circuits() {
           </div>
           <div className="ci-why__grid">
             {[
-              {
-                icon: '🧭',
-                title: 'Guides experts',
-                desc: 'Accompagnateurs locaux passionnes, connaissant chaque recoin de la Tunisie.',
-              },
-              {
-                icon: '🏨',
-                title: 'Hebergements choisis',
-                desc: "Riads authentiques, maisons d'hotes et bivouacs soigneusement selectionnes.",
-              },
-              {
-                icon: '🚐',
-                title: 'Transport confortable',
-                desc: 'Vehicules climatises et chauffeurs experimentes pour tous vos deplacements.',
-              },
-              {
-                icon: '🍽',
-                title: 'Cuisine authentique',
-                desc: 'Repas prepares par des locaux pour decouvrir la vraie gastronomie tunisienne.',
-              },
-              {
-                icon: '📸',
-                title: 'Moments inoubliables',
-                desc: 'Des itineraires concus pour creer des souvenirs que vous cherirez toute votre vie.',
-              },
-              {
-                icon: '🔒',
-                title: 'Securite garantie',
-                desc: 'Voyages assures, accompagnement professionnel et assistance 24h/24.',
-              },
-            ].map((item, index) => (
-              <div key={index} className="ci-why__card">
+              { icon:'🧭', title:'Guides experts',        desc:'Accompagnateurs locaux passionnés, connaissant chaque recoin de la Tunisie.' },
+              { icon:'🏨', title:'Hébergements choisis',  desc:"Riads authentiques, maisons d'hôtes et bivouacs soigneusement sélectionnés." },
+              { icon:'🚐', title:'Transport confortable', desc:'Véhicules climatisés et chauffeurs expérimentés pour tous vos déplacements.' },
+              { icon:'🍽', title:'Cuisine authentique',   desc:'Repas préparés par des locaux pour découvrir la vraie gastronomie tunisienne.' },
+              { icon:'📸', title:'Moments inoubliables',  desc:'Des itinéraires conçus pour créer des souvenirs que vous chérirez toute votre vie.' },
+              { icon:'🔒', title:'Sécurité garantie',     desc:'Voyages assurés, accompagnement professionnel et assistance 24h/24.' },
+            ].map((item, i) => (
+              <div key={i} className="ci-why__card">
                 <div className="ci-why__icon">{item.icon}</div>
                 <h3>{item.title}</h3>
                 <p>{item.desc}</p>
@@ -537,13 +499,11 @@ export default function Circuits() {
         <div className="ci-container">
           <div className="ci-cta__content">
             <span className="ci-cta__tag">Circuit sur mesure</span>
-            <h2>Vous avez un itineraire en tete ?</h2>
-            <p>
-              Notre equipe concoit des circuits 100% personnalises selon vos envies, votre budget et votre rythme.
-            </p>
+            <h2>Vous avez un itinéraire en tête ?</h2>
+            <p>Notre équipe conçoit des circuits 100% personnalisés selon vos envies, votre budget et votre rythme.</p>
             <div className="ci-cta__btns">
               <button className="ci-cta__btn ci-cta__btn--primary" onClick={() => navigate('/CustomTripAbroad')}>
-                Creer mon circuit sur mesure
+                Créer mon circuit sur mesure
                 <IconArrow />
               </button>
               <button className="ci-cta__btn ci-cta__btn--outline" onClick={() => navigate('/Contact')}>
@@ -558,75 +518,27 @@ export default function Circuits() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        .ci-searchbar-shell {
-          width: 100%;
-          max-width: 760px;
-          margin-top: 4px;
-        }
-
-        .ci-split--overlap {
-          margin-top: -60px;
-          position: relative;
-          z-index: 10;
-        }
+        .ci-searchbar-shell { width:100%; max-width:760px; margin-top:4px; }
+        .ci-split--overlap  { margin-top:-60px; position:relative; z-index:10; }
+        .ci-split__card     { position:relative; overflow:hidden; }
 
         .ci-card__heart {
-          position: absolute;
-          top: 11px;
-          right: 11px;
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.92);
-          border: none;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: transform .2s, background .2s, box-shadow .2s;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.18);
-          backdrop-filter: blur(4px);
-          z-index: 5;
+          position:absolute; top:11px; right:11px; width:36px; height:36px;
+          border-radius:50%; background:rgba(255,255,255,.92); border:none; cursor:pointer;
+          display:flex; align-items:center; justify-content:center;
+          transition:transform .2s,background .2s,box-shadow .2s;
+          box-shadow:0 2px 10px rgba(0,0,0,.18); backdrop-filter:blur(4px); z-index:5;
         }
-
-        .ci-card__heart svg {
-          width: 17px;
-          height: 17px;
-          transition: all .2s;
-        }
-
-        .ci-card__heart:hover {
-          transform: scale(1.18);
-          box-shadow: 0 4px 16px rgba(233,47,100,0.28);
-        }
-
-        .ci-card__heart--active {
-          background: #fff0f4;
-        }
-
-        .ci-card__heart--active svg {
-          filter: drop-shadow(0 2px 6px rgba(233,47,100,0.45));
-        }
+        .ci-card__heart svg       { width:17px; height:17px; transition:all .2s; }
+        .ci-card__heart:hover     { transform:scale(1.18); box-shadow:0 4px 16px rgba(233,47,100,.28); }
+        .ci-card__heart--active   { background:#fff0f4; }
+        .ci-card__heart--active svg { filter:drop-shadow(0 2px 6px rgba(233,47,100,.45)); }
 
         .ci-card__badge-top {
-          position: absolute;
-          top: 12px;
-          right: 56px;
-          padding: 3px 10px;
-          border-radius: 999px;
-          background: #e8306a;
-          color: #fff;
-          font-size: 9px;
-          font-weight: 800;
-          letter-spacing: .06em;
+          position:absolute; top:12px; right:56px; padding:3px 10px; border-radius:999px;
+          background:#e8306a; color:#fff; font-size:9px; font-weight:800; letter-spacing:.06em;
         }
-
-        @media (max-width: 640px) {
-          .ci-split--overlap {
-            margin-top: -30px;
-          }
-        }
+        @media (max-width:640px) { .ci-split--overlap { margin-top:-30px; } }
       `}</style>
     </div>
   );

@@ -88,27 +88,27 @@ const updatePackage = async (id, data) => {
 
   const { rows } = await pool.query(`
     UPDATE public.omra_packages SET
-      title=$1, subtitle=$2, description=$3, image_url=$4,
-      price=$5, old_price=$6, duration=$7, departure=$8,
-      spots=$9, rating=$10, reviews=$11, badge=$12,
-      includes=$13, is_active=$14, updated_at=NOW()
+      title=COALESCE($1,title), subtitle=COALESCE($2,subtitle), description=COALESCE($3,description), image_url=COALESCE($4,image_url),
+      price=COALESCE($5,price), old_price=COALESCE($6,old_price), duration=COALESCE($7,duration), departure=COALESCE($8,departure),
+      spots=COALESCE($9,spots), rating=COALESCE($10,rating), reviews=COALESCE($11,reviews), badge=COALESCE($12,badge),
+      includes=COALESCE($13,includes), is_active=COALESCE($14,is_active), updated_at=NOW()
     WHERE id=$15
     RETURNING *
   `, [
-    title,
-    subtitle    || null,
-    description || null,
-    image_url   || null,
-    price,
-    old_price   || null,
-    duration,
-    departure   || null,
-    spots,
-    rating,
-    reviews,
-    badge       || null,
-    JSON.stringify(includes || []),
-    is_active   !== false,
+    title ?? null,
+    subtitle  ?? null  ,
+    description ?? null,
+    image_url  ?? null ,
+    price ?? null,
+    old_price ?? null  ,
+    duration ?? null,
+    departure ?? null  ,
+    spots ?? null,
+    rating ?? null,
+    reviews  ?? null,
+    badge   ?? null    ,
+    includes ? JSON.stringify(includes) : null,
+    is_active ?? null  ,
     id,
   ]);
   return rows[0] || null;

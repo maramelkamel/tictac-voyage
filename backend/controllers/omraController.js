@@ -54,7 +54,11 @@ const update = async (req, res) => {
     res.json({ success: true, data: pkg, message: 'Forfait mis à jour' });
   } catch (err) {
     console.error('omraController.update:', err);
-    res.status(500).json({ success: false, message: 'Erreur serveur' });
+    res.status(500).json({
+  success: false,
+  message: err.message,
+  detail: err.detail
+});
   }
 };
 

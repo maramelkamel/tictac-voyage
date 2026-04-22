@@ -9,9 +9,41 @@ const BASE = `
   LEFT JOIN public.circuit_reservations r ON r.circuit_id = c.id
 `;
 
-const getAllCircuits  = async () => { const { rows } = await pool.query(BASE + ' GROUP BY c.id ORDER BY c.region, c.created_at DESC'); return rows; };
+// ── Settings (circuit-covers) ─────────────────────────────────
+
+// ⚠️ ensureTable était absent dans ta version — getSetting/setSetting planteraient sans ça
+const ensureTable = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS public.settings (
+      key        VARCHAR(100) PRIMARY KEY,
+      value      JSONB        NOT NULL,
+      updated_at TIMESTAMPTZ  DEFAULT NOW()
+    )
+  `);
+};
+
+const getSetting = async (key) => {
+  await ensureTable();
+  const { rows } = await pool.query('SELECT value FROM public.settings WHERE key = $1', [key]);
+  return rows[0]?.value ?? null;
+};
+
+const setSetting = async (key, value) => {
+  await ensureTable();
+  const { rows } = await pool.query(`
+    INSERT INTO public.settings (key, value, updated_at)
+    VALUES ($1, $2, NOW())
+    ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()
+    RETURNING value
+  `, [key, JSON.stringify(value)]);
+  return rows[0].value;
+};
+
+// ── Circuits ──────────────────────────────────────────────────
+
+const getAllCircuits     = async () => { const { rows } = await pool.query(BASE + ' GROUP BY c.id ORDER BY c.region, c.created_at DESC'); return rows; };
 const getActiveCircuits = async () => { const { rows } = await pool.query(BASE + ' WHERE c.is_active = true GROUP BY c.id ORDER BY c.region, c.created_at DESC'); return rows; };
-const getCircuitById = async (id) => { const { rows } = await pool.query(BASE + ' WHERE c.id = $1 GROUP BY c.id', [id]); return rows[0] || null; };
+const getCircuitById    = async (id) => { const { rows } = await pool.query(BASE + ' WHERE c.id = $1 GROUP BY c.id', [id]); return rows[0] || null; };
 
 const createCircuit = async (data) => {
   const { title, subtitle, description, image_url, price, old_price, duration, nights, region, departure, spots, rating, reviews, badge, tag, tag_color, difficulty, group_size, highlights, programme, inclus, non_inclus, is_active } = data;
@@ -35,4 +67,4 @@ const updateCircuit = async (id, data) => {
 
 const deleteCircuit = async (id) => { const { rows } = await pool.query('DELETE FROM public.circuits WHERE id=$1 RETURNING id', [id]); return rows[0] || null; };
 
-module.exports = { getAllCircuits, getActiveCircuits, getCircuitById, createCircuit, updateCircuit, deleteCircuit };
+module.exports = { getAllCircuits, getActiveCircuits, getCircuitById, createCircuit, updateCircuit, deleteCircuit, getSetting, setSetting };
