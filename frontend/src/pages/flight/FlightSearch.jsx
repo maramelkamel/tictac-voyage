@@ -5,6 +5,8 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import AirportAutocomplete from '../../components/AirportAutocomplete';
 import FlightCard from '../../components/FlightCard';
+import { usePromotions } from '../../hooks/usePromotions';
+import PromotionsSection from '../admin/promotions/PromotionsSection';
 import '../../styles/omrastyle.css';
 import '../../styles/FlightsPage.css';
 
@@ -86,6 +88,7 @@ const FlightSearch = () => {
   const [dealsLoading,    setDealsLoading]    = useState(false);
   const [upcomingFlights, setUpcomingFlights] = useState([]);
   const [upcomingLoading, setUpcomingLoading] = useState(false);
+  const { promos } = usePromotions('categorie', 'vols');
 
   const totalPassengers = adults + children;
 
@@ -391,6 +394,12 @@ const FlightSearch = () => {
       </div>
 
       {/* ── Dynamic content sections ────────────────────────── */}
+      {promos.length > 0 && (
+        <div className="container" style={{ paddingTop: 24 }}>
+          <PromotionsSection promos={promos} titre="Promotions billeterie" showCards={false} />
+        </div>
+      )}
+
       <div className="container" style={{ padding: '60px 0' }}>
 
         {/* 1 — Popular destinations ─────────────────────────── */}

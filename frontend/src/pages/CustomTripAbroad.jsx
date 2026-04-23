@@ -160,7 +160,7 @@ const CustomTripAbroad = () => {
       </section>
       {promos.length > 0 && (
         <div className="container" style={{ padding: '24px 0 0' }}>
-          <PromotionsSection promos={promos} />
+          <PromotionsSection promos={promos} showCards={false} />
         </div>
       )}
       {/* ══ MAIN ══ */}

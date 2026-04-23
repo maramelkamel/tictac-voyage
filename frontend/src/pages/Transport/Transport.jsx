@@ -218,7 +218,7 @@ const Transport = () => {
         {promos.length > 0 && (
           <section>
             <div className="transport-container" style={{ paddingTop: 24 }}>
-              <PromotionsSection promos={promos} />
+              <PromotionsSection promos={promos} showCards={false} />
             </div>
           </section>
         )}

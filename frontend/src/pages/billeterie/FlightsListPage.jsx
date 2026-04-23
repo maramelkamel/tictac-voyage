@@ -141,7 +141,7 @@ const FlightsListPage = () => {
 
         {promos.length > 0 && (
           <div className="container mx-auto px-4" style={{ paddingTop: 24 }}>
-            <PromotionsSection promos={promos} titre="Promotions billeterie" />
+            <PromotionsSection promos={promos} titre="Promotions billeterie" showCards={false} />
           </div>
         )}
 

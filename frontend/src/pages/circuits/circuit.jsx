@@ -142,7 +142,7 @@ export default function Circuits() {
   const [allCircuits,  setAllCircuits]  = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [covers,       setCovers]       = useState(DEFAULT_COVERS);
-  const [search,       setSearch]       = useState({ date: '', duration: '', persons: '' });
+  const [search,       setSearch]       = useState({ date: '', duration: '', persons: '', budget: '' });
 
   const { promos }                              = usePromotions('categorie', 'circuits');
   const { favoriteIds, isAuthenticated, toggleFavorite } = useFavorites('circuit');
@@ -173,12 +173,16 @@ export default function Circuits() {
   const applyFilters = (list) => {
     let result = list.filter(circuit => circuit.region === activeTab);
     if (search.persons) {
-      const people = search.persons === '10+' ? 10 : parseInt(search.persons, 10);
+      const people = parseInt(search.persons, 10);
       if (!Number.isNaN(people)) result = result.filter(c => c.places >= people);
     }
     if (search.duration) {
       const duration = parseInt(search.duration, 10);
       if (!Number.isNaN(duration)) result = result.filter(c => c.durationDays === duration);
+    }
+    if (search.budget) {
+      const budget = parseInt(search.budget, 10);
+      if (!Number.isNaN(budget)) result = result.filter(c => c.price >= budget);
     }
     if (search.date) {
       const chosenDate = new Date(search.date);
@@ -268,9 +272,9 @@ export default function Circuits() {
       </section>
 
       {promos.length > 0 && (
-        <section style={{ padding: '8px 0' }}>
+        <section style={{ padding: '20px 0 8px', position: 'relative', zIndex: 2 }}>
           <div className="ci-container">
-            <PromotionsSection promos={promos} />
+            <PromotionsSection promos={promos} showCards={false} />
           </div>
         </section>
       )}
@@ -278,7 +282,7 @@ export default function Circuits() {
       {/* ══════════════════════════════════════════════════════
           SECTION SÉLECTION NORD / SUD
       ══════════════════════════════════════════════════════ */}
-      <section className="ci-split ci-split--overlap">
+      <section className={`ci-split ${promos.length > 0 ? 'ci-split--after-promos' : 'ci-split--overlap'}`}>
         <div className="ci-container">
           <div className={`ci-split__inner ci-split__inner--${activeTab}`}>
 
@@ -522,8 +526,9 @@ export default function Circuits() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        .ci-searchbar-shell { width:100%; max-width:760px; margin-top:4px; }
+        .ci-searchbar-shell { width:100%; max-width:920px; margin-top:4px; }
         .ci-split--overlap  { margin-top:-60px; position:relative; z-index:10; }
+        .ci-split--after-promos { margin-top:0; position:relative; z-index:1; }
         .ci-split__card     { position:relative; overflow:hidden; }
 
         .ci-card__heart {
@@ -542,7 +547,10 @@ export default function Circuits() {
           position:absolute; top:12px; right:56px; padding:3px 10px; border-radius:999px;
           background:#e8306a; color:#fff; font-size:9px; font-weight:800; letter-spacing:.06em;
         }
-        @media (max-width:640px) { .ci-split--overlap { margin-top:-30px; } }
+        @media (max-width:640px) {
+          .ci-split--overlap { margin-top:-30px; }
+          .ci-split--after-promos { margin-top:0; }
+        }
       `}</style>
     </div>
   );

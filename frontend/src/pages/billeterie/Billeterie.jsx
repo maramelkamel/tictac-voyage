@@ -116,7 +116,7 @@ const Billeterie = () => {
 
       {promos.length > 0 && (
         <div className="billeterie-container" style={{ paddingTop: 24, paddingBottom: 0 }}>
-          <PromotionsSection promos={promos} titre="Promotions billeterie" />
+          <PromotionsSection promos={promos} titre="Promotions billeterie" showCards={false} />
         </div>
       )}
 

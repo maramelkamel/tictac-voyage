@@ -7,6 +7,7 @@ const CircuitSearchBar = ({ onSearch, initialValues = {}, style = {} }) => {
     date: initialValues.date || '',
     duration: initialValues.duration || '',
     persons: initialValues.persons || '',
+    budget: initialValues.budget || '',
   });
 
   useEffect(() => {
@@ -14,8 +15,14 @@ const CircuitSearchBar = ({ onSearch, initialValues = {}, style = {} }) => {
       date: initialValues.date || '',
       duration: initialValues.duration || '',
       persons: initialValues.persons || '',
+      budget: initialValues.budget || '',
     });
-  }, [initialValues.date, initialValues.duration, initialValues.persons]);
+  }, [
+    initialValues.date,
+    initialValues.duration,
+    initialValues.persons,
+    initialValues.budget,
+  ]);
 
   const handleSubmit = () => {
     if (onSearch) onSearch(search);
@@ -44,7 +51,6 @@ const CircuitSearchBar = ({ onSearch, initialValues = {}, style = {} }) => {
     boxSizing: 'border-box',
     transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
     appearance: 'none',
-    cursor: 'pointer',
     fontFamily: 'inherit',
   };
 
@@ -90,7 +96,7 @@ const CircuitSearchBar = ({ onSearch, initialValues = {}, style = {} }) => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr auto',
+          gridTemplateColumns: '1.1fr 1fr 1fr 1fr auto',
           gap: 14,
           alignItems: 'end',
         }}
@@ -125,6 +131,7 @@ const CircuitSearchBar = ({ onSearch, initialValues = {}, style = {} }) => {
                 ...fieldInputStyle,
                 color: search.duration ? '#0f172a' : '#94a3b8',
                 paddingRight: 36,
+                cursor: 'pointer',
               }}
               onFocus={focusStyle}
               onBlur={blurStyle}
@@ -156,39 +163,37 @@ const CircuitSearchBar = ({ onSearch, initialValues = {}, style = {} }) => {
             <i className="fas fa-users" style={{ color: '#E92F64', marginRight: 6 }} />
             Nombre de personnes
           </label>
-          <div style={{ position: 'relative' }}>
-            <select
-              value={search.persons}
-              onChange={(e) => setSearch((prev) => ({ ...prev, persons: e.target.value }))}
-              style={{
-                ...fieldInputStyle,
-                color: search.persons ? '#0f172a' : '#94a3b8',
-                paddingRight: 36,
-              }}
-              onFocus={focusStyle}
-              onBlur={blurStyle}
-            >
-              <option value="">Nb. de personnes</option>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((count) => (
-                <option key={count} value={count}>
-                  {count} personne{count > 1 ? 's' : ''}
-                </option>
-              ))}
-              <option value="10+">10+ personnes</option>
-            </select>
-            <i
-              className="fas fa-chevron-down"
-              style={{
-                position: 'absolute',
-                right: 14,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                fontSize: 11,
-                color: '#94a3b8',
-                pointerEvents: 'none',
-              }}
-            />
-          </div>
+          <input
+            type="number"
+            min="1"
+            step="1"
+            inputMode="numeric"
+            value={search.persons}
+            onChange={(e) => setSearch((prev) => ({ ...prev, persons: e.target.value }))}
+            placeholder="Nb. de personnes"
+            style={{ ...fieldInputStyle, cursor: 'text' }}
+            onFocus={focusStyle}
+            onBlur={blurStyle}
+          />
+        </div>
+
+        <div>
+          <label style={fieldLabelStyle}>
+            <i className="fas fa-wallet" style={{ color: '#E92F64', marginRight: 6 }} />
+            Budget a partir de
+          </label>
+          <input
+            type="number"
+            min="0"
+            step="1"
+            inputMode="numeric"
+            value={search.budget}
+            onChange={(e) => setSearch((prev) => ({ ...prev, budget: e.target.value }))}
+            placeholder="Ex : 350"
+            style={{ ...fieldInputStyle, cursor: 'text' }}
+            onFocus={focusStyle}
+            onBlur={blurStyle}
+          />
         </div>
 
         <button
@@ -223,7 +228,7 @@ const CircuitSearchBar = ({ onSearch, initialValues = {}, style = {} }) => {
             grid-template-columns: 1fr !important;
           }
         }
-        @media (max-width: 1024px) {
+        @media (max-width: 1180px) {
           .circuit-search-grid {
             grid-template-columns: 1fr 1fr !important;
           }

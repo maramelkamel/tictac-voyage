@@ -200,7 +200,7 @@ const Omra = () => {
       {promos.length > 0 && (
         <section style={{ padding: '16px 0 0' }}>
           <div className="container">
-            <PromotionsSection promos={promos} />
+            <PromotionsSection promos={promos} showCards={false} />
           </div>
         </section>
       )}

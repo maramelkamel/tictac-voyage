@@ -14,13 +14,21 @@ const VALID_CATEGORIES = [
 const VALID_TYPES      = ['pourcentage', 'montant_fixe'];
 const VALID_DISPLAY    = ['card', 'banner'];
 
-const getCategoryKeys = (categorie) => {
+const normalizePromotionCategory = (categorie) => {
   switch (categorie) {
-    case 'transfert_mise_a_disposition':
     case 'transport':
+      return 'transfert_mise_a_disposition';
+    default:
+      return categorie;
+  }
+};
+
+const getCategoryKeys = (categorie) => {
+  switch (normalizePromotionCategory(categorie)) {
+    case 'transfert_mise_a_disposition':
       return ['transfert_mise_a_disposition', 'transport'];
     default:
-      return [categorie];
+      return [normalizePromotionCategory(categorie)];
   }
 };
 
@@ -76,10 +84,11 @@ const create = async (req, res) => {
       code_promo, date_debut, date_fin, is_active, afficher_accueil,
       display_mode, image_url,
     } = req.body;
+    const normalizedCategory = normalizePromotionCategory(categorie);
 
     if (!titre || !categorie || !type_reduction || !valeur_reduction || !date_debut || !date_fin)
       return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
-    if (!VALID_CATEGORIES.includes(categorie))
+    if (!VALID_CATEGORIES.includes(normalizedCategory))
       return res.status(400).json({ success: false, message: 'Catégorie invalide' });
     if (!VALID_TYPES.includes(type_reduction))
       return res.status(400).json({ success: false, message: 'Type de réduction invalide' });
@@ -93,7 +102,7 @@ const create = async (req, res) => {
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
       RETURNING *
     `, [
-      titre, description || null, categorie, type_reduction, Number(valeur_reduction),
+      titre, description || null, normalizedCategory, type_reduction, Number(valeur_reduction),
       code_promo || null, date_debut, date_fin,
       isActive, afficher_accueil === true,
       VALID_DISPLAY.includes(display_mode) ? display_mode : 'card',
@@ -125,6 +134,12 @@ const update = async (req, res) => {
       code_promo, date_debut, date_fin, is_active, afficher_accueil,
       display_mode, image_url,
     } = req.body;
+    const normalizedCategory = normalizePromotionCategory(categorie);
+
+    if (!VALID_CATEGORIES.includes(normalizedCategory))
+      return res.status(400).json({ success: false, message: 'CatÃ©gorie invalide' });
+    if (!VALID_TYPES.includes(type_reduction))
+      return res.status(400).json({ success: false, message: 'Type de rÃ©duction invalide' });
 
     const { rows } = await pool.query(`
       UPDATE promotions SET
@@ -134,7 +149,7 @@ const update = async (req, res) => {
         updated_at=NOW()
       WHERE id=$13 RETURNING *
     `, [
-      titre, description || null, categorie, type_reduction, Number(valeur_reduction),
+      titre, description || null, normalizedCategory, type_reduction, Number(valeur_reduction),
       code_promo || null, date_debut, date_fin,
       is_active !== false, afficher_accueil === true,
       VALID_DISPLAY.includes(display_mode) ? display_mode : 'card',

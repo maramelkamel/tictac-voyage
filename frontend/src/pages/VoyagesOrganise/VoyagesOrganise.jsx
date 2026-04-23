@@ -220,7 +220,7 @@ const VoyagesOrganise = () => {
       {promos.length > 0 && (
         <section style={{ padding: '18px 0 0' }}>
           <div className="container">
-            <PromotionsSection promos={promos} />
+            <PromotionsSection promos={promos} showCards={false} />
           </div>
         </section>
       )}

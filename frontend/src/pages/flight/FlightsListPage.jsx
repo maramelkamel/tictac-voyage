@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import FlightCard from '../../components/FlightCard';
+import { usePromotions } from '../../hooks/usePromotions';
+import PromotionsSection from '../admin/promotions/PromotionsSection';
 import '../../styles/omrastyle.css';
 import '../../styles/FlightsPage.css';
 
@@ -233,6 +235,7 @@ const FlightListPage = () => {
   const [maxPrice,      setMaxPrice]      = useState('');
   const [filterAirline, setFilterAirline] = useState('');
   const [filterStops,   setFilterStops]   = useState('all');
+  const { promos } = usePromotions('categorie', 'vols');
 
   const hasResults = offers.length > 0;
 
@@ -338,6 +341,12 @@ const FlightListPage = () => {
       <PageHeader subtitle={
         `${departureDate}${returnDate ? ` · Retour ${returnDate}` : ''} · ${adults + children} passager${adults + children > 1 ? 's' : ''} · ${CABIN_LABELS[cabinClass] || cabinClass}`
       } />
+
+      {promos.length > 0 && (
+        <div className="container" style={{ paddingTop: 24 }}>
+          <PromotionsSection promos={promos} titre="Promotions billeterie" showCards={false} />
+        </div>
+      )}
 
       <div className="container flights-results-layout" style={{ padding: '28px 0 60px' }}>
         <div className="flights-results-grid" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 24, alignItems: 'start' }}>

@@ -45,6 +45,7 @@
   background: var(--ci-bg);
   color: var(--ci-g800);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 .ci-container {
   max-width: 1240px;
@@ -62,7 +63,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding-top: 155px;
+  padding-top: 170px;
   padding-bottom: 72px;
 }
 
@@ -633,7 +634,7 @@
 }
 
 @media (max-width: 768px) {
-  .ci-hero    { min-height: 52vh; padding-top: 125px; padding-bottom: 50px; }
+  .ci-hero    { min-height: 52vh; padding-top: 138px; padding-bottom: 50px; }
   .ci-hero__tabs { flex-direction: column; width: 100%; max-width: 280px; }
   .ci-hero__tab  { justify-content: center; }
   .ci-split__inner { grid-template-columns: 1fr; }
