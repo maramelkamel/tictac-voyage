@@ -36,6 +36,27 @@ const create = async (req, res) => {
       return res.status(400).json({ success: false, message: 'La date de retour doit être après la date de départ' });
 
     const trip = await model.create(req.body);
+    if (trip?.email) {
+      const nights = trip.departure_date && trip.return_date
+        ? Math.ceil(Math.abs(new Date(trip.return_date) - new Date(trip.departure_date)) / 86400000)
+        : null;
+
+      sendReservationStatusEmail({
+        email: trip.email,
+        firstName: trip.full_name ? trip.full_name.split(' ')[0] : 'Client',
+        type: 'custom',
+        title: trip.destination,
+        status: 'pending',
+        details: {
+          'Destination': trip.destination,
+          'Voyageurs': `${trip.number_of_persons} personne(s)`,
+          'Départ': trip.departure_date ? new Date(trip.departure_date).toLocaleDateString('fr-FR') : null,
+          'Retour': trip.return_date ? new Date(trip.return_date).toLocaleDateString('fr-FR') : null,
+          'Durée': nights ? `${nights} nuit(s)` : null,
+          'Budget max': trip.max_budget ? `${Number(trip.max_budget).toLocaleString('fr-TN')} TND` : null,
+        },
+      }).catch(err => console.error('❌ CustomTrip create email failed:', err.message));
+    }
     res.status(201).json({ success: true, data: trip, message: 'Demande créée avec succès' });
   } catch (err) {
     console.error('create custom_trips:', err.message);

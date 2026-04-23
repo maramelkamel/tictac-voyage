@@ -1,11 +1,14 @@
 import React from 'react';
 
 const COLORS = {
-  omra:                   { bg:'#FFF3E0', border:'#FFB74D', accent:'#E65100', icon:'🕌' },
-  hotels:                 { bg:'#E3F2FD', border:'#64B5F6', accent:'#1565C0', icon:'🏨' },
-  vols:                   { bg:'#FFEBEE', border:'#EF9A9A', accent:'#B71C1C', icon:'✈️' },
-  circuits:               { bg:'#E8F5E9', border:'#81C784', accent:'#1B5E20', icon:'🗺️' },
-  voyages_internationaux: { bg:'#F3E5F5', border:'#CE93D8', accent:'#4A148C', icon:'🌍' },
+  omra:                        { bg:'#fff7ed', border:'#fdba74', accent:'#c2410c', icon:'🕋' },
+  hotels:                      { bg:'#eff6ff', border:'#93c5fd', accent:'#1d4ed8', icon:'🏨' },
+  vols:                        { bg:'#fff1f5', border:'#f9a8d4', accent:'#db2777', icon:'✈️' },
+  circuits:                    { bg:'#ecfdf5', border:'#86efac', accent:'#15803d', icon:'🗺️' },
+  voyages_internationaux:      { bg:'#f5f3ff', border:'#c4b5fd', accent:'#6d28d9', icon:'🌍' },
+  voyages_sur_mesure:          { bg:'#fdf2f8', border:'#f9a8d4', accent:'#be185d', icon:'🧭' },
+  transfert_mise_a_disposition:{ bg:'#ecfeff', border:'#67e8f9', accent:'#0f766e', icon:'🚘' },
+  transport:                   { bg:'#ecfeff', border:'#67e8f9', accent:'#0f766e', icon:'🚘' },
 };
 
 export default function PromotionBanner({ promo }) {
@@ -18,31 +21,25 @@ export default function PromotionBanner({ promo }) {
     { day: '2-digit', month: 'short' });
 
   return (
-    <div style={{
-      background: c.bg, border: `1.5px solid ${c.border}`,
-      borderLeft: `5px solid ${c.accent}`, borderRadius: 10,
-      padding: '14px 20px', display: 'flex',
-      alignItems: 'center', justifyContent: 'space-between',
-      flexWrap: 'wrap', gap: 12,
+    <article className="promo-banner" style={{
+      background: c.bg,
+      borderColor: c.border,
+      boxShadow: `0 18px 36px ${c.border}33`,
     }}>
-      <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-        <span style={{ fontSize:26 }}>{c.icon}</span>
-        <div>
-          <div style={{ fontWeight:700, fontSize:14, color:c.accent }}>{titre}</div>
-          {description && <div style={{ fontSize:12, color:'#555', marginTop:2 }}>{description}</div>}
-          <div style={{ fontSize:11, color:'#777', marginTop:3 }}>
+      <div className="promo-banner__content">
+        <div className="promo-banner__icon" style={{ color: c.accent, background: `${c.border}33` }}>{c.icon}</div>
+        <div className="promo-banner__copy">
+          <div className="promo-banner__title" style={{ color: c.accent }}>{titre}</div>
+          {description && <div className="promo-banner__desc">{description}</div>}
+          <div className="promo-banner__meta">
             Valable du {fmt(date_debut)} au {fmt(date_fin)}
-            {code_promo && <> · Code : <strong>{code_promo}</strong></>}
+            {code_promo && <> • Code : <strong>{code_promo}</strong></>}
           </div>
         </div>
       </div>
-      <div style={{
-        fontSize:22, fontWeight:800, color:c.accent,
-        background:'#fff', border:`1.5px solid ${c.border}`,
-        borderRadius:8, padding:'5px 14px', flexShrink:0,
-      }}>
+      <div className="promo-banner__discount" style={{ color: c.accent, borderColor: c.border }}>
         {red}
       </div>
-    </div>
+    </article>
   );
 }

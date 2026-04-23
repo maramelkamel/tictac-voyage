@@ -73,6 +73,20 @@ const create = async (req, res) => {
           date_fin: applied_promotion.date_fin,
         } : null,
       }).catch(err => console.error('Voyage agency email failed:', err.message));
+    } else {
+      sendReservationStatusEmail({
+        email,
+        firstName: first_name,
+        type: 'voyage',
+        title: reservation_title || `Voyage #${r.voyage_id || ''}`,
+        status: 'pending',
+        details: {
+          'Chambre': chambre_type || r.chambre_type || 'double',
+          'Personnes': `${number_of_persons || r.number_of_persons || 1} personne(s)`,
+          'Paiement': '💳 En ligne',
+          'Total': total_price ? `${Number(total_price).toLocaleString('fr-TN')} TND` : null,
+        },
+      }).catch(err => console.error('Voyage create email failed:', err.message));
     }
     res.status(201).json({ success: true, data: r, message: 'Réservation enregistrée' });
   } catch (err) {

@@ -74,6 +74,20 @@ const create = async (req, res) => {
           date_fin: applied_promotion.date_fin,
         } : null,
       }).catch(err => console.error('Omra agency email failed:', err.message));
+    } else {
+      sendReservationStatusEmail({
+        email,
+        firstName: first_name,
+        type: 'omra',
+        title: reservation_title || `Forfait Omra #${reservation.package_id || ''}`,
+        status: 'pending',
+        details: {
+          'Chambre': chambre_type || reservation.chambre_type || 'double',
+          'Personnes': `${number_of_persons || reservation.number_of_persons || 1} personne(s)`,
+          'Paiement': '💳 En ligne',
+          'Total': total_price ? `${Number(total_price).toLocaleString('fr-TN')} TND` : null,
+        },
+      }).catch(err => console.error('Omra create email failed:', err.message));
     }
     res.status(201).json({
       success: true,

@@ -97,6 +97,27 @@ exports.createRequest = async (req, res) => {
     }
 
     const data = await model.createRequest(req.body);
+    if (data?.email) {
+      const title = data.departure_location && data.arrival_location
+        ? `${data.departure_location} → ${data.arrival_location}`
+        : data.departure_location || 'Transport';
+
+      sendReservationStatusEmail({
+        email: data.email,
+        firstName: data.full_name ? data.full_name.split(' ')[0] : 'Client',
+        type: 'transport',
+        title,
+        status: 'pending',
+        details: {
+          'Service': data.service_type,
+          'Véhicule': data.vehicle_type,
+          'Passagers': `${data.passengers} passager(s)`,
+          'Départ': data.departure_location,
+          'Date': data.departure_date ? new Date(data.departure_date).toLocaleDateString('fr-FR') : null,
+          'Heure': data.departure_time || null,
+        },
+      }).catch(err => console.error('❌ Transport create email failed:', err.message));
+    }
     res.status(201).json({ success: true, data, message: 'Demande enregistrée avec succès' });
   } catch (err) {
     console.error(err);

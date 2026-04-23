@@ -2,11 +2,14 @@ import React from 'react';
 import '../../../styles/PromotionCard.css';
 
 const BADGE = {
-  omra:                   { cls: 'badge-orange', label: 'Omra' },
-  hotels:                 { cls: 'badge-blue',   label: 'Hôtels' },
-  vols:                   { cls: 'badge-red',    label: 'Vols' },
-  circuits:               { cls: 'badge-green',  label: 'Circuits' },
-  voyages_internationaux: { cls: 'badge-purple', label: 'Voyages internationaux' },
+  omra:                         { cls: 'badge-orange', label: 'Omra' },
+  hotels:                       { cls: 'badge-blue',   label: 'Hôtels' },
+  vols:                         { cls: 'badge-red',    label: 'Billetterie' },
+  circuits:                     { cls: 'badge-green',  label: 'Circuits' },
+  voyages_internationaux:       { cls: 'badge-purple', label: 'Voyages organisés' },
+  voyages_sur_mesure:           { cls: 'badge-pink',   label: 'Voyages sur mesure' },
+  transfert_mise_a_disposition: { cls: 'badge-cyan',   label: 'Transport' },
+  transport:                    { cls: 'badge-cyan',   label: 'Transport' },
 };
 
 export default function PromotionCard({ promo }) {

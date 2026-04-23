@@ -200,7 +200,7 @@ const SuggestedFlights = ({ onSelect }) => {
             </p>
             <button onClick={() => navigate('/flights/search')}
               style={{ padding: '12px 32px',
-                background: 'linear-gradient(135deg, var(--secondary, #e67e22), #d35400)',
+                background: 'linear-gradient(135deg, #e92f64, #c2185b)',
                 color: '#fff', border: 'none', borderRadius: 12,
                 fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'inline-flex',
                 alignItems: 'center', gap: 8 }}>

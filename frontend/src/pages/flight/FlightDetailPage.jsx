@@ -371,7 +371,7 @@ const FlightDetails = () => {
               )}
 
               <button onClick={handleBook}
-                style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, var(--secondary), #e67e22)',
+                style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #e92f64, #c2185b)',
                   color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800,
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                 <i className="fas fa-ticket-alt" />

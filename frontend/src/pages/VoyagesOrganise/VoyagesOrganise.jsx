@@ -217,7 +217,15 @@ const VoyagesOrganise = () => {
         </div>
       </section>
 
-          {/* Zone centrale : promotions, filtres, cartes et pagination. */}
+      {promos.length > 0 && (
+        <section style={{ padding: '18px 0 0' }}>
+          <div className="container">
+            <PromotionsSection promos={promos} />
+          </div>
+        </section>
+      )}
+
+          {/* Zone centrale : filtres, cartes et pagination. */}
       <section className="omra-section omra-section--gray">
         <div className="container">
           <div className="omra-section__header">
@@ -225,8 +233,6 @@ const VoyagesOrganise = () => {
             <h2 className="omra-section__title">Explorez nos séjours organisés</h2>
             <p className="omra-section__desc">Chaque voyage est soigneusement préparé pour vous garantir confort, découverte et sérénité.</p>
           </div>
-
-          <PromotionsSection promos={promos} />
 
           {/* Badges de recherche active : ils permettent de retirer rapidement un critère. */}
           {activeSearchCount > 0 && (

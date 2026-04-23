@@ -362,7 +362,7 @@ const FlightSearch = () => {
               <button type="submit" disabled={loading}
                 style={{ width: '100%', padding: '15px 24px', border: 'none', borderRadius: 12,
                   fontSize: 15, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
-                  background: loading ? '#94a3b8' : 'linear-gradient(135deg, var(--secondary), #e67e22)',
+                  background: loading ? '#94a3b8' : 'linear-gradient(135deg, #e92f64, #c2185b)',
                   color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
                 {loading
                   ? <><i className="fas fa-spinner fa-spin" /> Recherche en cours…</>
