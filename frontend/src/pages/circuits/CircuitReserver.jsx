@@ -57,7 +57,7 @@ const CircuitReserver = () => {
   return (
     <div>
       <Navbar />
-      <div className="omra-reserve">
+      <div className="omra-reserve" style={{ paddingTop: 180 }}>
         <div className="container">
           <div className="omra-page-breadcrumb omra-page-breadcrumb--light" style={{ paddingTop:8 }}>
             <button onClick={() => navigate('/circuits')}>{t('back_to_circuits')}</button>
@@ -137,7 +137,7 @@ const CircuitReserver = () => {
               </div>
             </div>
 
-            <aside style={{ position:'sticky', top:110 }}>
+            <aside style={{ position:'sticky', top:170 }}>
               <div className="omra-reserve__pkg-card">
                 {image && <img src={image} alt={title} className="omra-reserve__pkg-img"/>}
                 <div className="omra-reserve__pkg-info">

@@ -13,6 +13,8 @@ import FilterSidebar from './components/FilterSidebar.jsx'
 import FlightCard from './components/FlightCard.jsx'
 import ReservationSummary from './components/ReservationSummary.jsx'
 import HowItWorks from './components/HowItWorks.jsx'
+import { usePromotions } from '../../hooks/usePromotions.js'
+import PromotionsSection from '../admin/promotions/PromotionsSection.jsx'
 
 // Import des donnees
 import { flightsData } from '../../data/data.js'
@@ -46,6 +48,7 @@ const Billeterie = () => {
 
   // Etat du vol selectionné par l'utilisateur
   const [selectedFlight, setSelectedFlight] = useState(null)
+  const { promos } = usePromotions('categorie', 'vols')
 
   // ==============================================
   // FONCTIONS
@@ -110,6 +113,12 @@ const Billeterie = () => {
       <Navbar />
 
       <HeroBilleterie />
+
+      {promos.length > 0 && (
+        <div className="billeterie-container" style={{ paddingTop: 24, paddingBottom: 0 }}>
+          <PromotionsSection promos={promos} titre="Promotions billeterie" />
+        </div>
+      )}
 
       <div className="billeterie-container">
         <SearchForm 

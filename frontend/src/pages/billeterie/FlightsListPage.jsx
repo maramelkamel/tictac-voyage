@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { useFlights, useAirports, formatDuration, formatTime, formatDate } from '../../hooks/useFlights';
+import { usePromotions } from '../../hooks/usePromotions';
+import PromotionsSection from '../admin/promotions/PromotionsSection';
 import '../../styles/FlightsPage.css';
 
 const CABIN_LABELS = { economy: 'Économique', business: 'Business', first: 'Première' };
@@ -10,6 +12,7 @@ const CABIN_LABELS = { economy: 'Économique', business: 'Business', first: 'Pre
 const FlightsListPage = () => {
   const navigate = useNavigate();
   const { airports } = useAirports();
+  const { promos } = usePromotions('categorie', 'vols');
 
   const [origin, setOrigin]           = useState('');
   const [destination, setDestination] = useState('');
@@ -135,6 +138,12 @@ const FlightsListPage = () => {
             </form>
           </div>
         </div>
+
+        {promos.length > 0 && (
+          <div className="container mx-auto px-4" style={{ paddingTop: 24 }}>
+            <PromotionsSection promos={promos} titre="Promotions billeterie" />
+          </div>
+        )}
 
         {/* RESULTS */}
         {searched && (
