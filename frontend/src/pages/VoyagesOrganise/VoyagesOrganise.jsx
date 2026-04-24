@@ -87,7 +87,7 @@ const VoyagesOrganise = () => {
     const fetchVoyages = async () => {
       try {
         setLoading(true);
-        const r = await fetch(API);
+        const r = await fetch(API, { cache: 'no-store' });
         const j = await r.json();
         setVoyages((j.data || []).map(normalize));
       } catch {

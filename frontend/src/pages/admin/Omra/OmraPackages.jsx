@@ -1,64 +1,142 @@
-// src/pages/admin/Omra/OmraPackages.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
-const API_PKG    = 'http://localhost:5000/api/omra/packages';
+const API_PKG = 'http://localhost:5000/api/omra/packages';
 const COVERS_API = 'http://localhost:5000/api/omra/packages/omra-covers';
-const fPrice     = (p) => p ? Number(p).toLocaleString('fr-TN') + ' TND' : '—';
+
+const fPrice = (price) => (
+  price !== null && price !== undefined && price !== ''
+    ? `${Number(price).toLocaleString('fr-TN')} TND`
+    : '-'
+);
 
 const EMPTY = {
-  title:'', subtitle:'', description:'', image_url:'', price:'', old_price:'',
-  duration:'', departure:'', spots:'50', badge:'', is_active:true,
+  title: '',
+  subtitle: '',
+  description: '',
+  image_url: '',
+  price: '',
+  old_price: '',
+  duration: '',
+  departure: '',
+  spots: '50',
+  rating: '5',
+  reviews: '0',
+  badge: '',
+  includes: [],
+  is_active: true,
 };
 
 const DEFAULT_COVERS = {
   hero: {
-    bg_image:     '',
-    tag:          'Pelerinage et Spiritualite',
-    title:        'Votre Voyage',
-    title_accent: 'Spirituel Ideal',
-    sub:          'Accomplissez votre Omra en toute serenite avec nos forfaits tout compris, concus pour une experience spirituelle inoubliable.',
+    bg_image: '',
+    tag: 'Pelerinage et spiritualite',
+    title: 'Votre voyage',
+    title_accent: 'spirituel ideal',
+    sub: 'Accomplissez votre Omra en toute serenite avec des forfaits concus pour une experience claire, confortable et bien accompagnee.',
   },
 };
 
-/* ══════════════════════════════════════════════════════════════
-   MODAL FIELD HELPER
-   ══════════════════════════════════════════════════════════════ */
 const ModalField = ({ label, req, children }) => (
   <div className="al-field">
-    <label className="al-label">{label} {req && <span className="al-required">*</span>}</label>
+    <label className="al-label">
+      {label} {req && <span className="al-required">*</span>}
+    </label>
     {children}
   </div>
 );
 
-/* ══════════════════════════════════════════════════════════════
-   MODAL COVERS — Hero Omra
-   ══════════════════════════════════════════════════════════════ */
+const EditableList = ({ label, items = [], onChange, placeholder = 'Ajouter un element...' }) => {
+  const [newItem, setNewItem] = useState('');
+
+  const addItem = () => {
+    const trimmed = newItem.trim();
+    if (!trimmed) return;
+    onChange([...items, trimmed]);
+    setNewItem('');
+  };
+
+  const updateItem = (index, value) => {
+    const next = [...items];
+    next[index] = value;
+    onChange(next);
+  };
+
+  const removeItem = (index) => onChange(items.filter((_, i) => i !== index));
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <label className="al-label">{label}</label>
+
+      {items.map((item, index) => (
+        <div key={`${label}-${index}`} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <input
+            className="al-input"
+            value={item}
+            onChange={(e) => updateItem(index, e.target.value)}
+            placeholder={`${label} ${index + 1}`}
+          />
+          <button
+            type="button"
+            className="al-btn al-btn--danger"
+            style={{ padding: '10px 12px' }}
+            onClick={() => removeItem(index)}
+          >
+            Retirer
+          </button>
+        </div>
+      ))}
+
+      <div style={{ display: 'flex', gap: 6 }}>
+        <input
+          className="al-input"
+          value={newItem}
+          onChange={(e) => setNewItem(e.target.value)}
+          placeholder={placeholder}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addItem();
+            }
+          }}
+        />
+        <button type="button" className="al-btn al-btn--ghost" onClick={addItem}>
+          Ajouter
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const CoversModal = ({ covers, onClose, onSaved, notify }) => {
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     hero: { ...DEFAULT_COVERS.hero, ...(covers?.hero || {}) },
   });
-  const [loading, setLoading] = useState(false);
 
-  const setHero = (key, val) => setForm(p => ({ ...p, hero: { ...p.hero, [key]: val } }));
+  const setHero = (key, value) => {
+    setForm((prev) => ({ ...prev, hero: { ...prev.hero, [key]: value } }));
+  };
 
   const handleSave = async () => {
     setLoading(true);
+
     try {
       const res = await fetch(COVERS_API, {
-        method:  'PUT',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(form),
+        body: JSON.stringify(form),
       });
       const json = await res.json();
+
       if (json.success) {
-        notify('Apparence mise à jour ✅');
+        notify('Apparence Omra mise a jour');
         onSaved(form);
       } else {
-        notify(json.message || 'Erreur', 'error');
+        notify(json.message || 'Erreur lors de la mise a jour', 'error');
       }
     } catch {
-      notify('Erreur réseau', 'error');
+      notify('Erreur reseau', 'error');
     } finally {
       setLoading(false);
     }
@@ -69,210 +147,144 @@ const CoversModal = ({ covers, onClose, onSaved, notify }) => {
       <div
         className="al-modal"
         style={{ maxWidth: 760, maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* ── Header ── */}
         <div className="al-modal__header" style={{ flexShrink: 0 }}>
           <div className="al-modal__title-wrap">
             <div className="al-modal__icon" style={{ background: 'linear-gradient(135deg,#be185d,#e8306a)' }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <circle cx="8.5" cy="8.5" r="1.5"/>
-                <path d="M21 15l-5-5L5 21"/>
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
               </svg>
             </div>
             <div>
               <h2>Apparence de la page Omra</h2>
-              <p style={{ fontSize:12, color:'var(--g400)', marginTop:2 }}>
-                Modifiez le bandeau hero de la page Omra
+              <p style={{ fontSize: 12, color: 'var(--g400)', marginTop: 2 }}>
+                Modifiez le hero sans toucher a la base.
               </p>
             </div>
           </div>
+
           <button className="al-modal__close" onClick={onClose}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 6L6 18M6 6l12 12"/>
+              <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* ── Tab bar (single tab: hero) ── */}
-        <div style={{ padding: '0 24px', borderBottom: '1px solid var(--g200)', flexShrink: 0 }}>
-          <div style={{ display: 'flex' }}>
-            <button
-              type="button"
-              style={{
-                padding: '12px 20px', border: 'none', background: 'transparent',
-                cursor: 'pointer', fontSize: 13, fontWeight: 700,
-                color: 'var(--primary)',
-                borderBottom: '2px solid var(--primary)',
-                display: 'flex', alignItems: 'center', gap: 6,
-              }}
-            >
-              🖼️ Hero (Bandeau)
-            </button>
-          </div>
-        </div>
-
-        {/* ── Scrollable body ── */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-
-          {/* Aperçu live hero */}
-          <div>
-            <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:10 }}>
-              Aperçu du bandeau hero
-            </p>
-            <div style={{
-              borderRadius: 16, overflow: 'hidden', position: 'relative', height: 200,
-              background: 'linear-gradient(135deg,#7c1034 0%,#b91c4a 50%,#7c1034 100%)',
-              border: '2px solid var(--g200)', boxShadow: '0 4px 20px rgba(0,0,0,.1)',
-            }}>
-              {form.hero.bg_image && (
-                <img
-                  src={form.hero.bg_image} alt="hero bg"
-                  style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:.4 }}
-                  onError={e => { e.target.style.display='none'; }}
-                />
-              )}
-              <div style={{ position:'absolute', inset:0, background:'rgba(10,10,30,.55)' }}/>
-              {/* Motif géométrique décoratif */}
-              <div style={{
-                position:'absolute', inset:0, opacity:.08,
-                backgroundImage:'radial-gradient(circle at 20% 50%, #fff 1px, transparent 1px), radial-gradient(circle at 80% 20%, #fff 1px, transparent 1px)',
-                backgroundSize:'40px 40px',
-              }}/>
-              <div style={{
-                position:'relative', padding:'28px 32px',
-                display:'flex', flexDirection:'column', justifyContent:'center',
-                height:'100%', color:'#fff',
-              }}>
-                <span style={{
-                  display:'inline-flex', alignItems:'center', gap:6,
-                  background:'rgba(255,255,255,.15)', backdropFilter:'blur(8px)',
-                  border:'1px solid rgba(255,255,255,.25)', borderRadius:999,
-                  padding:'4px 14px', fontSize:11, fontWeight:700, color:'#fff',
-                  width:'fit-content', marginBottom:12,
-                }}>
-                  🕋 {form.hero.tag || 'Pelerinage et Spiritualite'}
+        <div style={{ padding: 24, overflowY: 'auto', display: 'grid', gap: 18 }}>
+          <div
+            style={{
+              position: 'relative',
+              minHeight: 220,
+              overflow: 'hidden',
+              borderRadius: 18,
+              border: '1.5px solid var(--g200)',
+              background: 'linear-gradient(135deg,#7c1034 0%,#be185d 55%,#7c1034 100%)',
+            }}
+          >
+            {form.hero.bg_image && (
+              <img
+                src={form.hero.bg_image}
+                alt="Hero Omra"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.35 }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            )}
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,10,30,.48)' }} />
+            <div style={{ position: 'relative', padding: '28px 30px', color: '#fff', display: 'grid', gap: 12 }}>
+              <span
+                style={{
+                  width: 'fit-content',
+                  padding: '6px 14px',
+                  borderRadius: 999,
+                  border: '1px solid rgba(255,255,255,.24)',
+                  background: 'rgba(255,255,255,.12)',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '.08em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {form.hero.tag || DEFAULT_COVERS.hero.tag}
+              </span>
+              <h1 style={{ margin: 0, fontSize: 30, lineHeight: 1.1, fontWeight: 900 }}>
+                {form.hero.title || DEFAULT_COVERS.hero.title}
+                <br />
+                <span style={{ color: '#f9a8d4' }}>
+                  {form.hero.title_accent || DEFAULT_COVERS.hero.title_accent}
                 </span>
-                <h1 style={{ fontSize:24, fontWeight:900, lineHeight:1.2, margin:0 }}>
-                  {form.hero.title || 'Votre Voyage'}
-                  <br/>
-                  <span style={{ color:'#f472b6' }}>
-                    {form.hero.title_accent || 'Spirituel Ideal'}
-                  </span>
-                </h1>
-                <p style={{ fontSize:12, color:'rgba(255,255,255,.8)', marginTop:8, lineHeight:1.5, maxWidth:480 }}>
-                  {form.hero.sub || 'Accomplissez votre Omra en toute serenite...'}
-                </p>
-              </div>
+              </h1>
+              <p style={{ margin: 0, maxWidth: 560, color: 'rgba(255,255,255,.86)', lineHeight: 1.6, fontSize: 13 }}>
+                {form.hero.sub || DEFAULT_COVERS.hero.sub}
+              </p>
             </div>
           </div>
 
-          {/* Image de fond */}
-          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:8, borderBottom:'1px solid var(--g100)' }}>
-              🖼️ Image de fond du bandeau
-            </p>
-            <div className="al-field">
-              <label className="al-label">URL de l'image de fond</label>
+          <ModalField label="Image de fond">
+            <input
+              className="al-input"
+              value={form.hero.bg_image}
+              onChange={(e) => setHero('bg_image', e.target.value)}
+              placeholder="https://..."
+            />
+          </ModalField>
+
+          <ModalField label="Tag hero">
+            <input
+              className="al-input"
+              value={form.hero.tag}
+              onChange={(e) => setHero('tag', e.target.value)}
+              placeholder="Pelerinage et spiritualite"
+            />
+          </ModalField>
+
+          <div className="al-row-2">
+            <ModalField label="Titre principal">
               <input
                 className="al-input"
-                placeholder="https://images.unsplash.com/..."
-                value={form.hero.bg_image}
-                onChange={e => setHero('bg_image', e.target.value)}
+                value={form.hero.title}
+                onChange={(e) => setHero('title', e.target.value)}
+                placeholder="Votre voyage"
               />
-            </div>
-            {/* Suggestions */}
-            <div>
-              <p style={{ fontSize:11, color:'var(--g400)', marginBottom:6 }}>Suggestions rapides :</p>
-              <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                {[
-                  { label:'La Mecque',    url:'https://images.unsplash.com/photo-1518684079-3c830dcef090?w=1600&q=80' },
-                  { label:'Kaaba',        url:'https://images.unsplash.com/photo-1564769625905-50e93615e769?w=1600&q=80' },
-                  { label:'Médine',       url:'https://images.unsplash.com/photo-1574483074773-65a6d6083e28?w=1600&q=80' },
-                  { label:'Pèlerins',     url:'https://images.unsplash.com/photo-1590012314607-cda9d9b699ae?w=1600&q=80' },
-                  { label:'Mosquée',      url:'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=1600&q=80' },
-                ].map(s => (
-                  <button
-                    key={s.label}
-                    type="button"
-                    onClick={() => setHero('bg_image', s.url)}
-                    style={{
-                      padding:'4px 12px', borderRadius:999, fontSize:11, fontWeight:600,
-                      border:'1.5px solid var(--g200)',
-                      background: form.hero.bg_image === s.url ? 'rgba(232,48,106,.1)' : 'var(--g50)',
-                      color: form.hero.bg_image === s.url ? '#e8306a' : 'var(--g600)',
-                      borderColor: form.hero.bg_image === s.url ? '#e8306a' : 'var(--g200)',
-                      cursor:'pointer', transition:'all .15s',
-                    }}
-                    onMouseEnter={e => { if(form.hero.bg_image !== s.url){ e.currentTarget.style.borderColor='#e8306a'; e.currentTarget.style.color='#e8306a'; }}}
-                    onMouseLeave={e => { if(form.hero.bg_image !== s.url){ e.currentTarget.style.borderColor='var(--g200)'; e.currentTarget.style.color='var(--g600)'; }}}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            </ModalField>
+
+            <ModalField label="Titre accent">
+              <input
+                className="al-input"
+                value={form.hero.title_accent}
+                onChange={(e) => setHero('title_accent', e.target.value)}
+                placeholder="spirituel ideal"
+              />
+            </ModalField>
           </div>
 
-          {/* Textes */}
-          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:8, borderBottom:'1px solid var(--g100)' }}>
-              ✍️ Textes du bandeau
-            </p>
-            <div className="al-field">
-              <label className="al-label">Tag / Étiquette (au-dessus du titre)</label>
-              <input
-                className="al-input"
-                placeholder="Ex: Pelerinage et Spiritualite"
-                value={form.hero.tag}
-                onChange={e => setHero('tag', e.target.value)}
-              />
-            </div>
-            <div className="al-row-2">
-              <div className="al-field">
-                <label className="al-label">Titre principal</label>
-                <input
-                  className="al-input"
-                  placeholder="Ex: Votre Voyage"
-                  value={form.hero.title}
-                  onChange={e => setHero('title', e.target.value)}
-                />
-              </div>
-              <div className="al-field">
-                <label className="al-label">Titre accentué (en couleur)</label>
-                <input
-                  className="al-input"
-                  placeholder="Ex: Spirituel Ideal"
-                  value={form.hero.title_accent}
-                  onChange={e => setHero('title_accent', e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="al-field">
-              <label className="al-label">Sous-titre / description</label>
-              <textarea
-                className="al-textarea"
-                rows={3}
-                placeholder="Ex: Accomplissez votre Omra en toute serenite..."
-                value={form.hero.sub}
-                onChange={e => setHero('sub', e.target.value)}
-              />
-            </div>
-          </div>
+          <ModalField label="Sous-texte">
+            <textarea
+              className="al-textarea"
+              rows={4}
+              value={form.hero.sub}
+              onChange={(e) => setHero('sub', e.target.value)}
+              placeholder="Sous texte du hero..."
+            />
+          </ModalField>
         </div>
 
-        {/* ── Footer ── */}
-        <div className="al-form-footer" style={{ flexShrink:0, borderTop:'1px solid var(--g200)', padding:'16px 24px' }}>
-          <button type="button" className="al-btn al-btn--ghost" onClick={onClose}>Annuler</button>
+        <div className="al-form-footer" style={{ flexShrink: 0 }}>
+          <button type="button" className="al-btn al-btn--ghost" onClick={onClose}>
+            Annuler
+          </button>
           <button
             type="button"
             className="al-btn al-btn--primary"
-            disabled={loading}
             onClick={handleSave}
-            style={{ background:'linear-gradient(135deg,#be185d,#e8306a)', borderColor:'transparent' }}
+            disabled={loading}
+            style={{ background: 'linear-gradient(135deg,#be185d,#e8306a)', borderColor: 'transparent' }}
           >
-            {loading ? 'Enregistrement...' : '💾 Enregistrer l\'apparence'}
+            {loading ? 'Enregistrement...' : 'Enregistrer apparence'}
           </button>
         </div>
       </div>
@@ -280,140 +292,359 @@ const CoversModal = ({ covers, onClose, onSaved, notify }) => {
   );
 };
 
-/* ══════════════════════════════════════════════════════════════
-   MODAL CRÉATION / ÉDITION FORFAIT
-   ══════════════════════════════════════════════════════════════ */
 const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
-  const [form, setForm] = useState(pkg ? {
-    title:       pkg.title       || '',
-    subtitle:    pkg.subtitle    || '',
-    description: pkg.description || '',
-    image_url:   pkg.image_url   || '',
-    price:       pkg.price       || '',
-    old_price:   pkg.old_price   || '',
-    duration:    pkg.duration    || '',
-    departure:   pkg.departure   || '',
-    spots:       pkg.spots       || '50',
-    badge:       pkg.badge       || '',
-    is_active:   pkg.is_active   !== false,
-  } : { ...EMPTY });
+  const isEdit = !!pkg;
   const [loading, setLoading] = useState(false);
-  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const [activeTab, setActiveTab] = useState('general');
+  const [form, setForm] = useState(() => ({
+    ...EMPTY,
+    ...(pkg || {}),
+    price: pkg?.price ? String(pkg.price) : '',
+    old_price: pkg?.old_price ? String(pkg.old_price) : '',
+    duration: pkg?.duration ? String(pkg.duration) : '',
+    spots: pkg?.spots ? String(pkg.spots) : '50',
+    rating: pkg?.rating ? String(pkg.rating) : '5',
+    reviews: pkg?.reviews ? String(pkg.reviews) : '0',
+    includes: Array.isArray(pkg?.includes)
+      ? pkg.includes.map((item) => (typeof item === 'string' ? item : item?.label || '')).filter(Boolean)
+      : [],
+    is_active: pkg?.is_active !== false,
+  }));
+
+  const set = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const tabs = [
+    { key: 'general', label: 'General' },
+    { key: 'detail', label: 'Details' },
+    { key: 'media', label: 'Medias' },
+    { key: 'advanced', label: 'Avance' },
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!form.title || !form.price || !form.duration) {
-      notify('Titre, prix et durée sont obligatoires', 'error');
+      notify('Titre, prix et duree sont obligatoires', 'error');
       return;
     }
+
     setLoading(true);
+
     try {
-      const res = await fetch(pkg ? `${API_PKG}/${pkg.id}` : API_PKG, {
-        method:  pkg ? 'PUT' : 'POST',
+      const res = await fetch(isEdit ? `${API_PKG}/${pkg.id}` : API_PKG, {
+        method: isEdit ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
-          price:     Number(form.price),
+          price: Number(form.price),
           old_price: form.old_price ? Number(form.old_price) : null,
-          duration:  Number(form.duration),
-          spots:     Number(form.spots) || 50,
+          duration: Number(form.duration),
+          spots: form.spots ? Number(form.spots) : 50,
+          rating: form.rating ? Number(form.rating) : 5,
+          reviews: form.reviews ? Number(form.reviews) : 0,
+          includes: form.includes.filter(Boolean),
         }),
       });
       const json = await res.json();
+
       if (json.success) {
-        notify(pkg ? 'Forfait mis à jour ✅' : 'Forfait créé ✅');
+        notify(isEdit ? 'Forfait Omra mis a jour' : 'Forfait Omra cree');
         onSaved();
-      } else notify(json.message || 'Erreur', 'error');
-    } catch { notify('Erreur réseau', 'error'); }
-    finally { setLoading(false); }
+      } else {
+        notify(json.message || 'Erreur lors de l enregistrement', 'error');
+      }
+    } catch {
+      notify('Erreur reseau', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="al-overlay" onClick={onClose}>
-      <div className="al-modal" style={{ maxWidth: 700 }} onClick={e => e.stopPropagation()}>
-        <div className="al-modal__header">
+      <div
+        className="al-modal"
+        style={{ maxWidth: 760, maxHeight: '95vh', display: 'flex', flexDirection: 'column' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="al-modal__header" style={{ flexShrink: 0 }}>
           <div className="al-modal__title-wrap">
             <div className="al-modal__icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
+                <circle cx="12" cy="12" r="10" />
+                <path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
               </svg>
             </div>
-            <h2>{pkg ? 'Modifier le forfait' : 'Nouveau forfait Omra'}</h2>
+            <div>
+              <h2>{isEdit ? 'Modifier le forfait Omra' : 'Nouveau forfait Omra'}</h2>
+              <p style={{ fontSize: 12, color: 'var(--g400)', marginTop: 2 }}>
+                Meme logique de formulaire que les circuits, adaptee aux champs Omra existants.
+              </p>
+            </div>
           </div>
+
           <button className="al-modal__close" onClick={onClose}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
-        <form className="al-form" onSubmit={handleSubmit}>
-          <div className="al-field">
-            <label className="al-label">Titre <span className="al-required">*</span></label>
-            <input className="al-input" value={form.title} onChange={e => set('title', e.target.value)} placeholder="Ex: Omra Ramadan Premium" required/>
+
+        <div style={{ padding: '0 24px', borderBottom: '1px solid var(--g200)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                style={{
+                  padding: '12px 18px',
+                  border: 'none',
+                  borderBottom: activeTab === tab.key ? '2px solid var(--primary)' : '2px solid transparent',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: activeTab === tab.key ? 'var(--primary)' : 'var(--g500)',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
-          <div className="al-field">
-            <label className="al-label">Sous-titre</label>
-            <input className="al-input" value={form.subtitle} onChange={e => set('subtitle', e.target.value)} placeholder="Ex: Hôtel 5★ · Médine & La Mecque"/>
-          </div>
-          <div className="al-field">
-            <label className="al-label">Description</label>
-            <textarea className="al-textarea" rows={3} value={form.description} onChange={e => set('description', e.target.value)} placeholder="Description du forfait..."/>
-          </div>
-          <div className="al-field">
-            <label className="al-label">URL de l'image</label>
-            <input className="al-input" value={form.image_url} onChange={e => set('image_url', e.target.value)} placeholder="https://..."/>
-            {form.image_url && (
-              <img src={form.image_url} alt="preview"
-                style={{ marginTop:8, width:'100%', height:120, objectFit:'cover', borderRadius:8, border:'1.5px solid var(--g200)' }}
-                onError={e => e.target.style.display='none'}/>
+        </div>
+
+        <form className="al-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {activeTab === 'general' && (
+              <>
+                <ModalField label="Titre" req>
+                  <input
+                    className="al-input"
+                    value={form.title}
+                    onChange={(e) => set('title', e.target.value)}
+                    placeholder="Ex: Omra Ramadan Premium"
+                    required
+                  />
+                </ModalField>
+
+                <ModalField label="Sous-titre">
+                  <input
+                    className="al-input"
+                    value={form.subtitle}
+                    onChange={(e) => set('subtitle', e.target.value)}
+                    placeholder="Ex: Hotel proche Haram, guide francophone"
+                  />
+                </ModalField>
+
+                <ModalField label="Description">
+                  <textarea
+                    className="al-textarea"
+                    rows={5}
+                    value={form.description}
+                    onChange={(e) => set('description', e.target.value)}
+                    placeholder="Description complete du forfait Omra..."
+                  />
+                </ModalField>
+
+                <div className="al-row-2">
+                  <ModalField label="Badge">
+                    <select className="al-select" value={form.badge} onChange={(e) => set('badge', e.target.value)}>
+                      <option value="">Aucun</option>
+                      <option value="Populaire">Populaire</option>
+                      <option value="Nouveau">Nouveau</option>
+                      <option value="Promo">Promo</option>
+                      <option value="VIP">VIP</option>
+                      <option value="Dernieres places">Dernieres places</option>
+                    </select>
+                  </ModalField>
+
+                  <div style={{ display: 'flex', alignItems: 'center', paddingTop: 28 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--g700)' }}>
+                      <input
+                        type="checkbox"
+                        checked={form.is_active}
+                        onChange={(e) => set('is_active', e.target.checked)}
+                        style={{ width: 16, height: 16, accentColor: 'var(--primary)' }}
+                      />
+                      Forfait actif sur le site
+                    </label>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'detail' && (
+              <>
+                <div className="al-row-2">
+                  <ModalField label="Prix (TND)" req>
+                    <input
+                      className="al-input"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.price}
+                      onChange={(e) => set('price', e.target.value)}
+                      placeholder="3500"
+                      required
+                    />
+                  </ModalField>
+
+                  <ModalField label="Ancien prix (TND)">
+                    <input
+                      className="al-input"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.old_price}
+                      onChange={(e) => set('old_price', e.target.value)}
+                      placeholder="4000"
+                    />
+                  </ModalField>
+                </div>
+
+                <div className="al-row-2">
+                  <ModalField label="Duree (jours)" req>
+                    <input
+                      className="al-input"
+                      type="number"
+                      min="1"
+                      value={form.duration}
+                      onChange={(e) => set('duration', e.target.value)}
+                      placeholder="10"
+                      required
+                    />
+                  </ModalField>
+
+                  <ModalField label="Depart">
+                    <input
+                      className="al-input"
+                      value={form.departure}
+                      onChange={(e) => set('departure', e.target.value)}
+                      placeholder="Ex: 15 Mars 2026"
+                    />
+                  </ModalField>
+                </div>
+
+                <div className="al-row-2">
+                  <ModalField label="Nombre de places">
+                    <input
+                      className="al-input"
+                      type="number"
+                      min="0"
+                      value={form.spots}
+                      onChange={(e) => set('spots', e.target.value)}
+                      placeholder="50"
+                    />
+                  </ModalField>
+
+                  <div className="al-row-2" style={{ margin: 0 }}>
+                    <ModalField label="Note">
+                      <input
+                        className="al-input"
+                        type="number"
+                        min="0"
+                        max="5"
+                        step="0.1"
+                        value={form.rating}
+                        onChange={(e) => set('rating', e.target.value)}
+                        placeholder="5"
+                      />
+                    </ModalField>
+
+                    <ModalField label="Avis">
+                      <input
+                        className="al-input"
+                        type="number"
+                        min="0"
+                        value={form.reviews}
+                        onChange={(e) => set('reviews', e.target.value)}
+                        placeholder="0"
+                      />
+                    </ModalField>
+                  </div>
+                </div>
+
+                <div style={{ padding: 12, borderRadius: 10, border: '1.5px solid rgba(16,185,129,.2)', background: 'rgba(16,185,129,.04)' }}>
+                  <EditableList
+                    label="Ce qui est inclus"
+                    items={form.includes}
+                    onChange={(value) => set('includes', value)}
+                    placeholder="Ex: Vol inclus"
+                  />
+                </div>
+              </>
+            )}
+
+            {activeTab === 'media' && (
+              <>
+                <ModalField label="Image principale">
+                  <input
+                    className="al-input"
+                    value={form.image_url}
+                    onChange={(e) => set('image_url', e.target.value)}
+                    placeholder="https://..."
+                  />
+                </ModalField>
+
+                {form.image_url && (
+                  <div style={{ borderRadius: 10, overflow: 'hidden', border: '1.5px solid var(--g200)' }}>
+                    <img
+                      src={form.image_url}
+                      alt="Apercu"
+                      style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                    <p style={{ margin: 0, padding: '6px 10px', fontSize: 11, color: 'var(--g400)' }}>
+                      Apercu image principale
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeTab === 'advanced' && (
+              <div style={{ display: 'grid', gap: 14 }}>
+                <div style={{ padding: 14, borderRadius: 12, border: '1px solid var(--g200)', background: 'var(--g50)' }}>
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--g700)' }}>Resume</p>
+                  <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                      <span style={{ fontSize: 12, color: 'var(--g500)' }}>Titre</span>
+                      <strong style={{ fontSize: 12, color: 'var(--g800)', textAlign: 'right' }}>{form.title || '-'}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                      <span style={{ fontSize: 12, color: 'var(--g500)' }}>Prix</span>
+                      <strong style={{ fontSize: 12, color: 'var(--g800)' }}>{form.price || '-'} TND</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                      <span style={{ fontSize: 12, color: 'var(--g500)' }}>Duree</span>
+                      <strong style={{ fontSize: 12, color: 'var(--g800)' }}>{form.duration || '-'} jours</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                      <span style={{ fontSize: 12, color: 'var(--g500)' }}>Elements inclus</span>
+                      <strong style={{ fontSize: 12, color: 'var(--g800)' }}>{form.includes.length}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ padding: 14, borderRadius: 12, border: '1px solid rgba(15,76,92,.12)', background: 'rgba(15,76,92,.04)' }}>
+                  <p style={{ margin: 0, fontSize: 12, color: 'var(--g600)', lineHeight: 1.6 }}>
+                    Le formulaire Omra suit maintenant le meme format d ajout et d edition que les circuits.
+                    Les champs affiches correspondent uniquement a ce qui existe deja dans votre base de donnees.
+                  </p>
+                </div>
+              </div>
             )}
           </div>
-          <div className="al-row-2">
-            <div className="al-field">
-              <label className="al-label">Prix (TND) <span className="al-required">*</span></label>
-              <input className="al-input" type="number" min="0" step="0.01" value={form.price} onChange={e => set('price', e.target.value)} placeholder="3500" required/>
-            </div>
-            <div className="al-field">
-              <label className="al-label">Ancien prix (TND)</label>
-              <input className="al-input" type="number" min="0" step="0.01" value={form.old_price} onChange={e => set('old_price', e.target.value)} placeholder="4000 (optionnel)"/>
-            </div>
-          </div>
-          <div className="al-row-2">
-            <div className="al-field">
-              <label className="al-label">Durée (jours) <span className="al-required">*</span></label>
-              <input className="al-input" type="number" min="1" value={form.duration} onChange={e => set('duration', e.target.value)} placeholder="14" required/>
-            </div>
-            <div className="al-field">
-              <label className="al-label">Date de départ</label>
-              <input className="al-input" value={form.departure} onChange={e => set('departure', e.target.value)} placeholder="Ex: 15 Mars 2026"/>
-            </div>
-          </div>
-          <div className="al-row-2">
-            <div className="al-field">
-              <label className="al-label">Places disponibles</label>
-              <input className="al-input" type="number" min="0" value={form.spots} onChange={e => set('spots', e.target.value)} placeholder="50"/>
-            </div>
-            <div className="al-field">
-              <label className="al-label">Badge</label>
-              <select className="al-select" value={form.badge} onChange={e => set('badge', e.target.value)}>
-                <option value="">Aucun</option>
-                <option value="Populaire">⭐ Populaire</option>
-                <option value="Nouveau">✨ Nouveau</option>
-                <option value="Promo">🔥 Promo</option>
-                <option value="VIP">👑 VIP</option>
-                <option value="Dernières places">⚡ Dernières places</option>
-              </select>
-            </div>
-          </div>
-          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <input type="checkbox" id="is_active" checked={form.is_active} onChange={e => set('is_active', e.target.checked)}
-              style={{ width:16, height:16, cursor:'pointer', accentColor:'var(--primary)' }}/>
-            <label htmlFor="is_active" className="al-label" style={{ cursor:'pointer', marginBottom:0 }}>
-              Forfait actif (visible sur le site public)
-            </label>
-          </div>
-          <div className="al-form-footer">
-            <button type="button" className="al-btn al-btn--ghost" onClick={onClose}>Annuler</button>
+
+          <div className="al-form-footer" style={{ flexShrink: 0 }}>
+            <button type="button" className="al-btn al-btn--ghost" onClick={onClose}>
+              Annuler
+            </button>
             <button type="submit" className="al-btn al-btn--primary" disabled={loading}>
-              {loading ? 'Enregistrement...' : (pkg ? '✏️ Mettre à jour' : '➕ Créer le forfait')}
+              {loading ? 'Enregistrement...' : isEdit ? 'Mettre a jour' : 'Creer le forfait'}
             </button>
           </div>
         </form>
@@ -422,143 +653,189 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
   );
 };
 
-/* ══════════════════════════════════════════════════════════════
-   PANNEAU DÉTAIL LATÉRAL
-   ══════════════════════════════════════════════════════════════ */
 const OmraDetail = ({ pkg, onClose, onEdit, onDelete, isMain }) => {
-  const avail  = pkg.available_spots !== undefined ? Number(pkg.available_spots) : Number(pkg.spots);
-  const isFull = avail <= 0;
-  const isLow  = avail <= 5 && avail > 0;
+  const available = pkg.available_spots !== undefined ? Number(pkg.available_spots) : Number(pkg.spots);
+  const total = Number(pkg.spots) || 0;
+  const isFull = available <= 0;
+  const isLow = available > 0 && available <= 5;
+  const includes = Array.isArray(pkg.includes)
+    ? pkg.includes.map((item) => (typeof item === 'string' ? item : item?.label || '')).filter(Boolean)
+    : [];
 
-  const InfoRow = ({ icon, label, value }) => value ? (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background:'var(--g50)', border:'1px solid var(--g100)' }}>
-      <span style={{ fontSize:12, color:'var(--g500)' }}>{icon} {label}</span>
-      <span style={{ fontSize:13, fontWeight:700, color:'var(--g800)' }}>{value}</span>
-    </div>
-  ) : null;
+  const InfoRow = ({ label, value }) => {
+    if (!value && value !== 0) return null;
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '8px 12px',
+          borderRadius: 8,
+          background: 'var(--g50)',
+          border: '1px solid var(--g100)',
+        }}
+      >
+        <span style={{ fontSize: 12, color: 'var(--g500)' }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--g800)' }}>{value}</span>
+      </div>
+    );
+  };
 
   return (
-    <div style={{ width:330, flexShrink:0, borderLeft:'1px solid var(--g200)', display:'flex', flexDirection:'column', background:'#fff', animation:'alModalIn .25s var(--ease)', overflowY:'auto' }}>
-      <div style={{ padding:'14px 18px', borderBottom:'1px solid var(--g100)', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'#fff', zIndex:2 }}>
-        <p style={{ fontSize:11, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em' }}>Détails forfait</p>
+    <div style={{ width: 380, borderLeft: '1px solid var(--g200)', background: '#fff', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: 18, borderBottom: '1px solid var(--g100)', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--g900)' }}>{pkg.title}</p>
+          <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--g400)' }}>Apercu du forfait Omra</p>
+        </div>
         <button className="al-modal__close" onClick={onClose}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
         </button>
       </div>
 
-      <div style={{ width:'100%', height:170, background:'var(--g100)', flexShrink:0, position:'relative', overflow:'hidden' }}>
+      <div style={{ padding: 18, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
         {pkg.image_url ? (
-          <img src={pkg.image_url} alt={pkg.title} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} onError={e=>e.target.style.display='none'}/>
+          <img
+            src={pkg.image_url}
+            alt={pkg.title}
+            style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 14, border: '1px solid var(--g200)' }}
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
         ) : (
-          <div style={{ width:'100%', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10, background:'linear-gradient(135deg,var(--primary),var(--secondary))' }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.8)" strokeWidth="1.2" style={{ width:48, height:48 }}>
-              <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
-            </svg>
-            <p style={{ fontSize:12, color:'rgba(255,255,255,.7)' }}>Forfait Omra</p>
-          </div>
+          <div
+            style={{
+              height: 180,
+              borderRadius: 14,
+              border: '1px solid var(--g200)',
+              background: 'linear-gradient(135deg,#7c1034,#e8306a)',
+            }}
+          />
         )}
-        <div style={{ position:'absolute', top:10, left:10, display:'flex', gap:6, flexWrap:'wrap' }}>
-          <span style={{ padding:'3px 9px', borderRadius:999, background:pkg.is_active?'#10b981':'#94a3b8', color:'#fff', fontSize:11, fontWeight:700, boxShadow:'0 2px 8px rgba(0,0,0,.2)' }}>
-            {pkg.is_active ? '● Actif' : '● Inactif'}
-          </span>
+
+        <div>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: 'var(--g400)', letterSpacing: '.08em', textTransform: 'uppercase' }}>
+            Prix
+          </p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 8 }}>
+            <span style={{ fontSize: 26, fontWeight: 900, color: 'var(--primary)' }}>{fPrice(pkg.price)}</span>
+            {pkg.old_price && (
+              <span style={{ fontSize: 13, textDecoration: 'line-through', color: 'var(--g400)' }}>
+                {fPrice(pkg.old_price)}
+              </span>
+            )}
+          </div>
           {pkg.badge && (
-            <span style={{ padding:'3px 9px', borderRadius:999, background:'#fff7ed', color:'#c2410c', fontSize:11, fontWeight:700, boxShadow:'0 2px 8px rgba(0,0,0,.15)' }}>
+            <span
+              style={{
+                display: 'inline-flex',
+                marginTop: 8,
+                padding: '4px 10px',
+                borderRadius: 999,
+                background: 'rgba(232,48,106,.1)',
+                color: '#b91c4a',
+                fontSize: 11,
+                fontWeight: 700,
+              }}
+            >
               {pkg.badge}
             </span>
           )}
         </div>
-      </div>
 
-      <div style={{ padding:'18px 18px 12px', display:'flex', flexDirection:'column', gap:18, flex:1 }}>
-        <div>
-          <h3 style={{ fontSize:16, fontWeight:800, color:'var(--g900)', lineHeight:1.3 }}>{pkg.title}</h3>
-          {pkg.subtitle && <p style={{ fontSize:12, color:'var(--g500)', marginTop:4 }}>{pkg.subtitle}</p>}
+        <div style={{ display: 'grid', gap: 8 }}>
+          <InfoRow label="Duree" value={pkg.duration ? `${pkg.duration} jours` : '-'} />
+          <InfoRow label="Depart" value={pkg.departure || '-'} />
+          <InfoRow label="Note" value={`${Number(pkg.rating || 5)} / 5`} />
+          <InfoRow label="Avis" value={Number(pkg.reviews || 0)} />
+          <InfoRow label="Reservations" value={Number(pkg.reservation_count || 0)} />
         </div>
+
+        <div
+          style={{
+            padding: '10px 12px',
+            borderRadius: 10,
+            background: isFull ? '#fee2e2' : isLow ? '#fff7ed' : '#d1fae5',
+            border: `1px solid ${isFull ? '#fca5a5' : isLow ? '#fed7aa' : '#a7f3d0'}`,
+          }}
+        >
+          <p style={{ margin: 0, fontSize: 12, color: isFull ? '#991b1b' : isLow ? '#92400e' : '#065f46', fontWeight: 700 }}>
+            {isFull ? 'Complet' : `Places disponibles: ${available} / ${total}`}
+          </p>
+        </div>
+
         {pkg.description && (
           <div>
-            <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:6, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Description</p>
-            <p style={{ fontSize:13, color:'var(--g600)', lineHeight:1.65 }}>{pkg.description}</p>
+            <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 700, color: 'var(--g400)', letterSpacing: '.08em', textTransform: 'uppercase' }}>
+              Description
+            </p>
+            <p style={{ margin: 0, color: 'var(--g600)', lineHeight: 1.7, fontSize: 13 }}>{pkg.description}</p>
           </div>
         )}
-        <div>
-          <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:8, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Tarif</p>
-          <div style={{ display:'flex', alignItems:'baseline', gap:10 }}>
-            <span style={{ fontSize:22, fontWeight:800, color:'var(--primary)' }}>{fPrice(pkg.price)}</span>
-            {pkg.old_price && <span style={{ fontSize:13, color:'var(--g400)', textDecoration:'line-through' }}>{fPrice(pkg.old_price)}</span>}
-          </div>
-          {pkg.old_price && (
-            <span style={{ marginTop:4, display:'inline-block', fontSize:11, fontWeight:700, color:'#059669', background:'#d1fae5', padding:'2px 8px', borderRadius:999 }}>
-              -{Math.round((1 - pkg.price / pkg.old_price) * 100)}% de réduction
-            </span>
-          )}
-        </div>
-        <div>
-          <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:8, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Informations</p>
-          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-            <InfoRow icon="🗓" label="Durée"  value={pkg.duration ? `${pkg.duration} jour${pkg.duration > 1 ? 's' : ''}` : null}/>
-            <InfoRow icon="✈️" label="Départ" value={pkg.departure || null}/>
-          </div>
-        </div>
-        <div>
-          <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:8, paddingBottom:6, borderBottom:'1px solid var(--g100)' }}>Disponibilité</p>
-          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background:isFull?'#fee2e2':isLow?'#fff7ed':'#d1fae5', border:`1px solid ${isFull?'#fca5a5':isLow?'#fed7aa':'#a7f3d0'}` }}>
-              <span style={{ fontSize:12, color:isFull?'#991b1b':isLow?'#92400e':'#065f46' }}>🪑 Places disponibles</span>
-              <span style={{ fontSize:13, fontWeight:800, color:isFull?'#e92f64':isLow?'#f97316':'#065f46' }}>
-                {isFull ? 'Complet' : `${avail} / ${pkg.spots}`}
-              </span>
-            </div>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 12px', borderRadius:8, background:'rgba(15,76,92,.05)', border:'1px solid rgba(15,76,92,.1)' }}>
-              <span style={{ fontSize:12, color:'var(--g500)' }}>📋 Réservations</span>
-              <span style={{ fontSize:13, fontWeight:800, color:'var(--primary)' }}>
-                {pkg.reservation_count || 0} inscrit{pkg.reservation_count > 1 ? 's' : ''}
-              </span>
+
+        {includes.length > 0 && (
+          <div>
+            <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 700, color: 'var(--g400)', letterSpacing: '.08em', textTransform: 'uppercase' }}>
+              Inclus
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {includes.map((item, index) => (
+                <span
+                  key={`${item}-${index}`}
+                  style={{
+                    padding: '7px 10px',
+                    borderRadius: 999,
+                    background: 'rgba(15,76,92,.08)',
+                    color: 'var(--primary)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                  }}
+                >
+                  {item}
+                </span>
+              ))}
             </div>
           </div>
-        </div>
+        )}
       </div>
 
-      <div style={{ padding:'14px 18px', borderTop:'1px solid var(--g100)', display:'flex', gap:8, position:'sticky', bottom:0, background:'#fff' }}>
-        <button className="al-btn al-btn--primary" style={{ flex:1 }} onClick={() => { onEdit(pkg); onClose(); }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14, height:14 }}>
-            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-          </svg>
+      <div style={{ padding: 18, borderTop: '1px solid var(--g100)', display: 'flex', gap: 8 }}>
+        <button className="al-btn al-btn--primary" style={{ flex: 1 }} onClick={() => { onEdit(pkg); onClose(); }}>
           Modifier
         </button>
         <button
           className="al-btn al-btn--danger"
           onClick={() => { onDelete(pkg.id); onClose(); }}
-          title={isMain ? 'Supprimer ce forfait' : 'Réservé à l\'administrateur principal'}
-          style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}
+          title={isMain ? 'Supprimer ce forfait' : 'Reserve a l administrateur principal'}
+          style={{ opacity: isMain ? 1 : 0.45, cursor: isMain ? 'pointer' : 'not-allowed' }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:14, height:14 }}>
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-          </svg>
-          {isMain ? 'Supprimer' : 'Supprimer 🔒'}
+          {isMain ? 'Supprimer' : 'Supprimer'}
         </button>
       </div>
     </div>
   );
 };
 
-/* ══════════════════════════════════════════════════════════════
-   MAIN COMPONENT
-   ══════════════════════════════════════════════════════════════ */
 const OmraPackages = () => {
-  const [packages,    setPackages]    = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [toast,       setToast]       = useState(null);
-  const [showModal,   setShowModal]   = useState(false);
-  const [showCovers,  setShowCovers]  = useState(false);
-  const [editPkg,     setEditPkg]     = useState(null);
-  const [selected,    setSelected]    = useState(null);
-  const [covers,      setCovers]      = useState(null);
+  const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showCovers, setShowCovers] = useState(false);
+  const [editPkg, setEditPkg] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [covers, setCovers] = useState(DEFAULT_COVERS);
 
   const isMain = (() => {
-    try { return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main'; }
-    catch { return false; }
+    try {
+      return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main';
+    } catch {
+      return false;
+    }
   })();
 
   const notify = (msg, type = 'success') => {
@@ -569,216 +846,348 @@ const OmraPackages = () => {
   const fetchPackages = async () => {
     try {
       setLoading(true);
-      const r = await fetch(API_PKG);
-      const j = await r.json();
-      setPackages(j.data || []);
-    } catch { notify('Impossible de charger les forfaits', 'error'); }
-    finally { setLoading(false); }
+      const res = await fetch(API_PKG, { cache: 'no-store' });
+      const json = await res.json();
+      setPackages(json.data || []);
+    } catch {
+      notify('Impossible de charger les forfaits', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchCovers = async () => {
     try {
-      const r = await fetch(COVERS_API);
-      const j = await r.json();
-      if (j.success) setCovers(j.data);
-    } catch { /* silently ignore */ }
+      const res = await fetch(COVERS_API, { cache: 'no-store' });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setCovers({ hero: { ...DEFAULT_COVERS.hero, ...(json.data.hero || {}) } });
+      }
+    } catch {
+      // ignore
+    }
   };
 
-  useEffect(() => { fetchPackages(); fetchCovers(); }, []);
+  useEffect(() => {
+    fetchPackages();
+    fetchCovers();
+  }, []);
 
   const handleDelete = async (id) => {
     if (!isMain) {
-      notify('❌ Seul l\'administrateur principal peut supprimer un forfait', 'error');
+      notify('Seul l administrateur principal peut supprimer un forfait', 'error');
       return;
     }
-    if (!window.confirm('Supprimer ce forfait ? Les réservations existantes ne seront pas supprimées.')) return;
-    const r = await fetch(`${API_PKG}/${id}`, { method: 'DELETE' });
-    const j = await r.json();
-    if (j.success) { notify('Forfait supprimé'); fetchPackages(); setSelected(null); }
-    else notify('Erreur suppression', 'error');
+
+    if (!window.confirm('Supprimer ce forfait ? Les reservations existantes ne seront pas supprimees.')) return;
+
+    try {
+      const res = await fetch(`${API_PKG}/${id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        notify('Forfait Omra supprime');
+        setSelected(null);
+        fetchPackages();
+      } else {
+        notify(json.message || 'Erreur suppression', 'error');
+      }
+    } catch {
+      notify('Erreur reseau', 'error');
+    }
   };
 
   const stats = {
-    total:    packages.length,
-    active:   packages.filter(p => p.is_active).length,
-    inactive: packages.filter(p => !p.is_active).length,
-    totalRes: packages.reduce((a, p) => a + (parseInt(p.reservation_count) || 0), 0),
+    total: packages.length,
+    active: packages.filter((item) => item.is_active).length,
+    inactive: packages.filter((item) => !item.is_active).length,
+    totalReservations: packages.reduce((sum, item) => sum + (parseInt(item.reservation_count, 10) || 0), 0),
   };
 
   return (
     <AdminLayout
       title="Forfaits Omra"
       breadcrumb={[{ label: 'Omra' }, { label: 'Forfaits', active: true }]}
-      actions={
-        <div style={{ display:'flex', gap:8 }}>
-          {/* ── Bouton Apparence page (comme Circuits) ── */}
-          <button
-            className="al-btn al-btn--ghost"
-            onClick={() => setShowCovers(true)}
-            title="Modifier l'apparence de la page Omra (hero)"
-            style={{ display:'flex', alignItems:'center', gap:6 }}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:15, height:15 }}>
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5"/>
-              <path d="M21 15l-5-5L5 21"/>
-            </svg>
+      actions={(
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="al-btn al-btn--ghost" onClick={() => setShowCovers(true)}>
             Apparence page
           </button>
-          <button className="al-btn al-btn--primary" onClick={() => { setEditPkg(null); setShowModal(true); }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          <button
+            className="al-btn al-btn--primary"
+            onClick={() => {
+              setEditPkg(null);
+              setShowModal(true);
+            }}
+          >
             Nouveau forfait
           </button>
         </div>
-      }
+      )}
       toast={toast}
     >
       <div className="al-stats al-stats--4">
         {[
-          { label:'Total forfaits',     value:stats.total,    color:'blue',
-            icon:<><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></> },
-          { label:'Actifs',             value:stats.active,   color:'green',
-            icon:<><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></> },
-          { label:'Inactifs',           value:stats.inactive, color:'gray',
-            icon:<><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></> },
-          { label:'Total réservations', value:stats.totalRes, color:'teal',
-            icon:<><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></> },
-        ].map(s => (
-          <div key={s.label} className={`al-stat al-stat--${s.color}`}>
-            <div className="al-stat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">{s.icon}</svg></div>
-            <div><p className="al-stat__value">{s.value}</p><p className="al-stat__label">{s.label}</p></div>
+          { label: 'Total forfaits', value: stats.total, color: 'blue', icon: <><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" /></> },
+          { label: 'Actifs', value: stats.active, color: 'green', icon: <><path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" /></> },
+          { label: 'Inactifs', value: stats.inactive, color: 'gray', icon: <><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></> },
+          { label: 'Reservations', value: stats.totalReservations, color: 'teal', icon: <><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" /><rect x="9" y="3" width="6" height="4" rx="1" /></> },
+        ].map((stat) => (
+          <div key={stat.label} className={`al-stat al-stat--${stat.color}`}>
+            <div className="al-stat__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                {stat.icon}
+              </svg>
+            </div>
+            <div>
+              <p className="al-stat__value">{stat.value}</p>
+              <p className="al-stat__label">{stat.label}</p>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* ── Mini preview du hero actuel (comme Circuits) ── */}
-      {covers && (
-        <div style={{ margin:'0 32px 16px' }}>
+      {covers?.hero && (
+        <div style={{ margin: '0 32px 16px' }}>
           <div
             onClick={() => setShowCovers(true)}
             style={{
-              borderRadius:12, overflow:'hidden', position:'relative', height:70,
-              cursor:'pointer', border:'1.5px solid var(--g200)',
-              background:'linear-gradient(135deg,#7c1034,#b91c4a)',
-              transition:'transform .15s, box-shadow .15s',
+              height: 76,
+              borderRadius: 14,
+              overflow: 'hidden',
+              position: 'relative',
+              cursor: 'pointer',
+              border: '1.5px solid var(--g200)',
+              background: 'linear-gradient(135deg,#7c1034,#be185d)',
             }}
-            onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,.15)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow=''; }}
           >
-            {covers.hero?.bg_image && (
+            {covers.hero.bg_image && (
               <img
-                src={covers.hero.bg_image} alt="hero"
-                style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:.4 }}
-                onError={e => { e.target.style.display='none'; }}
+                src={covers.hero.bg_image}
+                alt="Hero Omra"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.34 }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
               />
             )}
-            <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,.35)' }}/>
-            <div style={{ position:'relative', padding:'10px 14px', display:'flex', alignItems:'center', gap:8, height:'100%' }}>
-              <span style={{ fontSize:20 }}>🕋</span>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.32)' }} />
+            <div style={{ position: 'relative', height: '100%', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
               <div>
-                <p style={{ fontSize:12, fontWeight:700, color:'#fff', margin:0 }}>
-                  {covers.hero?.title || 'Votre Voyage'}{' '}
-                  <span style={{ color:'#f9a8d4' }}>{covers.hero?.title_accent || 'Spirituel Ideal'}</span>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#fff' }}>
+                  {covers.hero.title}{' '}
+                  <span style={{ color: '#f9a8d4' }}>{covers.hero.title_accent}</span>
                 </p>
-                <p style={{ fontSize:10, color:'rgba(255,255,255,.7)', margin:0 }}>Hero Omra · Cliquer pour modifier</p>
+                <p style={{ margin: '2px 0 0', fontSize: 11, color: 'rgba(255,255,255,.76)' }}>
+                  Hero Omra actuel - cliquer pour modifier
+                </p>
               </div>
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" style={{ width:14, height:14, marginLeft:'auto', opacity:.7 }}>
-                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
             </div>
           </div>
         </div>
       )}
 
-      <div style={{ display:'flex', margin:'0 32px 32px', background:'#fff', borderRadius:16, border:'1px solid var(--g200)', boxShadow:'0 4px 12px rgba(15,76,92,.08)', overflow:'hidden' }}>
-        <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column' }}>
+      <div
+        style={{
+          display: 'flex',
+          margin: '0 32px 32px',
+          background: '#fff',
+          borderRadius: 16,
+          border: '1px solid var(--g200)',
+          boxShadow: '0 4px 12px rgba(15,76,92,.08)',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
           <div className="al-toolbar">
-            <p style={{ fontSize:15, fontWeight:700, color:'var(--g800)', flex:1 }}>Liste des forfaits</p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--g800)', flex: 1 }}>Liste des forfaits Omra</p>
             <button className="al-btn al-btn--ghost" onClick={fetchPackages}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
               Actualiser
             </button>
           </div>
 
           {loading ? (
-            <div className="al-loading"><div className="al-spinner-wrap"><div className="al-spinner"/></div><p style={{ fontSize:13, color:'var(--g400)' }}>Chargement...</p></div>
+            <div className="al-loading">
+              <div className="al-spinner-wrap">
+                <div className="al-spinner" />
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--g400)' }}>Chargement...</p>
+            </div>
           ) : packages.length === 0 ? (
             <div className="al-empty">
-              <div className="al-empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
-              <p className="al-empty__title">Aucun forfait</p>
-              <p className="al-empty__sub">Créez votre premier forfait Omra.</p>
+              <div className="al-empty__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 8v4M12 16h.01" />
+                </svg>
+              </div>
+              <p className="al-empty__title">Aucun forfait Omra</p>
+              <p className="al-empty__sub">Creez votre premier forfait avec le meme format que les circuits.</p>
             </div>
           ) : (
             <div className="al-table-wrap">
               <table className="al-table">
                 <thead>
                   <tr>
-                    <th>Forfait</th><th>Prix</th><th>Durée</th><th>Départ</th>
-                    <th>Places dispo</th><th>Réservations</th><th>Statut</th><th>Actions</th>
+                    <th>Forfait</th>
+                    <th>Prix</th>
+                    <th>Duree</th>
+                    <th>Depart</th>
+                    <th>Places</th>
+                    <th>Reservations</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {packages.map(pkg => {
-                    const avail  = pkg.available_spots !== undefined ? Number(pkg.available_spots) : Number(pkg.spots);
-                    const total  = Number(pkg.spots);
-                    const isFull = avail <= 0;
-                    const isLow  = avail <= 5 && avail > 0;
-                    const isSel  = selected?.id === pkg.id;
+                  {packages.map((pkg) => {
+                    const available = pkg.available_spots !== undefined ? Number(pkg.available_spots) : Number(pkg.spots);
+                    const total = Number(pkg.spots) || 0;
+                    const isSelected = selected?.id === pkg.id;
+                    const isLow = available > 0 && available <= 5;
+                    const isFull = available <= 0;
+
                     return (
-                      <tr key={pkg.id} className={`al-row ${isSel ? 'al-row--selected' : ''}`} style={{ cursor:'pointer' }} onClick={() => setSelected(isSel ? null : pkg)}>
+                      <tr
+                        key={pkg.id}
+                        className={`al-row ${isSelected ? 'al-row--selected' : ''}`}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setSelected(isSelected ? null : pkg)}
+                      >
                         <td>
-                          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                            {pkg.image_url
-                              ? <img src={pkg.image_url} alt={pkg.title} style={{ width:44, height:44, borderRadius:8, objectFit:'cover', flexShrink:0, border:'1.5px solid var(--g200)' }} onError={e=>e.target.style.display='none'}/>
-                              : <div style={{ width:44, height:44, borderRadius:8, background:'linear-gradient(135deg,var(--primary),var(--secondary))', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5" style={{ width:20, height:20 }}><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
-                                </div>
-                            }
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            {pkg.image_url ? (
+                              <img
+                                src={pkg.image_url}
+                                alt={pkg.title}
+                                style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', flexShrink: 0, border: '1.5px solid var(--g200)' }}
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  width: 44,
+                                  height: 44,
+                                  borderRadius: 8,
+                                  flexShrink: 0,
+                                  background: 'linear-gradient(135deg,#7c1034,#e8306a)',
+                                }}
+                              />
+                            )}
+
                             <div>
-                              <p style={{ fontWeight:700, fontSize:13, color:'var(--g800)' }}>
+                              <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: 'var(--g800)' }}>
                                 {pkg.title}
-                                {pkg.badge && <span style={{ marginLeft:7, padding:'2px 7px', borderRadius:999, background:'#fff7ed', color:'#c2410c', fontSize:10, fontWeight:700 }}>{pkg.badge}</span>}
+                                {pkg.badge && (
+                                  <span
+                                    style={{
+                                      marginLeft: 7,
+                                      padding: '2px 7px',
+                                      borderRadius: 999,
+                                      background: '#fff1f2',
+                                      color: '#be123c',
+                                      fontSize: 10,
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    {pkg.badge}
+                                  </span>
+                                )}
                               </p>
-                              {pkg.subtitle && <p style={{ fontSize:11, color:'var(--g400)', marginTop:2 }}>{pkg.subtitle}</p>}
+                              {pkg.subtitle && <p style={{ margin: '2px 0 0', fontSize: 11, color: 'var(--g400)' }}>{pkg.subtitle}</p>}
                             </div>
                           </div>
                         </td>
+
                         <td>
-                          <p style={{ fontWeight:700, fontSize:13, color:'var(--primary)' }}>{fPrice(pkg.price)}</p>
-                          {pkg.old_price && <p style={{ fontSize:11, color:'var(--g400)', textDecoration:'line-through' }}>{fPrice(pkg.old_price)}</p>}
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: 'var(--primary)' }}>{fPrice(pkg.price)}</p>
+                          {pkg.old_price && (
+                            <p style={{ margin: '2px 0 0', fontSize: 11, color: 'var(--g400)', textDecoration: 'line-through' }}>
+                              {fPrice(pkg.old_price)}
+                            </p>
+                          )}
                         </td>
-                        <td><span style={{ fontWeight:600, fontSize:13 }}>{pkg.duration} j</span></td>
-                        <td><span style={{ fontSize:12, color:'var(--g600)' }}>{pkg.departure || '—'}</span></td>
+
+                        <td><span style={{ fontWeight: 600, fontSize: 13 }}>{pkg.duration} j</span></td>
+                        <td><span style={{ fontSize: 12, color: 'var(--g600)' }}>{pkg.departure || '-'}</span></td>
+
                         <td>
-                          <span style={{ fontWeight:700, fontSize:13, color:isFull?'#e92f64':isLow?'#f97316':'#065f46' }}>
-                            {isFull ? '❌ Complet' : `${avail} / ${total}`}
+                          <span style={{ fontWeight: 700, fontSize: 13, color: isFull ? '#e92f64' : isLow ? '#f97316' : '#065f46' }}>
+                            {isFull ? 'Complet' : `${available} / ${total}`}
                           </span>
-                          {isLow && <p style={{ fontSize:10, color:'#f97316', marginTop:2 }}>🔥 Presque complet</p>}
                         </td>
+
                         <td>
-                          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:999, background:'rgba(15,76,92,.08)', color:'var(--primary)', fontSize:12, fontWeight:700 }}>
-                            {pkg.reservation_count || 0} inscrit{pkg.reservation_count > 1 ? 's' : ''}
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 5,
+                              padding: '4px 10px',
+                              borderRadius: 999,
+                              background: 'rgba(15,76,92,.08)',
+                              color: 'var(--primary)',
+                              fontSize: 12,
+                              fontWeight: 700,
+                            }}
+                          >
+                            {pkg.reservation_count || 0} inscrit{Number(pkg.reservation_count || 0) > 1 ? 's' : ''}
                           </span>
                         </td>
+
                         <td>
-                          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 9px', borderRadius:999, fontSize:11, fontWeight:600, background:pkg.is_active?'#d1fae5':'var(--g100)', color:pkg.is_active?'#065f46':'var(--g500)' }}>
-                            <span style={{ width:6, height:6, borderRadius:'50%', background:pkg.is_active?'#10b981':'var(--g400)' }}/>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 5,
+                              padding: '3px 9px',
+                              borderRadius: 999,
+                              fontSize: 11,
+                              fontWeight: 600,
+                              background: pkg.is_active ? '#d1fae5' : 'var(--g100)',
+                              color: pkg.is_active ? '#065f46' : 'var(--g500)',
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: '50%',
+                                background: pkg.is_active ? '#10b981' : 'var(--g400)',
+                              }}
+                            />
                             {pkg.is_active ? 'Actif' : 'Inactif'}
                           </span>
                         </td>
-                        <td onClick={e => e.stopPropagation()}>
-                          <div style={{ display:'flex', gap:6 }}>
-                            <button className="al-action-btn al-action-btn--edit" onClick={() => { setEditPkg(pkg); setShowModal(true); }} title="Modifier">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+
+                        <td onClick={(e) => e.stopPropagation()}>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button
+                              className="al-action-btn al-action-btn--edit"
+                              onClick={() => {
+                                setEditPkg(pkg);
+                                setShowModal(true);
+                              }}
+                              title="Modifier"
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
                             </button>
+
                             <button
                               className="al-action-btn al-action-btn--delete"
                               onClick={() => handleDelete(pkg.id)}
-                              title={isMain ? 'Supprimer' : 'Réservé à l\'administrateur principal'}
-                              style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}
+                              title={isMain ? 'Supprimer' : 'Reserve a l administrateur principal'}
+                              style={{ opacity: isMain ? 1 : 0.45, cursor: isMain ? 'pointer' : 'not-allowed' }}
                             >
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
+                              </svg>
                             </button>
                           </div>
                         </td>
@@ -789,6 +1198,7 @@ const OmraPackages = () => {
               </table>
             </div>
           )}
+
           <div className="al-table-footer">
             <p className="al-count">{packages.length} forfait{packages.length !== 1 ? 's' : ''}</p>
           </div>
@@ -798,7 +1208,10 @@ const OmraPackages = () => {
           <OmraDetail
             pkg={selected}
             onClose={() => setSelected(null)}
-            onEdit={(p) => { setEditPkg(p); setShowModal(true); }}
+            onEdit={(item) => {
+              setEditPkg(item);
+              setShowModal(true);
+            }}
             onDelete={handleDelete}
             isMain={isMain}
           />
@@ -808,8 +1221,15 @@ const OmraPackages = () => {
       {showModal && (
         <PkgModal
           pkg={editPkg}
-          onClose={() => { setShowModal(false); setEditPkg(null); }}
-          onSaved={() => { setShowModal(false); setEditPkg(null); fetchPackages(); }}
+          onClose={() => {
+            setShowModal(false);
+            setEditPkg(null);
+          }}
+          onSaved={() => {
+            setShowModal(false);
+            setEditPkg(null);
+            fetchPackages();
+          }}
           notify={notify}
         />
       )}
@@ -818,7 +1238,10 @@ const OmraPackages = () => {
         <CoversModal
           covers={covers}
           onClose={() => setShowCovers(false)}
-          onSaved={(newCovers) => { setCovers(newCovers); setShowCovers(false); }}
+          onSaved={(newCovers) => {
+            setCovers(newCovers);
+            setShowCovers(false);
+          }}
           notify={notify}
         />
       )}

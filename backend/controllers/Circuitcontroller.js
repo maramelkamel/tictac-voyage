@@ -56,6 +56,7 @@ const updateCircuitCovers = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store');
     const data = req.query.public === 'true' ? await model.getActiveCircuits() : await model.getAllCircuits();
     res.json({ success: true, data });
   } catch (err) { res.status(500).json({ success: false, message: 'Erreur serveur' }); }
@@ -63,6 +64,7 @@ const getAll = async (req, res) => {
 
 const getOne = async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store');
     const c = await model.getCircuitById(req.params.id);
     if (!c) return res.status(404).json({ success: false, message: 'Circuit introuvable' });
     res.json({ success: true, data: c });

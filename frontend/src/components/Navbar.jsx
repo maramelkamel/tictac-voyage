@@ -131,20 +131,20 @@ const Navbar = () => {
       }}>
 
         {/* ── Header Top ── */}
-        <div className="header-top" style={{ background: 'rgba(0,0,0,0.15)', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="header-top" style={{ background: 'rgba(0,0,0,0.15)', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
             {/* Contact Info */}
             <div className="contact-info" style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
-              <a href="tel:+21636149885" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500, textDecoration: 'none' }}>
+              <a href="tel:+21636149885" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', fontSize: '12px', fontWeight: 500, textDecoration: 'none' }}>
                 <i className="fas fa-phone-alt" style={{ fontSize: '12px', color: 'var(--secondary)' }} />
                 +216 36 149 885
               </a>
-              <a href="mailto:tictacvoyages@gmail.com" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500, textDecoration: 'none' }}>
+              <a href="mailto:tictacvoyages@gmail.com" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', fontSize: '12px', fontWeight: 500, textDecoration: 'none' }}>
                 <i className="fas fa-envelope" style={{ fontSize: '12px', color: 'var(--secondary)' }} />
                 tictacvoyages@gmail.com
               </a>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', fontSize: '12px', fontWeight: 500 }}>
                 <i className="fas fa-clock" style={{ fontSize: '12px', color: 'var(--secondary)' }} />
                 Lun - Sam: 09h - 18h
               </span>
@@ -159,7 +159,7 @@ const Navbar = () => {
   setActiveLang(lang);
   changeLanguage(lang.toLowerCase());
 }} aria-pressed={activeLang === lang}
-                    style={{ padding: '6px 14px', fontSize: '12px', fontWeight: 600, color: activeLang === lang ? 'var(--white)' : 'rgba(255,255,255,0.6)', borderRadius: '4px', background: activeLang === lang ? 'var(--secondary)' : 'transparent', transition: 'all var(--duration) var(--ease)', border: 'none', cursor: 'pointer' }}>
+                    style={{ padding: '5px 13px', fontSize: '12px', fontWeight: 600, color: activeLang === lang ? 'var(--white)' : 'rgba(255,255,255,0.6)', borderRadius: '4px', background: activeLang === lang ? 'var(--secondary)' : 'transparent', transition: 'all var(--duration) var(--ease)', border: 'none', cursor: 'pointer' }}>
                     {lang}
                   </button>
                 ))}
@@ -172,7 +172,7 @@ const Navbar = () => {
                   /* ── LOGGED IN ── */
                   <button type="button" aria-haspopup="true" aria-expanded={isAccountMenuOpen}
                     onClick={() => setIsAccountMenuOpen(p => !p)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 14px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 'var(--radius-md)', color: 'var(--white)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all .2s' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 13px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 'var(--radius-md)', color: 'var(--white)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all .2s' }}>
                     {/* Avatar */}
                     <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg, var(--secondary), #0e7490)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                       {initials || <i className="fas fa-user" style={{ fontSize: 11 }} />}
@@ -186,7 +186,7 @@ const Navbar = () => {
                   /* ── NOT LOGGED IN ── */
                   <button type="button" aria-haspopup="true" aria-expanded={isAccountMenuOpen}
                     onClick={() => setIsAccountMenuOpen(p => !p)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 'var(--radius-md)', color: 'var(--white)', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'all .2s' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 15px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 'var(--radius-md)', color: 'var(--white)', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'all .2s' }}>
                     <span style={{ width: 28, height: 28, background: 'linear-gradient(135deg, var(--secondary), var(--gold))', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>
                       <i className="fas fa-user" />
                     </span>
@@ -341,28 +341,28 @@ const Navbar = () => {
         </div>
 
         {/* ── Header Main ── */}
-        <div style={{ padding: '10px 0' }}>
-          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
+        <div style={{ padding: '6px 0' }}>
+          <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '24px' }}>
 
             {/* Logo */}
             <button type="button" onClick={() => navigate('/')}
               style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-              <img src={logo} alt="TicTac Travel Logo" style={{ height: 50, width: 'auto', objectFit: 'contain' }} />
+              <img src={logo} alt="TicTac Travel Logo" style={{ height: 58, width: 'auto', objectFit: 'contain' }} />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--white)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>TICTAC VOYAGES</div>
-                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--gold)', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 2 }}>Agence de Voyage</span>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--white)', letterSpacing: '-0.02em', lineHeight: 1.05 }}>TICTAC VOYAGES</div>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--gold)', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 1 }}>Agence de Voyage</span>
               </div>
             </button>
 
             {/* Desktop Nav */}
-            <nav className="nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 8 }} aria-label="Navigation principale">
+            <nav className="nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 10 }} aria-label="Navigation principale">
               {navLinks.map(link => (
                 <div key={link.id} style={{ position: 'relative' }} className="nav-dropdown-wrapper">
                   <a href={link.href} className="nav-link-custom"
                     onClick={e => { if (link.submenu) { e.preventDefault(); toggleDropdown(link.id); } else handleNavClick(e, link.href); }}
                     aria-expanded={link.submenu ? activeDropdown === link.id : undefined}
                     aria-haspopup={link.submenu ? 'true' : undefined}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '8px 12px', fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.9)', borderRadius: 'var(--radius-md)', transition: 'all .2s', textDecoration: 'none', maxWidth: 120, textAlign: 'center', lineHeight: 1.2, whiteSpace: 'normal' }}>
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '6px 14px', fontSize: 15, fontWeight: 600, color: 'rgba(255,255,255,0.9)', borderRadius: 'var(--radius-md)', transition: 'all .2s', textDecoration: 'none', maxWidth: 132, textAlign: 'center', lineHeight: 1.15, whiteSpace: 'normal' }}>
                     {link.label}
                     {link.submenu && <i className="fas fa-chevron-down" style={{ fontSize: 10, transition: 'transform .2s', transform: activeDropdown === link.id ? 'rotate(180deg)' : 'rotate(0)', marginLeft: 2 }} />}
                   </a>

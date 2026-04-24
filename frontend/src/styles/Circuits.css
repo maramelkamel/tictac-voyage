@@ -351,6 +351,301 @@
   gap: 28px;
 }
 
+.ci-promos .promotions-section {
+  margin: 0;
+}
+
+.ci-omra-card {
+  background: var(--ci-white);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.ci-omra-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(15, 76, 92, 0.16);
+}
+
+.ci-omra-card:hover .ci-omra-card__img img {
+  transform: scale(1.06);
+}
+
+.ci-omra-card--full {
+  opacity: 0.82;
+}
+
+.ci-omra-card__img {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ci-omra-card__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.ci-omra-card__tag,
+.ci-omra-card__badge,
+.ci-omra-card__rating,
+.ci-omra-card__duration {
+  position: absolute;
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+}
+
+.ci-omra-card__tag {
+  top: 14px;
+  left: 14px;
+  padding: 5px 12px;
+  background: rgba(30, 202, 211, 0.16);
+  color: var(--ci-primary);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ci-omra-card__badge {
+  top: 14px;
+  left: 14px;
+  transform: translateY(38px);
+  padding: 5px 12px;
+  background: rgba(233, 47, 100, 0.92);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ci-omra-card__heart {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(15, 76, 92, 0.14);
+  transition: transform 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  z-index: 2;
+}
+
+.ci-omra-card__heart:hover {
+  transform: scale(1.08);
+  color: #e8306a;
+  box-shadow: 0 12px 24px rgba(232, 48, 106, 0.2);
+}
+
+.ci-omra-card__heart--active {
+  color: #e8306a;
+  background: #fff1f5;
+}
+
+.ci-omra-card__rating {
+  top: 14px;
+  right: 60px;
+  background: rgba(10, 40, 50, 0.75);
+  color: #fbbf24;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ci-omra-card__rating-count {
+  opacity: 0.7;
+  font-size: 11px;
+}
+
+.ci-omra-card__duration {
+  bottom: 12px;
+  right: 12px;
+  background: rgba(10, 40, 50, 0.75);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+}
+
+.ci-omra-card__body {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.ci-omra-card__subtitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ci-secondary);
+  margin-bottom: 6px;
+}
+
+.ci-omra-card__title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ci-g900);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.ci-omra-card__desc {
+  font-size: 13px;
+  color: var(--ci-g500);
+  line-height: 1.65;
+  margin-bottom: 14px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.ci-omra-card__highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ci-omra-card__highlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ci-primary);
+  background: rgba(15, 76, 92, 0.07);
+  padding: 4px 10px;
+  border-radius: 50px;
+  border: 1px solid rgba(15, 76, 92, 0.1);
+}
+
+.ci-omra-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--ci-g500);
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.ci-omra-card__meta span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ci-omra-card__meta .is-low {
+  color: #f97316;
+  font-weight: 700;
+}
+
+.ci-omra-card__meta .is-full {
+  color: #e92f64;
+  font-weight: 700;
+}
+
+.ci-omra-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid var(--ci-g100);
+  margin-top: auto;
+  gap: 12px;
+}
+
+.ci-omra-card__price-from {
+  font-size: 11px;
+  color: var(--ci-g400);
+  display: block;
+}
+
+.ci-omra-card__price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ci-omra-card__price-value {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--ci-accent);
+  line-height: 1;
+}
+
+.ci-omra-card__old-price {
+  font-size: 11px;
+  color: var(--ci-g400);
+  text-decoration: line-through;
+}
+
+.ci-omra-card__price-per {
+  font-size: 11px;
+  color: var(--ci-g400);
+}
+
+.ci-omra-card__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ci-omra-card__btn-details,
+.ci-omra-card__btn-reserve {
+  padding: 9px 15px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ci-omra-card__btn-details {
+  background: transparent;
+  border: 2px solid var(--ci-g200);
+  color: var(--ci-primary);
+}
+
+.ci-omra-card__btn-details:hover {
+  border-color: var(--ci-primary);
+  background: rgba(15, 76, 92, 0.05);
+}
+
+.ci-omra-card__btn-reserve {
+  background: var(--ci-secondary);
+  border: none;
+  color: #fff;
+}
+
+.ci-omra-card__btn-reserve:hover:not(:disabled) {
+  background: var(--ci-primary);
+}
+
+.ci-omra-card__btn-reserve:disabled {
+  background: var(--ci-g300);
+  cursor: not-allowed;
+}
+
 /* ── Carte circuit ── */
 .ci-card {
   background: var(--ci-white);

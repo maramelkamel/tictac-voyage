@@ -40,7 +40,7 @@ const Omra = () => {
 
   useEffect(() => {
     // ── Charger les forfaits ──────────────────────────────────
-    fetch(API)
+    fetch(API, { cache: 'no-store' })
       .then(r => r.json())
       .then(json => {
         const normalized = (json.data || []).map(pkg => ({
@@ -65,7 +65,7 @@ const Omra = () => {
       });
 
     // ── Charger l'apparence (hero) ────────────────────────────
-    fetch(COVERS_API)
+    fetch(COVERS_API, { cache: 'no-store' })
       .then(r => r.json())
       .then(json => {
         if (json.success && json.data) {

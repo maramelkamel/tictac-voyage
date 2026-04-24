@@ -46,21 +46,21 @@ const Details = () => {
   const { id } = useParams();
   const { t } = useTranslation('destinations');
   const [lightbox, setLightbox] = useState(null);
-  const [voyage, setVoyage] = useState(state?.voyage || null);
-  const [loading, setLoading] = useState(!state?.voyage);
+  const [voyage, setVoyage] = useState(state?.voyage ? normalizeVoyage(state.voyage) : null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (state?.voyage || !id) {
+    if (!id) {
       setLoading(false);
       return;
     }
 
-    fetch(`${API}/${id}`)
+    fetch(`${API}/${id}`, { cache: 'no-store' })
       .then((response) => response.json())
       .then((json) => setVoyage(json.data ? normalizeVoyage(json.data) : null))
       .catch(() => setVoyage(null))
       .finally(() => setLoading(false));
-  }, [id, state?.voyage]);
+  }, [id]);
 
   if (loading) {
     return (

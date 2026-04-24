@@ -37,6 +37,7 @@ const DEFAULT = {
 /* GET /api/omra/packages — admin: all | public: active only */
 const getAll = async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store');
     const publicOnly = req.query.public === 'true';
     const packages   = publicOnly
       ? await omraModel.getActivePackages()
@@ -51,6 +52,7 @@ const getAll = async (req, res) => {
 /* GET /api/omra/packages/:id */
 const getOne = async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store');
     const pkg = await omraModel.getPackageById(req.params.id);
     if (!pkg) return res.status(404).json({ success: false, message: 'Forfait introuvable' });
     res.json({ success: true, data: pkg });

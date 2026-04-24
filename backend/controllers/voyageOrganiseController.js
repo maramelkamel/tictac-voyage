@@ -6,6 +6,7 @@ const model = require('../models/voyageOrganiseModel');
    - sans query   : vue plus large utilisée par l'admin */
 const getAll = async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store');
     const publicOnly = req.query.public === 'true';
     const data = publicOnly
       ? await model.getActiveVoyages()
@@ -21,6 +22,7 @@ const getAll = async (req, res) => {
    Retourne le détail d'un voyage précis. */
 const getOne = async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store');
     const voyage = await model.getVoyageById(req.params.id);
     if (!voyage) return res.status(404).json({ success: false, message: 'Voyage introuvable' });
     res.json({ success: true, data: voyage });

@@ -79,17 +79,17 @@ const CircuitDetails = () => {
   const { id }      = useParams();
   const { t }       = useTranslation('circuits');
   const [lightbox,  setLightbox]  = useState(null);
-  const [circuit,   setCircuit]   = useState(state?.circuit || null);
-  const [loading,   setLoading]   = useState(!state?.circuit);
+  const [circuit,   setCircuit]   = useState(state?.circuit ? normalizeCircuit(state.circuit) : null);
+  const [loading,   setLoading]   = useState(true);
 
   useEffect(() => {
-    if (state?.circuit || !id) { setLoading(false); return; }
-    fetch(`${API}/${id}`)
+    if (!id) { setLoading(false); return; }
+    fetch(`${API}/${id}`, { cache: 'no-store' })
       .then(r => r.json())
       .then(json => setCircuit(json.data ? normalizeCircuit(json.data) : null))
       .catch(() => setCircuit(null))
       .finally(() => setLoading(false));
-  }, [id, state?.circuit]);
+  }, [id]);
 
   if (loading) {
     return (
