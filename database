@@ -1110,3 +1110,8 @@ VALUES
    cd frontend
 npm install i18next react-i18next i18next-browser-languagedetector
 npm install i18next react-i18next i18next-locize-backend i18next-browser-languagedetector locize-lastused
+
+
+Miniar:
+ALTER TABLE omra_packages
+ALTER COLUMN image_url TYPE TEXT;
