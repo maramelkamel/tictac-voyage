@@ -1,15 +1,18 @@
 {
   "back": "← Retour aux circuits",
+  "back_to_circuits": "← Retour aux circuits",
   "back_list": "← Retour à la liste",
+  "back_to_list": "← Retour à la liste",
   "not_found": "Circuit introuvable.",
   "region_nord": "🏛️ Circuit Nord",
   "region_sud": "🏜️ Circuit Sud",
   "about": "📖 À propos de ce circuit",
+  "about_circuit": "📖 À propos de ce circuit",
   "highlights": "⭐ Points forts du circuit",
-  "programme": "🗓️ Programme jour par jour",
-  "gallery": "📸 Galerie photos",
-  "included": "✅ Ce qui est inclus",
-  "not_included": "❌ Non inclus",
+  "programme_title": "🗓️ Programme jour par jour",
+  "gallery_title": "📸 Galerie photos",
+  "included_title": "✅ Ce qui est inclus",
+  "not_included_title": "❌ Non inclus",
   "difficulty": "Niveau : {{level}}",
   "day_label": "Jour {{number}}",
   "places_remaining": "{{count}} place restante",
@@ -26,6 +29,22 @@
     "transport": "Transport climatisé",
     "hotel": "Hébergement sélectionné",
     "support": "Assistance 24h/7j"
+  },
+  "detail": {
+    "rating_label": "{{score}} ({{count}} avis)",
+    "departure_label": "Départ :",
+    "region_label": "Région",
+    "duration_label": "Durée",
+    "group_label": "Groupe",
+    "price_note": "Aucun paiement immédiat. Un conseiller vous contactera sous 24h.",
+    "perks": {
+      "guide": "Guide francophone inclus",
+      "transport": "Transport climatisé",
+      "hotel": "Hébergement sélectionné",
+      "support": "Assistance 24h/7j"
+    },
+    "spots_warning": "🔥 Plus que {{count}} places !",
+    "full_warning": "❌ Ce circuit est complet"
   },
   "stats": {
     "region": "Région",

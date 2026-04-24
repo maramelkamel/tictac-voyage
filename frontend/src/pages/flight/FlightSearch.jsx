@@ -22,16 +22,7 @@ const CABIN_CLASSES = [
 const today = new Date().toISOString().split('T')[0];
 
 // ── Popular destinations ──────────────────────────────────────
-const POPULAR_DESTINATIONS = [
-  { origin: 'TUN', destination: 'CDG', city: 'Paris',      country: 'France',         emoji: '🗼', color: '#4f46e5' },
-  { origin: 'TUN', destination: 'IST', city: 'Istanbul',   country: 'Turquie',        emoji: '🕌', color: '#0891b2' },
-  { origin: 'TUN', destination: 'DXB', city: 'Dubaï',      country: 'Émirats Arabes', emoji: '🏙️', color: '#d97706' },
-  { origin: 'TUN', destination: 'LHR', city: 'Londres',    country: 'Royaume-Uni',    emoji: '🎡', color: '#dc2626' },
-  { origin: 'TUN', destination: 'FCO', city: 'Rome',       country: 'Italie',         emoji: '🏛️', color: '#16a34a' },
-  { origin: 'TUN', destination: 'MRS', city: 'Marseille',  country: 'France',         emoji: '⛵', color: '#7c3aed' },
-  { origin: 'TUN', destination: 'MAD', city: 'Madrid',     country: 'Espagne',        emoji: '💃', color: '#b91c1c' },
-  { origin: 'TUN', destination: 'AMS', city: 'Amsterdam',  country: 'Pays-Bas',       emoji: '🌷', color: '#0284c7' },
-];
+
 
 // ── Best deals route list ─────────────────────────────────────
 const DEAL_ROUTES = [
@@ -262,6 +253,7 @@ const FlightSearch = () => {
       {/* ── Hero + Search ───────────────────────────────────── */}
       <div className="flights-hero" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #0f3460 100%)',
         paddingTop: 130, paddingBottom: 80, position: 'relative', overflow: 'hidden' }}>
+          
         {/* Decorative circles */}
         <div style={{ position: 'absolute', top: -60, right: -60, width: 300, height: 300,
           borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
@@ -403,34 +395,7 @@ const FlightSearch = () => {
       <div className="container" style={{ padding: '60px 0' }}>
 
         {/* 1 — Popular destinations ─────────────────────────── */}
-        <section style={{ marginBottom: 64 }}>
-          <SectionTitle icon="fa-fire" badge="Tendances" title="Destinations populaires depuis Tunis"
-            subtitle="Cliquez pour voir les offres disponibles · Prix en temps réel" />
-          <div className="flights-destination-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-            {POPULAR_DESTINATIONS.map((dest, i) => (
-              <button key={i} className="dest-card"
-                onClick={() => !loading && handleQuickDestination(dest)}
-                disabled={loading}
-                style={{ background: '#fff', border: '1px solid #f1f5f9', borderRadius: 16,
-                  padding: '20px 18px', textAlign: 'left', cursor: loading ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.06)', opacity: loading ? 0.7 : 1,
-                  position: 'relative', overflow: 'hidden' }}>
-                {/* Color accent bar */}
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4,
-                  background: dest.color, borderRadius: '16px 16px 0 0' }} />
-                <div style={{ fontSize: 32, marginBottom: 10 }}>{dest.emoji}</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#0a2832', marginBottom: 2 }}>{dest.city}</div>
-                <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600, marginBottom: 10 }}>{dest.country}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
-                  <span style={{ background: '#f0f9ff', color: '#0369a1', borderRadius: 6,
-                    padding: '2px 8px', fontWeight: 700 }}>TUN → {dest.destination}</span>
-                  <i className="fas fa-arrow-right" style={{ color: '#94a3b8', fontSize: 10 }} />
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-
+        
         {/* 2 — Best deals ───────────────────────────────────── */}
         <section style={{ marginBottom: 64 }}>
           <SectionTitle icon="fa-tags" badge="Meilleures offres" title="💸 Prix les plus bas du moment"

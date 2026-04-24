@@ -1,77 +1,184 @@
-// backend/models/clientModel.js
-const pool   = require('../config/db');
-const bcrypt = require('bcryptjs');
+// backend/models/circuitModel.js
+const pool = require('../config/db');
 
-/* CREATE client (register) */
-const createClient = async (data) => {
-  const {
-    first_name, last_name, email, phone, password,
-    marital_status, number_of_children, city,
-  } = data;
+const BASE = `
+  SELECT c.*,
+    COALESCE(COUNT(r.id), 0)::int AS reservation_count,
+    GREATEST(c.spots - COALESCE(COUNT(r.id) FILTER (WHERE r.status = 'confirmed'), 0), 0)::int AS available_spots
+  FROM public.circuits c
+  LEFT JOIN public.circuit_reservations r ON r.circuit_id = c.id
+`;
 
-  const password_hash = await bcrypt.hash(password, 10);
+// ── Settings (circuit-covers) ─────────────────────────────────
 
+const ensureTable = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS public.settings (
+      key        VARCHAR(100) PRIMARY KEY,
+      value      JSONB        NOT NULL,
+      updated_at TIMESTAMPTZ  DEFAULT NOW()
+    )
+  `);
+};
+
+// Vérifie et ajoute la colonne gallery si elle n'existe pas encore
+const ensureGalleryColumn = async () => {
+  await pool.query(`
+    ALTER TABLE public.circuits
+    ADD COLUMN IF NOT EXISTS gallery JSONB DEFAULT '[]'::jsonb
+  `);
+};
+
+const getSetting = async (key) => {
+  await ensureTable();
+  const { rows } = await pool.query('SELECT value FROM public.settings WHERE key = $1', [key]);
+  return rows[0]?.value ?? null;
+};
+
+const setSetting = async (key, value) => {
+  await ensureTable();
   const { rows } = await pool.query(`
-    INSERT INTO public.clients
-      (first_name, last_name, email, phone, password_hash,
-       marital_status, number_of_children, city)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-    RETURNING id, first_name, last_name, email, phone, marital_status, number_of_children, city, created_at
-  `, [
-    first_name,
-    last_name,
-    email,
-    phone,
-    password_hash,
-    marital_status      || null,
-    number_of_children  || 0,
-    city                || null,
-  ]);
-  return rows[0];
+    INSERT INTO public.settings (key, value, updated_at)
+    VALUES ($1, $2, NOW())
+    ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()
+    RETURNING value
+  `, [key, JSON.stringify(value)]);
+  return rows[0].value;
 };
 
-/* GET client by email (for login) */
-const getClientByEmail = async (email) => {
-  const { rows } = await pool.query(
-    'SELECT * FROM public.clients WHERE email = $1', [email]
-  );
-  return rows[0] || null;
-};
+// ── Circuits ──────────────────────────────────────────────────
 
-/* GET client by id */
-const getClientById = async (id) => {
-  const { rows } = await pool.query(
-    'SELECT id, first_name, last_name, email, phone, marital_status, number_of_children, city, created_at FROM public.clients WHERE id = $1',
-    [id]
-  );
-  return rows[0] || null;
-};
-
-/* GET all clients (admin) */
-const getAllClients = async ({ search } = {}) => {
-  let q = `
-    SELECT id, first_name, last_name, email, phone, city, marital_status, created_at
-    FROM public.clients WHERE 1=1
-  `;
-  const vals = [];
-  if (search) {
-    q += ` AND (first_name ILIKE $1 OR last_name ILIKE $1 OR email ILIKE $1)`;
-    vals.push(`%${search}%`);
-  }
-  q += ' ORDER BY created_at DESC';
-  const { rows } = await pool.query(q, vals);
+const getAllCircuits     = async () => {
+  await ensureGalleryColumn();
+  const { rows } = await pool.query(BASE + ' GROUP BY c.id ORDER BY c.region, c.created_at DESC');
   return rows;
 };
 
-/* VERIFY password */
-const verifyPassword = async (plain, hash) => {
-  return bcrypt.compare(plain, hash);
+const getActiveCircuits = async () => {
+  await ensureGalleryColumn();
+  const { rows } = await pool.query(BASE + ' WHERE c.is_active = true GROUP BY c.id ORDER BY c.region, c.created_at DESC');
+  return rows;
+};
+
+const getCircuitById = async (id) => {
+  await ensureGalleryColumn();
+  const { rows } = await pool.query(BASE + ' WHERE c.id = $1 GROUP BY c.id', [id]);
+  return rows[0] || null;
+};
+
+const createCircuit = async (data) => {
+  await ensureGalleryColumn();
+  const {
+    title, subtitle, description, image_url, price, old_price,
+    duration, nights, region, departure, spots, rating, reviews,
+    badge, tag, tag_color, difficulty, group_size,
+    highlights, programme, inclus, non_inclus, gallery,
+    is_active,
+  } = data;
+
+  const { rows } = await pool.query(`
+    INSERT INTO public.circuits (
+      title, subtitle, description, image_url, price, old_price,
+      duration, nights, region, departure, spots, rating, reviews,
+      badge, tag, tag_color, difficulty, group_size,
+      highlights, programme, inclus, non_inclus, gallery,
+      is_active
+    )
+    VALUES (
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,
+      $14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24
+    ) RETURNING *`,
+    [
+      title,
+      subtitle      || null,
+      description   || null,
+      image_url     || null,
+      price,
+      old_price     || null,
+      duration,
+      nights        || (duration - 1),
+      region        || 'nord',
+      departure     || null,
+      spots         || 20,
+      rating        || 5.0,
+      reviews       || 0,
+      badge         || null,
+      tag           || null,
+      tag_color     || 'teal',
+      difficulty    || 'Facile',
+      group_size    || null,
+      JSON.stringify(highlights  || []),
+      JSON.stringify(programme   || []),
+      JSON.stringify(inclus      || []),
+      JSON.stringify(non_inclus  || []),
+      JSON.stringify(gallery     || []),
+      is_active !== false,
+    ]
+  );
+  return rows[0];
+};
+
+const updateCircuit = async (id, data) => {
+  await ensureGalleryColumn();
+  const {
+    title, subtitle, description, image_url, price, old_price,
+    duration, nights, region, departure, spots, rating, reviews,
+    badge, tag, tag_color, difficulty, group_size,
+    highlights, programme, inclus, non_inclus, gallery,
+    is_active,
+  } = data;
+
+  const { rows } = await pool.query(`
+    UPDATE public.circuits SET
+      title=$1, subtitle=$2, description=$3, image_url=$4, price=$5, old_price=$6,
+      duration=$7, nights=$8, region=$9, departure=$10, spots=$11, rating=$12, reviews=$13,
+      badge=$14, tag=$15, tag_color=$16, difficulty=$17, group_size=$18,
+      highlights=$19, programme=$20, inclus=$21, non_inclus=$22, gallery=$23,
+      is_active=$24
+    WHERE id=$25 RETURNING *`,
+    [
+      title,
+      subtitle      || null,
+      description   || null,
+      image_url     || null,
+      price,
+      old_price     || null,
+      duration,
+      nights        || (duration - 1),
+      region        || 'nord',
+      departure     || null,
+      spots         || 20,
+      rating        || 5.0,
+      reviews       || 0,
+      badge         || null,
+      tag           || null,
+      tag_color     || 'teal',
+      difficulty    || 'Facile',
+      group_size    || null,
+      JSON.stringify(highlights  || []),
+      JSON.stringify(programme   || []),
+      JSON.stringify(inclus      || []),
+      JSON.stringify(non_inclus  || []),
+      JSON.stringify(gallery     || []),
+      is_active !== false,
+      id,
+    ]
+  );
+  return rows[0] || null;
+};
+
+const deleteCircuit = async (id) => {
+  const { rows } = await pool.query('DELETE FROM public.circuits WHERE id=$1 RETURNING id', [id]);
+  return rows[0] || null;
 };
 
 module.exports = {
-  createClient,
-  getClientByEmail,
-  getClientById,
-  getAllClients,
-  verifyPassword,
+  getAllCircuits,
+  getActiveCircuits,
+  getCircuitById,
+  createCircuit,
+  updateCircuit,
+  deleteCircuit,
+  getSetting,
+  setSetting,
 };

@@ -1,15 +1,18 @@
 {
   "back": "→ العودة إلى الجولات",
+  "back_to_circuits": "→ العودة إلى الجولات",
   "back_list": "→ العودة إلى القائمة",
+  "back_to_list": "→ العودة إلى القائمة",
   "not_found": "الجولة غير موجودة.",
   "region_nord": "🏛️ جولة الشمال",
   "region_sud": "🏜️ جولة الجنوب",
   "about": "📖 حول هذه الجولة",
+  "about_circuit": "📖 حول هذه الجولة",
   "highlights": "⭐ أبرز نقاط الجولة",
-  "programme": "🗓️ البرنامج يوماً بيوم",
-  "gallery": "📸 معرض الصور",
-  "included": "✅ ما هو مشمول",
-  "not_included": "❌ غير مشمول",
+  "programme_title": "🗓️ البرنامج يوماً بيوم",
+  "gallery_title": "📸 معرض الصور",
+  "included_title": "✅ ما هو مشمول",
+  "not_included_title": "❌ غير مشمول",
   "difficulty": "المستوى: {{level}}",
   "day_label": "اليوم {{number}}",
   "places_remaining": "{{count}} مكان متبقٍ",
@@ -26,6 +29,22 @@
     "transport": "نقل مكيف",
     "hotel": "إقامة مختارة",
     "support": "مساعدة على مدار الساعة"
+  },
+  "detail": {
+    "rating_label": "{{score}} ({{count}} تقييم)",
+    "departure_label": "الانطلاق:",
+    "region_label": "المنطقة",
+    "duration_label": "المدة",
+    "group_label": "المجموعة",
+    "price_note": "لا دفع فوري. سيتصل بك مستشار خلال 24 ساعة.",
+    "perks": {
+      "guide": "مرشد ناطق بالفرنسية مشمول",
+      "transport": "نقل مكيف",
+      "hotel": "إقامة مختارة",
+      "support": "مساعدة على مدار الساعة"
+    },
+    "spots_warning": "🔥 لم يتبق سوى {{count}} أماكن!",
+    "full_warning": "❌ هذه الجولة مكتملة"
   },
   "stats": {
     "region": "المنطقة",
@@ -96,8 +115,4 @@
     "agency_phone": "+216 36 149 885",
     "agency_hours": "الإثنين–الجمعة 09–18 · السبت 09–14"
   }
-<<<<<<< ours
 }
-=======
-}
->>>>>>> theirs

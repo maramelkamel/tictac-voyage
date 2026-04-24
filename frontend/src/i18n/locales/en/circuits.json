@@ -1,15 +1,18 @@
 {
   "back": "← Back to circuits",
+  "back_to_circuits": "← Back to circuits",
   "back_list": "← Back to list",
+  "back_to_list": "← Back to list",
   "not_found": "Circuit not found.",
   "region_nord": "🏛️ Northern Circuit",
   "region_sud": "🏜️ Southern Circuit",
   "about": "📖 About this circuit",
+  "about_circuit": "📖 About this circuit",
   "highlights": "⭐ Circuit highlights",
-  "programme": "🗓️ Day-by-day itinerary",
-  "gallery": "📸 Photo gallery",
-  "included": "✅ What's included",
-  "not_included": "❌ Not included",
+  "programme_title": "🗓️ Day-by-day itinerary",
+  "gallery_title": "📸 Photo gallery",
+  "included_title": "✅ What's included",
+  "not_included_title": "❌ Not included",
   "difficulty": "Level: {{level}}",
   "day_label": "Day {{number}}",
   "places_remaining": "{{count}} spot remaining",
@@ -26,6 +29,22 @@
     "transport": "Air-conditioned transport",
     "hotel": "Selected accommodation",
     "support": "24/7 assistance"
+  },
+  "detail": {
+    "rating_label": "{{score}} ({{count}} reviews)",
+    "departure_label": "Departure:",
+    "region_label": "Region",
+    "duration_label": "Duration",
+    "group_label": "Group",
+    "price_note": "No immediate payment. An advisor will contact you within 24h.",
+    "perks": {
+      "guide": "French-speaking guide included",
+      "transport": "Air-conditioned transport",
+      "hotel": "Selected accommodation",
+      "support": "24/7 assistance"
+    },
+    "spots_warning": "🔥 Only {{count}} spots left!",
+    "full_warning": "❌ This circuit is full"
   },
   "stats": {
     "region": "Region",
