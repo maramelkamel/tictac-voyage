@@ -410,68 +410,257 @@
 /* ================================================================
    DASHBOARD
    ================================================================ */
-.dash-page { padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 28px; }
+/* ================================================================
 
+   ================================================================ */
+
+.dash-page {
+  padding: 24px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Banner ── */
 .dash-banner {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 55%, var(--secondary) 100%);
-  border-radius: 16px; padding: 28px 32px;
-  display: flex; align-items: center; justify-content: space-between; gap: 20px;
-  color: #fff; box-shadow: 0 8px 32px rgba(15,76,92,.28);
+  border-radius: 16px;
+  padding: 26px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(15,76,92,.28);
 }
-.dash-banner__eyebrow { display: block; font-size: 11px; font-weight: 600; opacity: .7; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 7px; }
-.dash-banner__title   { font-size: 26px; font-weight: 800; line-height: 1.15; }
-.dash-banner__sub     { font-size: 13px; opacity: .75; margin-top: 8px; }
+.dash-banner__eyebrow {
+  display: block;
+  font-size: 10px; font-weight: 600; opacity: .7;
+  text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;
+}
+.dash-banner__title { font-size: 24px; font-weight: 800; line-height: 1.15; }
+.dash-banner__sub   { font-size: 13px; opacity: .75; margin-top: 6px; }
 
 .dash-alert {
   display: flex; align-items: center; gap: 12px;
-  padding: 14px 22px; background: rgba(255,255,255,.18);
-  border: 1.5px solid rgba(255,255,255,.25); border-radius: 12px;
+  padding: 12px 20px;
+  background: rgba(255,255,255,.18);
+  border: 1.5px solid rgba(255,255,255,.25);
+  border-radius: 12px;
   color: #fff; cursor: pointer; font-family: inherit; flex-shrink: 0;
   transition: background .2s, transform .2s;
 }
-.dash-alert:hover { background: rgba(255,255,255,.26); transform: translateY(-2px); }
-.dash-alert__num  { font-size: 28px; font-weight: 800; line-height: 1; }
-.dash-alert__lbl  { font-size: 11px; opacity: .85; margin-top: 3px; }
+.dash-alert:hover  { background: rgba(255,255,255,.26); transform: translateY(-2px); }
+.dash-alert__num   { font-size: 26px; font-weight: 800; line-height: 1; }
+.dash-alert__lbl   { font-size: 11px; opacity: .85; margin-top: 2px; }
 
-.dash-section-lbl { font-size: 11px; font-weight: 700; color: var(--g400); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 14px; }
+/* ── Section label ── */
+.dash-section-lbl {
+  font-size: 10px; font-weight: 700; color: var(--g400);
+  text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px;
+}
 
-.dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+/* ══════════════════════════════════════════════════════════════
+   KPI CARDS avec formes 3D SVG
+   ══════════════════════════════════════════════════════════════ */
+.dash-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
 
-/* Carte module */
-.dash-card { background: #fff; border-radius: 14px; border: 1px solid var(--g200); box-shadow: var(--shadow-sm); overflow: hidden; transition: box-shadow .2s, transform .2s; }
-.dash-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.dash-kpi {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid var(--g200);
+  box-shadow: 0 2px 8px rgba(15,76,92,.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform .2s, box-shadow .2s;
+  position: relative;
+}
+.dash-kpi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  border-radius: 16px 16px 0 0;
+}
+.dash-kpi--blue::before   { background: #3b82f6; }
+.dash-kpi--teal::before   { background: var(--secondary); }
+.dash-kpi--orange::before { background: #f97316; }
+.dash-kpi--green::before  { background: #10b981; }
+.dash-kpi:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(15,76,92,.12); }
 
-.dash-card__head { display: flex; align-items: flex-start; gap: 14px; padding: 18px 18px 14px; border-bottom: 1px solid var(--g100); }
-.dash-card__icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+/* zone de la forme 3D SVG */
+.dash-kpi__shape {
+  padding: 14px 14px 4px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 78px;
+  background: linear-gradient(180deg, var(--g50) 0%, #fff 100%);
+  border-bottom: 1px solid var(--g100);
+}
+
+.dash-kpi__body { padding: 12px 16px 14px; }
+
+.dash-kpi__label {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .07em;
+  color: var(--g400); margin-bottom: 4px;
+}
+.dash-kpi__row {
+  display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px;
+}
+.dash-kpi__value {
+  font-size: 26px; font-weight: 800; color: var(--g900); line-height: 1;
+}
+.dash-kpi__pct {
+  font-size: 11px; font-weight: 700;
+  padding: 2px 7px; border-radius: 999px;
+}
+.dash-kpi__pct--up      { background: #d1fae5; color: #065f46; }
+.dash-kpi__pct--warn    { background: #fff7ed; color: #c2410c; }
+.dash-kpi__pct--info    { background: #eff6ff; color: #1d4ed8; }
+.dash-kpi__sub {
+  font-size: 11px; color: var(--g400); font-weight: 500; margin-bottom: 8px;
+}
+
+/* barre de progression réelle */
+.dash-kpi__bar-wrap {
+  height: 4px; background: var(--g100);
+  border-radius: 999px; overflow: hidden;
+}
+.dash-kpi__bar {
+  height: 100%; border-radius: 999px;
+  transition: width .8s cubic-bezier(.4,0,.2,1);
+}
+.dash-kpi__bar--blue   { background: #3b82f6; }
+.dash-kpi__bar--teal   { background: var(--secondary); }
+.dash-kpi__bar--orange { background: #f97316; }
+.dash-kpi__bar--green  { background: #10b981; }
+
+/* ══════════════════════════════════════════════════════════════
+   MODULES GRID
+   ══════════════════════════════════════════════════════════════ */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.dash-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--g200);
+  box-shadow: 0 1px 3px rgba(15,76,92,.05);
+  overflow: hidden;
+  transition: box-shadow .2s, transform .2s;
+}
+.dash-card:hover {
+  box-shadow: 0 6px 20px rgba(15,76,92,.1);
+  transform: translateY(-2px);
+}
+
+/* accent coloré à gauche */
+.dash-card--teal   { border-left: 3px solid #0e7490; }
+.dash-card--indigo { border-left: 3px solid #6366f1; }
+.dash-card--green  { border-left: 3px solid #10b981; }
+.dash-card--violet { border-left: 3px solid #8b5cf6; }
+.dash-card--blue   { border-left: 3px solid #3b82f6; }
+.dash-card--orange { border-left: 3px solid #f97316; }
+.dash-card--red    { border-left: 3px solid var(--accent); }
+.dash-card--gray   { border-left: 3px solid var(--g400); }
+
+.dash-card__head {
+  display: flex; align-items: center; gap: 9px;
+  padding: 11px 12px 8px;
+  border-bottom: 1px solid var(--g100);
+}
+
+/* Cercle coloré avec puce de statut */
+.dash-card__icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.dash-card__icon::after {
+  content: '';
+  position: absolute; bottom: 0; right: 0;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+.dash-card--status-active  .dash-card__icon::after  { background: #10b981; }
+.dash-card--status-pending .dash-card__icon::after  { background: #f97316; }
+.dash-card--status-warn    .dash-card__icon::after  { background: var(--accent); }
+
 .dash-card--teal   .dash-card__icon { background: #e0fbfc; color: #0e7490; }
 .dash-card--indigo .dash-card__icon { background: #ede9fe; color: #5b21b6; }
+.dash-card--green  .dash-card__icon { background: #d1fae5; color: #065f46; }
 .dash-card--violet .dash-card__icon { background: #f5f3ff; color: #7c3aed; }
 .dash-card--blue   .dash-card__icon { background: #eff6ff; color: #1d4ed8; }
 .dash-card--orange .dash-card__icon { background: #fff7ed; color: #c2410c; }
+.dash-card--red    .dash-card__icon { background: #fee2e2; color: #991b1b; }
+.dash-card--gray   .dash-card__icon { background: #f1f5f9; color: #475569; }
+.dash-card__icon svg { width: 16px; height: 16px; }
 
-.dash-card__title { font-size: 14px; font-weight: 700; color: var(--g900); }
-.dash-card__desc  { font-size: 11px; color: var(--g400); margin-top: 3px; line-height: 1.5; }
+.dash-card__info  { flex: 1; min-width: 0; }
+.dash-card__title { font-size: 12px; font-weight: 700; color: var(--g800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-card__desc  { font-size: 10px; color: var(--g400); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.dash-card__body { padding: 8px 10px; }
+.dash-card__total {
+  font-size: 11px; font-weight: 700;
+  padding: 2px 7px; border-radius: 999px;
+  background: var(--g100); color: var(--g500); flex-shrink: 0;
+}
 
-/* Bouton lien — TOUT EN CSS, aucun style inline */
+.dash-card__body { padding: 5px 7px 7px; }
+
+/* Liens module */
 .dash-link {
   display: flex; align-items: center; justify-content: space-between;
-  width: 100%; padding: 9px 10px; border-radius: 8px;
+  width: 100%; padding: 6px 8px; border-radius: 7px;
   border: none; background: transparent;
   cursor: pointer; font-family: inherit;
-  font-size: 13px; font-weight: 500; color: var(--g600);
-  transition: background .15s, color .15s;
-  text-align: left;
+  font-size: 11.5px; font-weight: 500; color: var(--g600);
+  transition: background .15s, color .15s; text-align: left;
 }
 .dash-link:hover { background: var(--g50); color: var(--primary); }
-.dash-link:active { background: var(--g100); }
 
-.dash-link__label { display: flex; align-items: center; gap: 7px; pointer-events: none; }
-.dash-link__arrow { width: 11px; height: 11px; flex-shrink: 0; pointer-events: none; }
-.dash-link__count { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; flex-shrink: 0; pointer-events: none; background: var(--g100); color: var(--g500); }
+.dash-link__label {
+  display: flex; align-items: center; gap: 5px; pointer-events: none;
+}
+.dash-link__arrow {
+  width: 10px; height: 10px; flex-shrink: 0; pointer-events: none;
+  opacity: .5; transition: opacity .15s, transform .15s;
+}
+.dash-link:hover .dash-link__arrow { opacity: 1; transform: translateX(2px); }
+
+.dash-link__count {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 6px; border-radius: 999px; flex-shrink: 0;
+  pointer-events: none; background: var(--g100); color: var(--g500);
+}
 .dash-link__count--badge { background: var(--accent); color: #fff; }
 
+/* ── Responsive ── */
+@media (max-width: 1280px) {
+  .dash-grid    { grid-template-columns: repeat(3, 1fr); }
+  .dash-kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 1100px) {
+  .dash-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .dash-page    { padding: 16px; gap: 16px; }
+  .dash-banner  { flex-direction: column; align-items: flex-start; padding: 20px; }
+  .dash-grid    { grid-template-columns: 1fr; }
+  .dash-kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
 /* ================================================================
    REQUESTS (adminLayout.requests.css intégré)
    ================================================================ */
