@@ -13,6 +13,7 @@ const normalizeVoyage = (voyage) => ({
   destination: voyage.destination,
   pays: voyage.pays,
   image: voyage.image_url || voyage.image,
+  gallery: voyage.gallery || [],
   prix: Number(voyage.price ?? voyage.prix ?? 0),
   duree: voyage.duree || `${voyage.duration} jours`,
   rating: Number(voyage.rating) || 4.8,
@@ -26,7 +27,13 @@ const normalizeVoyage = (voyage) => ({
   badge: voyage.badge,
 });
 
-const buildGallery = (mainImage, destination) => {
+const buildGallery = (mainImage, galleryImages = [], destination) => {
+  const dbImages = (galleryImages || []).filter(Boolean);
+  if (dbImages.length > 0) {
+    if (mainImage && !dbImages.includes(mainImage)) return [mainImage, ...dbImages];
+    return dbImages;
+  }
+
   const queries = [
     `${destination} travel landscape`,
     `${destination} architecture`,
@@ -132,7 +139,7 @@ const Details = () => {
     badge,
   } = voyage;
 
-  const gallery = buildGallery(image, destination || pays);
+  const gallery = buildGallery(image, voyage.gallery, destination || pays);
 
   const handleReserver = () =>
     navigate(`/VoyagesOrganise/Reserver/${id}`, { state: { voyage } });

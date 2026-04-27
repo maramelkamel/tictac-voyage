@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
 const API        = 'http://localhost:5000/api/voyages-organises';
 const COVERS_API = 'http://localhost:5000/api/voyages-organises/voyage-covers';
+const MEDIA_API  = 'http://localhost:5000/api/media/upload';
 
 const fPrice = (p) => (p ? Number(p).toLocaleString('fr-TN') + ' TND' : '—');
 
@@ -21,6 +22,7 @@ const EMPTY = {
   subtitle: '',
   description: '',
   image_url: '',
+  gallery: [],
   pays: '',
   destination: '',
   price: '',
@@ -376,6 +378,102 @@ const CoversModal = ({ covers, onClose, onSaved, notify }) => {
   );
 };
 
+// ── Galerie (URLs + upload) ───────────────────────────────────
+const GalleryEditor = ({ images = [], onChange, notify }) => {
+  const [newUrl, setNewUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef(null);
+
+  const getToken = () => localStorage.getItem('adminToken') || '';
+
+  const addImage = () => {
+    const trimmed = newUrl.trim();
+    if (!trimmed) return;
+    onChange([...(images || []), trimmed]);
+    setNewUrl('');
+  };
+
+  const removeImage = (index) => onChange((images || []).filter((_, i) => i !== index));
+
+  const uploadFile = async (file) => {
+    if (!file) return;
+    if (!file.type?.startsWith('image/')) {
+      notify?.('Veuillez sélectionner une image (jpg/png/webp/gif).', 'error');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Lecture fichier impossible'));
+        reader.readAsDataURL(file);
+      });
+
+      const res = await fetch(MEDIA_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ dataUrl, folder: 'voyages' }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.success === false) throw new Error(json.message || 'Upload échoué');
+
+      if (json.url) {
+        onChange([...(images || []), json.url]);
+        notify?.('Image uploadée ✅', 'success');
+      }
+    } catch (e) {
+      notify?.(e.message || 'Erreur upload', 'error');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <label className="al-label">Galerie photos (page détails)</label>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
+        {(images || []).map((url, i) => (
+          <div key={i} style={{ position: 'relative', borderRadius: 8, overflow: 'hidden', border: '1.5px solid var(--g200)' }}>
+            <img src={url} alt={`Galerie ${i + 1}`} style={{ width: '100%', height: 90, objectFit: 'cover', display: 'block' }}
+              onError={e => { e.target.style.background = '#f1f5f9'; e.target.alt = 'Image invalide'; }} />
+            <button type="button" onClick={() => removeImage(i)}
+              style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%',
+                background: 'rgba(233,47,100,.9)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 11,
+                display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <input className="al-input" placeholder="URL de la nouvelle image..." value={newUrl}
+          onChange={e => setNewUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addImage())}
+          style={{ flex: 1, fontSize: 12 }} />
+        <button type="button" onClick={addImage}
+          style={{ flexShrink: 0, padding: '0 14px', borderRadius: 6, border: '1px solid var(--primary, #0f4c5c)',
+            background: 'rgba(15,76,92,.1)', color: 'var(--primary, #0f4c5c)', cursor: 'pointer', fontSize: 14, fontWeight: 700, height: 36 }}>
+          + Ajouter
+        </button>
+
+        <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => uploadFile(e.target.files?.[0])} />
+        <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()}
+          style={{ flexShrink: 0, padding: '0 14px', borderRadius: 6, border: '1px solid #fde68a',
+            background: uploading ? '#fef3c7' : '#fffbeb', color: '#92400e', cursor: uploading ? 'not-allowed' : 'pointer',
+            fontSize: 13, fontWeight: 800, height: 36 }}>
+          {uploading ? '⏳ Upload…' : '⬆ Upload'}
+        </button>
+      </div>
+
+      <p style={{ fontSize: 11, color: 'var(--g400)', margin: 0 }}>
+        {(images || []).length} image{(images || []).length !== 1 ? 's' : ''} dans la galerie
+      </p>
+    </div>
+  );
+};
+
 // ─────────────────────────────────────────────────────────────
 // Modal création / édition voyage
 // ─────────────────────────────────────────────────────────────
@@ -396,6 +494,7 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
     programme:  Array.isArray(pkg?.programme)  ? pkg.programme  : [],
     inclus:     Array.isArray(pkg?.inclus)     ? pkg.inclus     : [],
     non_inclus: Array.isArray(pkg?.non_inclus) ? pkg.non_inclus : [],
+    gallery:    Array.isArray(pkg?.gallery)    ? pkg.gallery    : [],
     is_active:  pkg?.is_active !== false,
   }));
 
@@ -433,6 +532,7 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
           programme:  form.programme,
           inclus:     form.inclus,
           non_inclus: form.non_inclus,
+          gallery:    form.gallery,
         }),
       });
 
@@ -683,6 +783,17 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
                       </div>
                     ))}
                   </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--g200)', paddingTop: 16 }}>
+                  <GalleryEditor
+                    images={form.gallery || []}
+                    onChange={(imgs) => set('gallery', imgs)}
+                    notify={notify}
+                  />
+                  <p style={{ fontSize: 11, color: 'var(--g400)', marginTop: 8 }}>
+                    Ces images apparaissent dans la galerie de la page détail du voyage.
+                  </p>
                 </div>
               </>
             )}

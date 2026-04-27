@@ -3,6 +3,8 @@ const express = require('express');
 const cors    = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const path = require('path');
+const fs = require('fs');
 
 // ── Routes ────────────────────────────────────────────────────
 const transportRoutes          = require('./routes/transportRoutes');
@@ -21,6 +23,8 @@ const circuitRoutes            = require('./routes/circuitRoutes');
 const circuitReservationRoutes = require('./routes/circuitreservationRoutes');
 const promotionsRoutes         = require('./routes/promotionsRoutes');
 const adminAuthRoutes          = require('./routes/adminAuthRoutes');
+const mediaRoutes              = require('./routes/mediaRoutes');
+const hotelRoutes              = require('./routes/hotelRoutes');
 
 
 
@@ -39,6 +43,16 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ── Static uploads (images) ──────────────────────────────────
+// Le dossier est créé si absent pour éviter les erreurs en dev.
+try {
+  const uploadsDir = path.join(__dirname, 'uploads');
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  app.use('/uploads', express.static(uploadsDir));
+} catch (e) {
+  console.error('[startup] Unable to init uploads folder:', e.message);
+}
+
 // ── Routes API ────────────────────────────────────────────────
 app.use('/api/transports',           transportRoutes);
 app.use('/api/requests',             requestRoutes);
@@ -56,6 +70,8 @@ app.use('/api/circuits',             circuitRoutes);
 app.use('/api/circuit-reservations', circuitReservationRoutes);
 app.use('/api/promotions',           promotionsRoutes);
 app.use('/api/admin-auth',           adminAuthRoutes);
+app.use('/api/media',                mediaRoutes);
+app.use('/api/hotels',               hotelRoutes);
 app.use('/api/flights', require('./routes/flightRoutes'));
 
  

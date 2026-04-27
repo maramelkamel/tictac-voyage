@@ -47,9 +47,19 @@ const setSetting = async (key, value) => {
   return rows[0].value;
 };
 
+// ── Gallery column ────────────────────────────────────────────
+// Galerie photos (URLs /uploads/...) pour la page détail.
+const ensureGalleryColumn = async () => {
+  await pool.query(`
+    ALTER TABLE public.voyages_organises
+    ADD COLUMN IF NOT EXISTS gallery JSONB DEFAULT '[]'::jsonb
+  `);
+};
+
 // ── Voyages ───────────────────────────────────────────────────
 
 const getAllVoyages = async () => {
+  await ensureGalleryColumn();
   const { rows } = await pool.query(
     BASE_QUERY + ' GROUP BY v.id ORDER BY v.created_at DESC'
   );
@@ -57,6 +67,7 @@ const getAllVoyages = async () => {
 };
 
 const getActiveVoyages = async () => {
+  await ensureGalleryColumn();
   const { rows } = await pool.query(
     BASE_QUERY + ' WHERE v.is_active = true GROUP BY v.id ORDER BY v.created_at DESC'
   );
@@ -64,6 +75,7 @@ const getActiveVoyages = async () => {
 };
 
 const getVoyageById = async (id) => {
+  await ensureGalleryColumn();
   const { rows } = await pool.query(
     BASE_QUERY + ' WHERE v.id = $1 GROUP BY v.id',
     [id]
@@ -72,11 +84,12 @@ const getVoyageById = async (id) => {
 };
 
 const createVoyage = async (data) => {
+  await ensureGalleryColumn();
   const {
     title, subtitle, description, image_url, price, old_price,
     duration, departure, spots, rating, reviews, badge,
     pays, destination, continent, saison, budget, categorie,
-    programme, inclus, non_inclus, is_active,
+    programme, inclus, non_inclus, gallery, is_active,
   } = data;
 
   const { rows } = await pool.query(`
@@ -84,8 +97,8 @@ const createVoyage = async (data) => {
       (title, subtitle, description, image_url, price, old_price,
        duration, departure, spots, rating, reviews, badge,
        pays, destination, continent, saison, budget, categorie,
-       programme, inclus, non_inclus, is_active)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
+       programme, inclus, non_inclus, gallery, is_active)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
     RETURNING *
   `, [
     title, subtitle || null, description || null, image_url || null,
@@ -96,17 +109,19 @@ const createVoyage = async (data) => {
     JSON.stringify(programme  || []),
     JSON.stringify(inclus     || []),
     JSON.stringify(non_inclus || []),
+    JSON.stringify(gallery    || []),
     is_active !== false,
   ]);
   return rows[0];
 };
 
 const updateVoyage = async (id, data) => {
+  await ensureGalleryColumn();
   const {
     title, subtitle, description, image_url, price, old_price,
     duration, departure, spots, rating, reviews, badge,
     pays, destination, continent, saison, budget, categorie,
-    programme, inclus, non_inclus, is_active,
+    programme, inclus, non_inclus, gallery, is_active,
   } = data;
 
   const { rows } = await pool.query(`
@@ -116,8 +131,8 @@ const updateVoyage = async (id, data) => {
       spots=$9, rating=$10, reviews=$11, badge=$12,
       pays=$13, destination=$14, continent=$15, saison=$16,
       budget=$17, categorie=$18, programme=$19, inclus=$20,
-      non_inclus=$21, is_active=$22
-    WHERE id=$23 RETURNING *
+      non_inclus=$21, gallery=$22, is_active=$23
+    WHERE id=$24 RETURNING *
   `, [
     title, subtitle || null, description || null, image_url || null,
     price, old_price || null, duration, departure || null,
@@ -127,6 +142,7 @@ const updateVoyage = async (id, data) => {
     JSON.stringify(programme  || []),
     JSON.stringify(inclus     || []),
     JSON.stringify(non_inclus || []),
+    JSON.stringify(gallery    || []),
     is_active !== false, id,
   ]);
   return rows[0] || null;

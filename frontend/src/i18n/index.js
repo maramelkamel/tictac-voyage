@@ -16,8 +16,4 @@ i18n
     interpolation: { escapeValue: false },
   });
 
-<<<<<<< ours
 export default i18n;
-=======
-export default i18n;
->>>>>>> theirs

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
 const API_BASE = 'http://localhost:5000/api/flights';
+const getAdminToken = () => localStorage.getItem('adminToken') || '';
 
 // ── Helpers ───────────────────────────────────────────────────
 const fmtPrice = (amount, currency = 'TND') =>
@@ -37,7 +38,7 @@ const PriceEditModal = ({ offer, onSave, onClose }) => {
     try {
       const res = await fetch(`${API_BASE}/price-override`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAdminToken()}` },
         body: JSON.stringify({ offer_id: offer.id, overridden_price: val }),
       });
       const json = await res.json();
@@ -164,6 +165,20 @@ const FlightPricingAdmin = () => {
     setTimeout(() => setToast(null), 3500);
   };
 
+  const fetchOverrides = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/price-overrides`, {
+        headers: { Authorization: `Bearer ${getAdminToken()}` },
+      });
+      const json = await res.json();
+      if (json.success && json.overrides) {
+        setOverrides(json.overrides);
+      }
+    } catch {
+      // No-op: keep local state if the request fails.
+    }
+  }, []);
+
   const fetchOffers = useCallback(async (routeIdx) => {
     setLoading(true); setError(''); setOffers([]);
     const route = PRESET_ROUTES[routeIdx];
@@ -185,6 +200,7 @@ const FlightPricingAdmin = () => {
   }, []);
 
   useEffect(() => { fetchOffers(selectedRoute); }, [selectedRoute, fetchOffers]);
+  useEffect(() => { fetchOverrides(); }, [fetchOverrides]);
 
   const handleSaveOverride = (offerId, newPrice) => {
     setOverrides(prev => ({ ...prev, [offerId]: newPrice }));
@@ -421,9 +437,21 @@ const FlightPricingAdmin = () => {
                     </button>
                     {isOverridden && (
                       <button
-                        onClick={() => {
-                          setOverrides(prev => { const n = { ...prev }; delete n[offer.id]; return n; });
-                          showToast('✓ Prix réinitialisé', 'success');
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`${API_BASE}/price-override/${offer.id}`, {
+                              method: 'DELETE',
+                              headers: { Authorization: `Bearer ${getAdminToken()}` },
+                            });
+                            const json = await res.json().catch(() => ({}));
+                            if (!res.ok || json.success === false) {
+                              throw new Error(json.message || 'Erreur');
+                            }
+                            setOverrides(prev => { const n = { ...prev }; delete n[offer.id]; return n; });
+                            showToast('✓ Prix réinitialisé', 'success');
+                          } catch (e) {
+                            showToast(e.message || 'Erreur réinitialisation', 'error');
+                          }
                         }}
                         title="Réinitialiser au prix automatique"
                         style={{ padding: '7px 10px', borderRadius: 8,

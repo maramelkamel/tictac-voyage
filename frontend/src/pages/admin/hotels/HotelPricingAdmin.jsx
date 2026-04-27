@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
 const API_BASE = 'http://localhost:5000/api/hotels';
+const getAdminToken = () => localStorage.getItem('adminToken') || '';
 
 const fmtPrice = (amount, currency='TND') =>
   `${parseFloat(amount||0).toLocaleString('fr-FR',{minimumFractionDigits:2})} ${currency}`;
@@ -45,7 +46,7 @@ const PriceEditModal = ({ hotel, onSave, onClose }) => {
     setSaving(true);
     try {
       const res = await fetch(`${API_BASE}/price-override`, {
-        method:'POST', headers:{'Content-Type':'application/json'},
+        method:'POST', headers:{'Content-Type':'application/json', Authorization: `Bearer ${getAdminToken()}`},
         body: JSON.stringify({ hotel_code: hotel.code, overridden_price: val }),
       });
       const json = await res.json();
@@ -155,6 +156,18 @@ const HotelPricingAdmin = () => {
 
   const showToast = (msg, type='success') => { setToast({msg,type}); setTimeout(()=>setToast(null),3500); };
 
+  const fetchOverrides = useCallback(async () => {
+    try {
+      const res  = await fetch(`${API_BASE}/price-overrides`, {
+        headers: { Authorization: `Bearer ${getAdminToken()}` },
+      });
+      const json = await res.json().catch(() => ({}));
+      if (json.success && json.overrides) setOverrides(json.overrides);
+    } catch {
+      // keep local overrides if call fails
+    }
+  }, []);
+
   const fetchHotels = useCallback(async (idx) => {
     setLoading(true); setError(''); setHotels([]);
     const preset     = PRESET_SEARCHES[idx];
@@ -162,7 +175,7 @@ const HotelPricingAdmin = () => {
     const check_out  = getDateOffset(preset.check_in_offset + preset.nights);
     try {
       const res  = await fetch(`${API_BASE}/search`, {
-        method:'POST', headers:{'Content-Type':'application/json'},
+        method:'POST', headers:{'Content-Type':'application/json', Authorization: `Bearer ${getAdminToken()}`},
         body: JSON.stringify({ destination:preset.destination, check_in, check_out, adults:2, children:0, rooms:1 }),
       });
       const json = await res.json();
@@ -173,6 +186,7 @@ const HotelPricingAdmin = () => {
   }, []);
 
   useEffect(() => { fetchHotels(0); }, [fetchHotels]);
+  useEffect(() => { fetchOverrides(); }, [fetchOverrides]);
 
   const handleSaveOverride = (hotelCode, newPrice) => {
     setOverrides(prev => ({ ...prev, [hotelCode]: newPrice }));
@@ -381,7 +395,20 @@ const HotelPricingAdmin = () => {
                       Modifier
                     </button>
                     {isOverridden && (
-                      <button onClick={() => { setOverrides(prev => { const n={...prev}; delete n[hotel.code]; return n; }); showToast('✓ Prix réinitialisé'); }}
+                      <button onClick={async () => {
+                        try {
+                          const res = await fetch(`${API_BASE}/price-override/${hotel.code}`, {
+                            method: 'DELETE',
+                            headers: { Authorization: `Bearer ${getAdminToken()}` },
+                          });
+                          const json = await res.json().catch(() => ({}));
+                          if (!res.ok || json.success === false) throw new Error(json.message || 'Erreur');
+                          setOverrides(prev => { const n={...prev}; delete n[hotel.code]; return n; });
+                          showToast('✓ Prix réinitialisé');
+                        } catch (e) {
+                          showToast(e.message || 'Erreur réinitialisation', 'error');
+                        }
+                      }}
                         title="Réinitialiser" style={{ padding:'7px 10px', borderRadius:8,
                           border:'1px solid #fca5a5', background:'#fef2f2', color:'#dc2626', fontSize:12, cursor:'pointer' }}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12">

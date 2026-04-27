@@ -1,10 +1,11 @@
 // src/pages/admin/Circuits/CircuitPackages.jsx
 // ── VERSION COMPLÈTE avec édition détail (programme, highlights, inclus/non inclus, galerie) ──
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
 const API        = 'http://localhost:5000/api/circuits';
 const COVERS_API = 'http://localhost:5000/api/circuits/circuit-covers';
+const MEDIA_API  = 'http://localhost:5000/api/media/upload';
 const fPrice     = (p) => p ? Number(p).toLocaleString('fr-TN') + ' DT' : '—';
 
 // ────────────────────────────────────────────────────────────────
@@ -481,8 +482,12 @@ const EditableList = ({ label, items = [], onChange, placeholder = 'Ajouter un �
 };
 
 // ── Composant galerie d'images ──
-const GalleryEditor = ({ images = [], onChange }) => {
+const GalleryEditor = ({ images = [], onChange, notify }) => {
   const [newUrl, setNewUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef(null);
+
+  const getToken = () => localStorage.getItem('adminToken') || '';
 
   const addImage = () => {
     const trimmed = newUrl.trim();
@@ -493,9 +498,48 @@ const GalleryEditor = ({ images = [], onChange }) => {
 
   const removeImage = (index) => onChange(images.filter((_, i) => i !== index));
 
+  const uploadFile = async (file) => {
+    if (!file) return;
+    if (!file.type?.startsWith('image/')) {
+      notify?.('Veuillez sélectionner une image (jpg/png/webp/gif).', 'error');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Lecture fichier impossible'));
+        reader.readAsDataURL(file);
+      });
+
+      const res = await fetch(MEDIA_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ dataUrl, folder: 'circuits' }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.success === false) {
+        throw new Error(json.message || 'Upload échoué');
+      }
+
+      if (json.url) {
+        onChange([...images, json.url]);
+        notify?.('Image uploadée ✅', 'success');
+      }
+    } catch (e) {
+      notify?.(e.message || 'Erreur upload', 'error');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <label className="al-label">Galerie d'images (URLs)</label>
+      <label className="al-label">Galerie d'images</label>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
         {images.map((url, i) => (
@@ -526,7 +570,7 @@ const GalleryEditor = ({ images = [], onChange }) => {
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         <input
           className="al-input"
           placeholder="URL de la nouvelle image..."
@@ -545,6 +589,34 @@ const GalleryEditor = ({ images = [], onChange }) => {
             height: 36,
           }}
         >+ Ajouter</button>
+
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={(e) => uploadFile(e.target.files?.[0])}
+        />
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={() => fileRef.current?.click()}
+          style={{
+            flexShrink: 0,
+            padding: '0 14px',
+            borderRadius: 6,
+            border: '1px solid #fde68a',
+            background: uploading ? '#fef3c7' : '#fffbeb',
+            color: '#92400e',
+            cursor: uploading ? 'not-allowed' : 'pointer',
+            fontSize: 13,
+            fontWeight: 800,
+            height: 36,
+          }}
+          title="Uploader une image depuis votre ordinateur"
+        >
+          {uploading ? '⏳ Upload…' : '⬆ Upload'}
+        </button>
       </div>
       <p style={{ fontSize: 11, color: 'var(--g400)', margin: 0 }}>
         {images.length} image{images.length !== 1 ? 's' : ''} dans la galerie
@@ -899,6 +971,7 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
                   <GalleryEditor
                     images={form.gallery}
                     onChange={v => set('gallery', v)}
+                    notify={notify}
                   />
                   <p style={{ fontSize: 11, color: 'var(--g400)', marginTop: 8 }}>
                     Ces images apparaissent dans la galerie de la page détail du circuit.

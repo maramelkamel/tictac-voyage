@@ -14,7 +14,7 @@ export function useHotels({ city, sort = 'stars', limit = 12, page = 1, search }
     setError(null);
     try {
       const { data } = await axios.get(`${API}/hotels`, {
-        params: { city, sort, limit, page, search },
+        params: { public: true, city, sort, limit, page, search },
       });
       setHotels(data.hotels || []);
       setTotal(data.total   || 0);
@@ -35,6 +35,7 @@ export function normalizeHotelForCard(hotel) {
   return {
     id          : hotel.id,
     title       : hotel.name,
+    city        : hotel.city,
     location    : `${hotel.city}${hotel.address ? ', ' + hotel.address : ''}`,
     description : hotel.description,
     image       : hotel.image_url || 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600',

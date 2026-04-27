@@ -45,6 +45,12 @@ import FlightListPage from './pages/flight/FlightsListPage';
 import FlightDetails from './pages/flight/FlightDetailPage';
 import FlightReservations from './pages/admin/flight/FlightReservations';
 import FlightPricingAdmin from './pages/admin/flight/FlightPricingAdmin';
+import HotelsTunisia from './pages/hotels/HotelsTunisia';
+import HotelDetails from './pages/hotels/HotelDetails';
+import HotelReserve from './pages/hotels/HotelReserve';
+import HotelPricingAdmin from './pages/admin/hotels/HotelPricingAdmin';
+import HotelReservations from './pages/admin/hotels/HotelReservations';
+import HotelsAdmin from './pages/admin/hotels/HotelsAdmin';
 
 
 
@@ -54,6 +60,10 @@ function App() {
       
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/hotels" element={<HotelsTunisia />} />
+        <Route path="/hotels/search" element={<HotelsTunisia />} />
+        <Route path="/hotels/:id" element={<HotelDetails />} />
+        <Route path="/hotels/:id/reserve" element={<HotelReserve />} />
         <Route path="/Omra/Omra" element={<Omra />} />
         <Route path="/Omra/Details/:id" element={<Details />} />
         <Route path="/Omra/Reserve/:id" element={<Reserve />} />
@@ -102,6 +112,9 @@ function App() {
       <Route path="/flights/details"     element={<FlightDetails />} />
       <Route path="/admin/flights/reservations"       element={<FlightReservations />} />
       <Route path="/admin/flights/pricing"      element={<FlightPricingAdmin />} />
+      <Route path="/admin/hotels/pricing" element={<HotelPricingAdmin />} />
+      <Route path="/admin/hotels/reservations" element={<HotelReservations />} />
+      <Route path="/admin/hotels" element={<HotelsAdmin />} />
       
 
          

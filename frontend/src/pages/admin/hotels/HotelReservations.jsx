@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
 const API = 'http://localhost:5000/api/hotels';
+const getAdminToken = () => localStorage.getItem('adminToken') || '';
 
 const fmtDate = (iso) => {
   if (!iso) return '—';
@@ -49,7 +50,7 @@ const DetailDrawer = ({ reservation: r, onClose, onStatusChange }) => {
     setSaving(true); setErr('');
     try {
       const res  = await fetch(`${API}/reservations/${r.id}/status`, {
-        method:'PATCH', headers:{'Content-Type':'application/json'},
+        method:'PATCH', headers:{'Content-Type':'application/json', Authorization: `Bearer ${getAdminToken()}`},
         body: JSON.stringify({ status }),
       });
       const json = await res.json();
@@ -194,7 +195,9 @@ const HotelReservations = () => {
   const fetchReservations = async () => {
     setLoading(true); setError('');
     try {
-      const res  = await fetch(`${API}/reservations`);
+      const res  = await fetch(`${API}/reservations`, {
+        headers: { Authorization: `Bearer ${getAdminToken()}` },
+      });
       const json = await res.json();
       if (!json.success) throw new Error(json.message);
       setReservations(json.data || []);

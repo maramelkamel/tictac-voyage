@@ -1,184 +1,104 @@
-// backend/models/circuitModel.js
-const pool = require('../config/db');
+// backend/models/clientModel.js
+//
+// Modèle "clients" (auth + CRUD admin).
+// ⚠️ Ce fichier avait été écrasé par erreur par le modèle circuits, ce qui cassait /api/clients.
 
-const BASE = `
-  SELECT c.*,
-    COALESCE(COUNT(r.id), 0)::int AS reservation_count,
-    GREATEST(c.spots - COALESCE(COUNT(r.id) FILTER (WHERE r.status = 'confirmed'), 0), 0)::int AS available_spots
-  FROM public.circuits c
-  LEFT JOIN public.circuit_reservations r ON r.circuit_id = c.id
+const pool = require('../config/db');
+const bcrypt = require('bcryptjs');
+
+const SAFE_FIELDS = `
+  id, first_name, last_name, email, phone, city,
+  marital_status, number_of_children,
+  created_at, updated_at
 `;
 
-// ── Settings (circuit-covers) ─────────────────────────────────
-
-const ensureTable = async () => {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS public.settings (
-      key        VARCHAR(100) PRIMARY KEY,
-      value      JSONB        NOT NULL,
-      updated_at TIMESTAMPTZ  DEFAULT NOW()
-    )
-  `);
-};
-
-// Vérifie et ajoute la colonne gallery si elle n'existe pas encore
-const ensureGalleryColumn = async () => {
-  await pool.query(`
-    ALTER TABLE public.circuits
-    ADD COLUMN IF NOT EXISTS gallery JSONB DEFAULT '[]'::jsonb
-  `);
-};
-
-const getSetting = async (key) => {
-  await ensureTable();
-  const { rows } = await pool.query('SELECT value FROM public.settings WHERE key = $1', [key]);
-  return rows[0]?.value ?? null;
-};
-
-const setSetting = async (key, value) => {
-  await ensureTable();
-  const { rows } = await pool.query(`
-    INSERT INTO public.settings (key, value, updated_at)
-    VALUES ($1, $2, NOW())
-    ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()
-    RETURNING value
-  `, [key, JSON.stringify(value)]);
-  return rows[0].value;
-};
-
-// ── Circuits ──────────────────────────────────────────────────
-
-const getAllCircuits     = async () => {
-  await ensureGalleryColumn();
-  const { rows } = await pool.query(BASE + ' GROUP BY c.id ORDER BY c.region, c.created_at DESC');
-  return rows;
-};
-
-const getActiveCircuits = async () => {
-  await ensureGalleryColumn();
-  const { rows } = await pool.query(BASE + ' WHERE c.is_active = true GROUP BY c.id ORDER BY c.region, c.created_at DESC');
-  return rows;
-};
-
-const getCircuitById = async (id) => {
-  await ensureGalleryColumn();
-  const { rows } = await pool.query(BASE + ' WHERE c.id = $1 GROUP BY c.id', [id]);
+const getClientByEmail = async (email) => {
+  if (!email) return null;
+  const { rows } = await pool.query(
+    'SELECT * FROM public.clients WHERE LOWER(email) = LOWER($1) LIMIT 1',
+    [email]
+  );
   return rows[0] || null;
 };
 
-const createCircuit = async (data) => {
-  await ensureGalleryColumn();
-  const {
-    title, subtitle, description, image_url, price, old_price,
-    duration, nights, region, departure, spots, rating, reviews,
-    badge, tag, tag_color, difficulty, group_size,
-    highlights, programme, inclus, non_inclus, gallery,
-    is_active,
-  } = data;
+const getClientById = async (id) => {
+  const { rows } = await pool.query(
+    `SELECT ${SAFE_FIELDS} FROM public.clients WHERE id = $1`,
+    [id]
+  );
+  return rows[0] || null;
+};
 
-  const { rows } = await pool.query(`
-    INSERT INTO public.circuits (
-      title, subtitle, description, image_url, price, old_price,
-      duration, nights, region, departure, spots, rating, reviews,
-      badge, tag, tag_color, difficulty, group_size,
-      highlights, programme, inclus, non_inclus, gallery,
-      is_active
-    )
-    VALUES (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,
-      $14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24
-    ) RETURNING *`,
+const verifyPassword = async (password, passwordHash) => {
+  if (!password || !passwordHash) return false;
+  return bcrypt.compare(password, passwordHash);
+};
+
+const createClient = async ({
+  first_name,
+  last_name,
+  email,
+  phone,
+  password,
+  city,
+  marital_status,
+  number_of_children,
+}) => {
+  const password_hash = await bcrypt.hash(password, 12);
+  const { rows } = await pool.query(
+    `
+    INSERT INTO public.clients
+      (first_name, last_name, email, phone, password_hash, city, marital_status, number_of_children)
+    VALUES
+      ($1,$2,LOWER($3),$4,$5,$6,$7,$8)
+    RETURNING ${SAFE_FIELDS}
+  `,
     [
-      title,
-      subtitle      || null,
-      description   || null,
-      image_url     || null,
-      price,
-      old_price     || null,
-      duration,
-      nights        || (duration - 1),
-      region        || 'nord',
-      departure     || null,
-      spots         || 20,
-      rating        || 5.0,
-      reviews       || 0,
-      badge         || null,
-      tag           || null,
-      tag_color     || 'teal',
-      difficulty    || 'Facile',
-      group_size    || null,
-      JSON.stringify(highlights  || []),
-      JSON.stringify(programme   || []),
-      JSON.stringify(inclus      || []),
-      JSON.stringify(non_inclus  || []),
-      JSON.stringify(gallery     || []),
-      is_active !== false,
+      first_name,
+      last_name,
+      email,
+      phone,
+      password_hash,
+      city || null,
+      marital_status || null,
+      number_of_children ?? 0,
     ]
   );
   return rows[0];
 };
 
-const updateCircuit = async (id, data) => {
-  await ensureGalleryColumn();
-  const {
-    title, subtitle, description, image_url, price, old_price,
-    duration, nights, region, departure, spots, rating, reviews,
-    badge, tag, tag_color, difficulty, group_size,
-    highlights, programme, inclus, non_inclus, gallery,
-    is_active,
-  } = data;
+const getAllClients = async ({ search } = {}) => {
+  const q = (search || '').trim();
+  if (!q) {
+    const { rows } = await pool.query(
+      `SELECT ${SAFE_FIELDS} FROM public.clients ORDER BY created_at DESC`
+    );
+    return rows;
+  }
 
-  const { rows } = await pool.query(`
-    UPDATE public.circuits SET
-      title=$1, subtitle=$2, description=$3, image_url=$4, price=$5, old_price=$6,
-      duration=$7, nights=$8, region=$9, departure=$10, spots=$11, rating=$12, reviews=$13,
-      badge=$14, tag=$15, tag_color=$16, difficulty=$17, group_size=$18,
-      highlights=$19, programme=$20, inclus=$21, non_inclus=$22, gallery=$23,
-      is_active=$24
-    WHERE id=$25 RETURNING *`,
-    [
-      title,
-      subtitle      || null,
-      description   || null,
-      image_url     || null,
-      price,
-      old_price     || null,
-      duration,
-      nights        || (duration - 1),
-      region        || 'nord',
-      departure     || null,
-      spots         || 20,
-      rating        || 5.0,
-      reviews       || 0,
-      badge         || null,
-      tag           || null,
-      tag_color     || 'teal',
-      difficulty    || 'Facile',
-      group_size    || null,
-      JSON.stringify(highlights  || []),
-      JSON.stringify(programme   || []),
-      JSON.stringify(inclus      || []),
-      JSON.stringify(non_inclus  || []),
-      JSON.stringify(gallery     || []),
-      is_active !== false,
-      id,
-    ]
+  const like = `%${q.toLowerCase()}%`;
+  const { rows } = await pool.query(
+    `
+    SELECT ${SAFE_FIELDS}
+    FROM public.clients
+    WHERE
+      LOWER(first_name) LIKE $1 OR
+      LOWER(last_name)  LIKE $1 OR
+      LOWER(email)      LIKE $1 OR
+      LOWER(phone)      LIKE $1 OR
+      LOWER(city)       LIKE $1
+    ORDER BY created_at DESC
+  `,
+    [like]
   );
-  return rows[0] || null;
-};
-
-const deleteCircuit = async (id) => {
-  const { rows } = await pool.query('DELETE FROM public.circuits WHERE id=$1 RETURNING id', [id]);
-  return rows[0] || null;
+  return rows;
 };
 
 module.exports = {
-  getAllCircuits,
-  getActiveCircuits,
-  getCircuitById,
-  createCircuit,
-  updateCircuit,
-  deleteCircuit,
-  getSetting,
-  setSetting,
+  getClientByEmail,
+  getClientById,
+  verifyPassword,
+  createClient,
+  getAllClients,
 };
+

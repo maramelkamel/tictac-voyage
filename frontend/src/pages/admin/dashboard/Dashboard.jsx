@@ -36,6 +36,14 @@ const MODULES = [
     ],
   },
   {
+    title: 'Hôtels',        color: 'teal',   status: 'active', desc: 'Catalogue & réservations',
+    links: [
+      { label: 'Catalogue',        path: '/admin/hotels',              sk: null,            badge: false },
+      { label: 'Réservations',     path: '/admin/hotels/reservations', sk: 'hotelsPending', badge: true  },
+      { label: 'Gestion des prix', path: '/admin/hotels/pricing',      sk: null,            badge: false },
+    ],
+  },
+  {
     title: 'Billeterie / Vols', color: 'blue', status: 'active', desc: 'Vols & tarification',
     links: [
       { label: 'Réservations',     path: '/admin/flights/reservations',       sk: 'flightsPending', badge: true  },
@@ -71,6 +79,60 @@ const MODULE_ICONS = {
   orange: <><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></>,
   red:    <><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></>,
   gray:   <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></>,
+};
+
+/* ══════════════════════════════════════════════════════════════
+   STAT CIRCLES — % basés sur données réelles
+   ══════════════════════════════════════════════════════════════ */
+const clampPct = (n) => Math.max(0, Math.min(100, Number.isFinite(n) ? n : 0));
+
+const StatCircle = ({ label, percent, color, value, sub }) => {
+  const pct = clampPct(percent);
+  return (
+    <div style={{
+      background: '#fff',
+      border: '1px solid #e2e8f0',
+      borderRadius: 16,
+      padding: 18,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 14,
+      boxShadow: '0 1px 8px rgba(0,0,0,0.04)',
+    }}>
+      <div style={{
+        width: 64,
+        height: 64,
+        borderRadius: '50%',
+        background: `conic-gradient(${color} ${pct}%, #e2e8f0 0)`,
+        position: 'relative',
+        flexShrink: 0,
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 6,
+          borderRadius: '50%',
+          background: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontWeight: 900,
+          color: '#0a2832',
+          fontSize: 14,
+        }}>
+          {pct}%
+        </div>
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+          {label}
+        </p>
+        <p style={{ margin: '6px 0 0', fontSize: 22, fontWeight: 900, color: '#0a2832', lineHeight: 1 }}>
+          {value}
+        </p>
+        {sub && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#94a3b8' }}>{sub}</p>}
+      </div>
+    </div>
+  );
 };
 
 /* ══════════════════════════════════════════════════════════════
@@ -335,11 +397,12 @@ const ModuleCard = ({ mod, st, navigate }) => {
    ══════════════════════════════════════════════════════════════ */
 const Dashboard = () => {
   const navigate = useNavigate();
+  const token = localStorage.getItem('adminToken') || '';
   const [st, setSt] = useState({
     vehicles: 0, pending: 0, surMesure: 0, contactNew: 0,
-    omraPending: 0, totalClients: 0,
+    omraPending: 0, totalClients: 0, activeClients: 0,
     voyagesTotal: 0, voyagesPending: 0,
-    circuitsTotal: 0, circuitsPending: 0, flightsPending: 0,
+    circuitsTotal: 0, circuitsPending: 0, hotelsPending: 0, flightsPending: 0,
     totalReservations: 0, confirmedReservations: 0,
     completedReservations: 0, cancelledReservations: 0,
     pendingReservations: 0,
@@ -357,15 +420,26 @@ const Dashboard = () => {
       fetch('http://localhost:5000/api/voyage-reservations').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/circuits').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/circuit-reservations').then(r => r.json()).catch(() => ({})),
-      fetch('http://localhost:5000/api/flights/reservations').then(r => r.json()).catch(() => ({})),
-    ]).then(([v, r, ct, cs, omra, clients, voyages, voyageRes, circuits, circuitRes, flightRes]) => {
+      fetch('http://localhost:5000/api/hotels/reservations', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({})),
+      fetch('http://localhost:5000/api/flights/reservations', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({})),
+    ]).then(([v, r, ct, cs, omra, clients, voyages, voyageRes, circuits, circuitRes, hotelRes, flightRes]) => {
       const allRes = [
         ...(r.data       || []),
         ...(omra.data    || []),
         ...(voyageRes.data  || []),
         ...(circuitRes.data || []),
+        ...(hotelRes.data   || []),
         ...(flightRes.data  || []),
       ];
+
+      const activeEmails = new Set(
+        allRes.map(x => (x.email || '').toLowerCase()).filter(Boolean)
+      );
+      const activeClients = (clients.data || []).reduce((acc, c) => {
+        const e = (c.email || '').toLowerCase();
+        return e && activeEmails.has(e) ? acc + 1 : acc;
+      }, 0);
+
       setSt({
         vehicles:              v.data?.length || 0,
         pending:               r.data?.filter(x => x.status === 'pending').length   || 0,
@@ -373,10 +447,12 @@ const Dashboard = () => {
         contactNew:            parseInt(cs.data?.nouveaux) || 0,
         omraPending:           omra.data?.filter(x => x.status === 'pending').length || 0,
         totalClients:          clients.data?.length || 0,
+        activeClients,
         voyagesTotal:          voyages.data?.length || 0,
         voyagesPending:        voyageRes.data?.filter(x => x.status === 'pending').length  || 0,
         circuitsTotal:         circuits.data?.length || 0,
         circuitsPending:       circuitRes.data?.filter(x => x.status === 'pending').length || 0,
+        hotelsPending:         hotelRes.data?.filter(x => x.status === 'pending').length  || 0,
         flightsPending:        flightRes.data?.filter(x => x.status === 'pending').length  || 0,
         totalReservations:     allRes.length,
         confirmedReservations: allRes.filter(x => x.status === 'confirmed').length,
@@ -389,7 +465,7 @@ const Dashboard = () => {
 
   const totalPending =
     st.pending + st.voyagesPending + st.circuitsPending +
-    st.omraPending + st.flightsPending + st.surMesure + st.contactNew;
+    st.omraPending + st.hotelsPending + st.flightsPending + st.surMesure + st.contactNew;
 
   /* ── KPI cards ── */
   const kpis = [
@@ -470,6 +546,7 @@ const Dashboard = () => {
         contactNew:        st.contactNew,
         voyagesPending:    st.voyagesPending,
         circuitsPending:   st.circuitsPending,
+        hotelsPending:     st.hotelsPending,
         flightsPending:    st.flightsPending,
       }}
     >
@@ -493,6 +570,34 @@ const Dashboard = () => {
               </div>
             </button>
           )}
+        </div>
+
+        {/* ── Stat circles ── */}
+        <div>
+          <p className="dash-section-lbl">Statistiques</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+            <StatCircle
+              label="Clients"
+              color="#3b82f6"
+              percent={st.totalClients ? Math.round((st.activeClients / st.totalClients) * 100) : 0}
+              value={st.totalClients}
+              sub={`${st.activeClients} avec réservation`}
+            />
+            <StatCircle
+              label="Réservations"
+              color="#14b8a6"
+              percent={st.totalReservations ? Math.round(((st.confirmedReservations + st.completedReservations) / st.totalReservations) * 100) : 0}
+              value={st.totalReservations}
+              sub={`${st.confirmedReservations} confirmées`}
+            />
+            <StatCircle
+              label="Conversion"
+              color="#22c55e"
+              percent={st.totalReservations ? Math.round((st.confirmedReservations / st.totalReservations) * 100) : 0}
+              value={st.totalReservations ? `${Math.round((st.confirmedReservations / st.totalReservations) * 100)}%` : '0%'}
+              sub="confirmées / total"
+            />
+          </div>
         </div>
 
         {/* ── KPI avec formes 3D dynamiques ── */}

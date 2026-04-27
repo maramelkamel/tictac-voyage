@@ -46,8 +46,8 @@ router.get('/reservations',              requireAdmin, getReservations);
 router.patch('/reservations/:id/status', requireAdmin, updateReservationStatus);
 
 // ── Admin — price overrides ───────────────────────────────────
-router.post('/price-override',            setPriceOverride);
-router.delete('/price-override/:offerId', deletePriceOverride);
-router.get('/price-overrides',            getPriceOverrides);
+router.post('/price-override',            requireAdmin, setPriceOverride);
+router.delete('/price-override/:offerId', requireAdmin, deletePriceOverride);
+router.get('/price-overrides',            requireAdmin, getPriceOverrides);
 
 module.exports = router;

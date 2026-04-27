@@ -39,29 +39,71 @@ const setSetting = async (key, value) => {
   return rows[0].value;
 };
 
+// ── Gallery column ────────────────────────────────────────────
+// La galerie est une liste d'URLs (ou chemins /uploads/...) stockée en JSONB.
+const ensureGalleryColumn = async () => {
+  await pool.query(`
+    ALTER TABLE public.circuits
+    ADD COLUMN IF NOT EXISTS gallery JSONB DEFAULT '[]'::jsonb
+  `);
+};
+
 // ── Circuits ──────────────────────────────────────────────────
 
-const getAllCircuits     = async () => { const { rows } = await pool.query(BASE + ' GROUP BY c.id ORDER BY c.region, c.created_at DESC'); return rows; };
-const getActiveCircuits = async () => { const { rows } = await pool.query(BASE + ' WHERE c.is_active = true GROUP BY c.id ORDER BY c.region, c.created_at DESC'); return rows; };
-const getCircuitById    = async (id) => { const { rows } = await pool.query(BASE + ' WHERE c.id = $1 GROUP BY c.id', [id]); return rows[0] || null; };
+const getAllCircuits     = async () => {
+  await ensureGalleryColumn();
+  const { rows } = await pool.query(BASE + ' GROUP BY c.id ORDER BY c.region, c.created_at DESC');
+  return rows;
+};
+
+const getActiveCircuits = async () => {
+  await ensureGalleryColumn();
+  const { rows } = await pool.query(BASE + ' WHERE c.is_active = true GROUP BY c.id ORDER BY c.region, c.created_at DESC');
+  return rows;
+};
+
+const getCircuitById    = async (id) => {
+  await ensureGalleryColumn();
+  const { rows } = await pool.query(BASE + ' WHERE c.id = $1 GROUP BY c.id', [id]);
+  return rows[0] || null;
+};
 
 const createCircuit = async (data) => {
-  const { title, subtitle, description, image_url, price, old_price, duration, nights, region, departure, spots, rating, reviews, badge, tag, tag_color, difficulty, group_size, highlights, programme, inclus, non_inclus, is_active } = data;
+  await ensureGalleryColumn();
+  const { title, subtitle, description, image_url, price, old_price, duration, nights, region, departure, spots, rating, reviews, badge, tag, tag_color, difficulty, group_size, highlights, programme, inclus, non_inclus, gallery, is_active } = data;
   const { rows } = await pool.query(`
-    INSERT INTO public.circuits (title,subtitle,description,image_url,price,old_price,duration,nights,region,departure,spots,rating,reviews,badge,tag,tag_color,difficulty,group_size,highlights,programme,inclus,non_inclus,is_active)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23) RETURNING *`,
+    INSERT INTO public.circuits (
+      title,subtitle,description,image_url,price,old_price,duration,nights,region,departure,
+      spots,rating,reviews,badge,tag,tag_color,difficulty,group_size,
+      highlights,programme,inclus,non_inclus,gallery,
+      is_active
+    )
+    VALUES (
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+      $11,$12,$13,$14,$15,$16,$17,$18,
+      $19,$20,$21,$22,$23,
+      $24
+    ) RETURNING *`,
     [title, subtitle||null, description||null, image_url||null, price, old_price||null, duration, nights||duration-1, region||'nord', departure||null, spots||20, rating||5.0, reviews||0, badge||null, tag||null, tag_color||'teal', difficulty||'Facile', group_size||null,
-     JSON.stringify(highlights||[]), JSON.stringify(programme||[]), JSON.stringify(inclus||[]), JSON.stringify(non_inclus||[]), is_active!==false]);
+     JSON.stringify(highlights||[]), JSON.stringify(programme||[]), JSON.stringify(inclus||[]), JSON.stringify(non_inclus||[]), JSON.stringify(gallery||[]),
+     is_active!==false]);
   return rows[0];
 };
 
 const updateCircuit = async (id, data) => {
-  const { title, subtitle, description, image_url, price, old_price, duration, nights, region, departure, spots, rating, reviews, badge, tag, tag_color, difficulty, group_size, highlights, programme, inclus, non_inclus, is_active } = data;
+  await ensureGalleryColumn();
+  const { title, subtitle, description, image_url, price, old_price, duration, nights, region, departure, spots, rating, reviews, badge, tag, tag_color, difficulty, group_size, highlights, programme, inclus, non_inclus, gallery, is_active } = data;
   const { rows } = await pool.query(`
-    UPDATE public.circuits SET title=$1,subtitle=$2,description=$3,image_url=$4,price=$5,old_price=$6,duration=$7,nights=$8,region=$9,departure=$10,spots=$11,rating=$12,reviews=$13,badge=$14,tag=$15,tag_color=$16,difficulty=$17,group_size=$18,highlights=$19,programme=$20,inclus=$21,non_inclus=$22,is_active=$23
-    WHERE id=$24 RETURNING *`,
+    UPDATE public.circuits SET
+      title=$1,subtitle=$2,description=$3,image_url=$4,price=$5,old_price=$6,
+      duration=$7,nights=$8,region=$9,departure=$10,spots=$11,rating=$12,
+      reviews=$13,badge=$14,tag=$15,tag_color=$16,difficulty=$17,group_size=$18,
+      highlights=$19,programme=$20,inclus=$21,non_inclus=$22,gallery=$23,
+      is_active=$24
+    WHERE id=$25 RETURNING *`,
     [title, subtitle||null, description||null, image_url||null, price, old_price||null, duration, nights||duration-1, region||'nord', departure||null, spots||20, rating||5.0, reviews||0, badge||null, tag||null, tag_color||'teal', difficulty||'Facile', group_size||null,
-     JSON.stringify(highlights||[]), JSON.stringify(programme||[]), JSON.stringify(inclus||[]), JSON.stringify(non_inclus||[]), is_active!==false, id]);
+     JSON.stringify(highlights||[]), JSON.stringify(programme||[]), JSON.stringify(inclus||[]), JSON.stringify(non_inclus||[]), JSON.stringify(gallery||[]),
+     is_active!==false, id]);
   return rows[0] || null;
 };
 
