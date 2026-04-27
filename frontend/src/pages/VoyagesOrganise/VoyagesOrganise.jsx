@@ -15,7 +15,7 @@ import { buildFavoriteItemData, getFavoriteKey } from '../../utils/favorites';
 import { FILTERS }           from '../../data/VoyagesOrganiseData';
 
 const API = 'http://localhost:5000/api/voyages-organises?public=true';
-
+const COVERS_API = 'http://localhost:5000/api/voyages-organises/voyage-covers';
 // Transforme la forme brute renvoyée par le backend/SQL
 // vers la forme attendue par les composants UI du module voyage organisé.
 const normalize = (v) => ({
@@ -75,7 +75,7 @@ const VoyagesOrganise = () => {
   const [saison,        setSaison]        = useState('');
   const [budget,        setBudget]        = useState('');
   const [visibleCount,  setVisibleCount]  = useState(6);
-
+const [cover, setCover] = useState(null);
   const { promos } = usePromotions('categorie', 'voyages_internationaux');
   const { favoriteIds, isAuthenticated, toggleFavorite } = useFavorites('voyage');
   const activeFilterCount = [continent, budget, saison].filter(Boolean).length;
@@ -96,7 +96,15 @@ const VoyagesOrganise = () => {
         setLoading(false);
       }
     };
+   const fetchCover = async () => {
+    try {
+      const r = await fetch(COVERS_API);
+      const j = await r.json();
+      if (j.success && j.data) setCover(j.data.hero);
+    } catch { /* ignore */ }
+  }; 
     fetchVoyages();
+    fetchCover();
   }, []);
 
   const clearFilters = () => {
@@ -201,21 +209,36 @@ const VoyagesOrganise = () => {
 
           {/* Hero : introduit le module et branche la recherche principale. */}
       <section className="omra-hero">
-        <div className="omra-hero__bg" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1600&q=80')" }} />
-        <div className="omra-hero__pattern" />
-        <div className="omra-hero__overlay" />
-        <div className="omra-hero__content">
-          <span className="omra-hero__tag">✈️ Agence de voyages organisés</span>
-          <h1 className="omra-hero__title">Découvrez le monde,<br /><span>sans contraintes</span></h1>
-          <p className="omra-hero__subtitle">Des séjours clé en main conçus par nos experts pour vous offrir l'expérience parfaite.</p>
-          <div className="omra-hero__search-wrapper">
-            <VoyageSearchBar
-              onSearch={(s) => { setSearch(s); setVisibleCount(6); }}
-              initialValues={search}
-            />
-          </div>
-        </div>
-      </section>
+  <div
+    className="omra-hero__bg"
+    style={{
+      backgroundImage: `url('${
+        cover?.bg_image ||
+        'https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1600&q=80'
+      }')`
+    }}
+  />
+  <div className="omra-hero__pattern" />
+  <div className="omra-hero__overlay" />
+  <div className="omra-hero__content">
+    <span className="omra-hero__tag">
+      {cover?.tag || '✈️ Agence de voyages organisés'}
+    </span>
+    <h1 className="omra-hero__title">
+      {cover?.title || 'Découvrez le monde,'}<br />
+      <span>{cover?.title_accent || 'sans contraintes'}</span>
+    </h1>
+    <p className="omra-hero__subtitle">
+      {cover?.sub || "Des séjours clé en main conçus par nos experts pour vous offrir l'expérience parfaite."}
+    </p>
+    <div className="omra-hero__search-wrapper">
+      <VoyageSearchBar
+        onSearch={(s) => { setSearch(s); setVisibleCount(6); }}
+        initialValues={search}
+      />
+    </div>
+  </div>
+</section>
 
       {promos.length > 0 && (
         <section style={{ padding: '18px 0 0' }}>

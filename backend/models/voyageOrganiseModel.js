@@ -1,10 +1,6 @@
 // backend/models/voyageOrganiseModel.js
 const pool = require('../config/db');
 
-// Requête de base partagée :
-// - récupère les champs du voyage
-// - compte le volume de réservations
-// - calcule les places encore disponibles à partir des réservations confirmées
 const BASE_QUERY = `
   SELECT v.*,
     COALESCE(COUNT(r.id), 0)::int AS reservation_count,
@@ -16,8 +12,44 @@ const BASE_QUERY = `
   LEFT JOIN public.voyage_reservations r ON r.voyage_id = v.id
 `;
 
+// ── Settings (voyage-covers) ──────────────────────────────────
+// La table settings est partagée avec les circuits (circuit-covers).
+// CREATE TABLE IF NOT EXISTS garantit qu'elle n'est créée qu'une seule fois.
+
+const ensureTable = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS public.settings (
+      key        VARCHAR(100) PRIMARY KEY,
+      value      JSONB        NOT NULL,
+      updated_at TIMESTAMPTZ  DEFAULT NOW()
+    )
+  `);
+};
+
+const getSetting = async (key) => {
+  await ensureTable();
+  const { rows } = await pool.query(
+    'SELECT value FROM public.settings WHERE key = $1',
+    [key]
+  );
+  return rows[0]?.value ?? null;
+};
+
+const setSetting = async (key, value) => {
+  await ensureTable();
+  const { rows } = await pool.query(
+    `INSERT INTO public.settings (key, value, updated_at)
+     VALUES ($1, $2, NOW())
+     ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = NOW()
+     RETURNING value`,
+    [key, JSON.stringify(value)]
+  );
+  return rows[0].value;
+};
+
+// ── Voyages ───────────────────────────────────────────────────
+
 const getAllVoyages = async () => {
-  // Vue complète, typiquement utile côté admin.
   const { rows } = await pool.query(
     BASE_QUERY + ' GROUP BY v.id ORDER BY v.created_at DESC'
   );
@@ -25,7 +57,6 @@ const getAllVoyages = async () => {
 };
 
 const getActiveVoyages = async () => {
-  // Vue publique limitée aux voyages actifs.
   const { rows } = await pool.query(
     BASE_QUERY + ' WHERE v.is_active = true GROUP BY v.id ORDER BY v.created_at DESC'
   );
@@ -33,7 +64,6 @@ const getActiveVoyages = async () => {
 };
 
 const getVoyageById = async (id) => {
-  // Détail d'un voyage avec les mêmes agrégats que la liste.
   const { rows } = await pool.query(
     BASE_QUERY + ' WHERE v.id = $1 GROUP BY v.id',
     [id]
@@ -42,8 +72,6 @@ const getVoyageById = async (id) => {
 };
 
 const createVoyage = async (data) => {
-  // Insertion d'un voyage organisé avec sérialisation JSON
-  // des champs liste (programme, inclus, non inclus).
   const {
     title, subtitle, description, image_url, price, old_price,
     duration, departure, spots, rating, reviews, badge,
@@ -65,8 +93,8 @@ const createVoyage = async (data) => {
     spots || 30, rating || 5.0, reviews || 0, badge || null,
     pays || null, destination || null, continent || null,
     saison || null, budget || null, categorie || null,
-    JSON.stringify(programme || []),
-    JSON.stringify(inclus    || []),
+    JSON.stringify(programme  || []),
+    JSON.stringify(inclus     || []),
     JSON.stringify(non_inclus || []),
     is_active !== false,
   ]);
@@ -74,7 +102,6 @@ const createVoyage = async (data) => {
 };
 
 const updateVoyage = async (id, data) => {
-  // Mise à jour miroir de la création, pour garder le même format de stockage.
   const {
     title, subtitle, description, image_url, price, old_price,
     duration, departure, spots, rating, reviews, badge,
@@ -97,8 +124,8 @@ const updateVoyage = async (id, data) => {
     spots || 30, rating || 5.0, reviews || 0, badge || null,
     pays || null, destination || null, continent || null,
     saison || null, budget || null, categorie || null,
-    JSON.stringify(programme || []),
-    JSON.stringify(inclus    || []),
+    JSON.stringify(programme  || []),
+    JSON.stringify(inclus     || []),
     JSON.stringify(non_inclus || []),
     is_active !== false, id,
   ]);
@@ -106,11 +133,15 @@ const updateVoyage = async (id, data) => {
 };
 
 const deleteVoyage = async (id) => {
-  // Suppression simple avec retour de l'identifiant supprimé pour confirmation.
   const { rows } = await pool.query(
-    'DELETE FROM public.voyages_organises WHERE id=$1 RETURNING id', [id]
+    'DELETE FROM public.voyages_organises WHERE id=$1 RETURNING id',
+    [id]
   );
   return rows[0] || null;
 };
 
-module.exports = { getAllVoyages, getActiveVoyages, getVoyageById, createVoyage, updateVoyage, deleteVoyage };
+module.exports = {
+  getAllVoyages, getActiveVoyages, getVoyageById,
+  createVoyage, updateVoyage, deleteVoyage,
+  getSetting, setSetting,
+};

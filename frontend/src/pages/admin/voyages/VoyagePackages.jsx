@@ -1,8 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../layout/AdminLayout';
 
-const API = 'http://localhost:5000/api/voyages-organises';
+const API        = 'http://localhost:5000/api/voyages-organises';
+const COVERS_API = 'http://localhost:5000/api/voyages-organises/voyage-covers';
+
 const fPrice = (p) => (p ? Number(p).toLocaleString('fr-TN') + ' TND' : '—');
+
+const DEFAULT_COVER = {
+  hero: {
+    bg_image:     '',
+    tag:          '✈️ Agence de voyages organisés',
+    title:        'Découvrez le monde,',
+    title_accent: 'sans contraintes',
+    sub:          "Des séjours clé en main conçus par nos experts pour vous offrir l'expérience parfaite.",
+  },
+};
 
 const EMPTY = {
   title: '',
@@ -28,6 +40,10 @@ const EMPTY = {
   non_inclus: [],
   is_active: true,
 };
+
+// ─────────────────────────────────────────────────────────────
+// Composants utilitaires partagés
+// ─────────────────────────────────────────────────────────────
 
 const ModalField = ({ label, req, children }) => (
   <div className="al-field">
@@ -80,23 +96,13 @@ const EditableList = ({ label, items = [], onChange, placeholder = 'Ajouter un e
             type="button"
             onClick={() => removeItem(index)}
             style={{
-              flexShrink: 0,
-              width: 28,
-              height: 28,
-              borderRadius: 6,
-              border: '1px solid #e92f64',
-              background: 'rgba(233,47,100,.08)',
-              color: '#e92f64',
-              cursor: 'pointer',
-              fontSize: 14,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              flexShrink: 0, width: 28, height: 28, borderRadius: 6,
+              border: '1px solid #e92f64', background: 'rgba(233,47,100,.08)',
+              color: '#e92f64', cursor: 'pointer', fontSize: 14,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               marginTop: multiline ? 4 : 0,
             }}
-          >
-            ✕
-          </button>
+          >✕</button>
         </div>
       ))}
 
@@ -124,20 +130,12 @@ const EditableList = ({ label, items = [], onChange, placeholder = 'Ajouter un e
           type="button"
           onClick={addItem}
           style={{
-            flexShrink: 0,
-            padding: '0 14px',
-            borderRadius: 6,
-            border: '1px solid var(--primary, #0f4c5c)',
-            background: 'rgba(15,76,92,.1)',
-            color: 'var(--primary, #0f4c5c)',
-            cursor: 'pointer',
-            fontSize: 14,
-            fontWeight: 700,
+            flexShrink: 0, padding: '0 14px', borderRadius: 6,
+            border: '1px solid var(--primary, #0f4c5c)', background: 'rgba(15,76,92,.1)',
+            color: 'var(--primary, #0f4c5c)', cursor: 'pointer', fontSize: 14, fontWeight: 700,
             height: 36,
           }}
-        >
-          + Ajouter
-        </button>
+        >+ Ajouter</button>
       </div>
 
       <p style={{ fontSize: 11, color: 'var(--g400)', margin: 0 }}>
@@ -147,6 +145,241 @@ const EditableList = ({ label, items = [], onChange, placeholder = 'Ajouter un e
   );
 };
 
+// ─────────────────────────────────────────────────────────────
+// Modal apparence (hero cover)
+// ─────────────────────────────────────────────────────────────
+
+const CoversModal = ({ covers, onClose, onSaved, notify }) => {
+  const [form, setForm] = useState({
+    hero: { ...DEFAULT_COVER.hero, ...(covers?.hero || {}) },
+  });
+  const [loading, setLoading] = useState(false);
+
+  const setHero = (key, val) => setForm(p => ({ ...p, hero: { ...p.hero, [key]: val } }));
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(COVERS_API, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(form),
+      });
+      const json = await res.json();
+      if (json.success) {
+        notify('Apparence mise à jour ✅');
+        onSaved(form);
+      } else {
+        notify(json.message || 'Erreur', 'error');
+      }
+    } catch {
+      notify('Erreur réseau', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="al-overlay" onClick={onClose}>
+      <div
+        className="al-modal"
+        style={{ maxWidth: 720, maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="al-modal__header" style={{ flexShrink: 0 }}>
+          <div className="al-modal__title-wrap">
+            <div className="al-modal__icon" style={{ background: 'linear-gradient(135deg,#7c3aed,#a855f7)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <path d="M21 15l-5-5L5 21"/>
+              </svg>
+            </div>
+            <div>
+              <h2>Apparence de la page Voyages Organisés</h2>
+              <p style={{ fontSize: 12, color: 'var(--g400)', marginTop: 2 }}>
+                Modifiez l'image hero, les titres et le tag de la page publique
+              </p>
+            </div>
+          </div>
+          <button className="al-modal__close" onClick={onClose}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Body scrollable */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* Aperçu live */}
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--g400)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 10 }}>
+              Aperçu du bandeau hero
+            </p>
+            <div style={{
+              borderRadius: 16, overflow: 'hidden', position: 'relative', height: 210,
+              background: 'linear-gradient(135deg,#0f4c5c 0%,#1a7a8a 50%,#0f4c5c 100%)',
+              border: '2px solid var(--g200)', boxShadow: '0 4px 20px rgba(0,0,0,.1)',
+            }}>
+              {form.hero.bg_image && (
+                <img
+                  src={form.hero.bg_image}
+                  alt="hero bg"
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: .45 }}
+                  onError={e => { e.target.style.display = 'none'; }}
+                />
+              )}
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,40,55,.55)' }}/>
+              <div style={{ position: 'relative', padding: '28px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', color: '#fff' }}>
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: 'rgba(255,255,255,.15)', backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255,255,255,.25)', borderRadius: 999,
+                  padding: '4px 14px', fontSize: 11, fontWeight: 700,
+                  width: 'fit-content', marginBottom: 12,
+                }}>
+                  {form.hero.tag || '✈️ Agence de voyages organisés'}
+                </span>
+                <h1 style={{ fontSize: 24, fontWeight: 900, lineHeight: 1.25, margin: 0 }}>
+                  {form.hero.title || 'Découvrez le monde,'}<br/>
+                  <span style={{ color: '#1ecad3' }}>
+                    {form.hero.title_accent || 'sans contraintes'}
+                  </span>
+                </h1>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,.8)', marginTop: 8, lineHeight: 1.5, maxWidth: 480 }}>
+                  {form.hero.sub || "Des séjours clé en main conçus par nos experts pour vous offrir l'expérience parfaite."}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Image de fond */}
+          <div className="al-field">
+            <label className="al-label">URL de l'image de fond</label>
+            <input
+              className="al-input"
+              placeholder="https://images.unsplash.com/..."
+              value={form.hero.bg_image}
+              onChange={e => setHero('bg_image', e.target.value)}
+            />
+            <p style={{ fontSize: 11, color: 'var(--g400)', marginTop: 4 }}>
+              L'image sera assombrie automatiquement pour garantir la lisibilité du texte.
+            </p>
+          </div>
+
+          {/* Suggestions d'images */}
+          <div>
+            <p style={{ fontSize: 11, color: 'var(--g400)', marginBottom: 8, fontWeight: 600 }}>
+              Suggestions d'images :
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8 }}>
+              {[
+                { label: 'Voyage monde',    url: 'https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1600&q=80' },
+                { label: 'Istanbul',        url: 'https://images.unsplash.com/photo-1527838832700-5059252407fa?w=1600' },
+                { label: 'Paris',           url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1600' },
+                { label: 'Avion nuages',    url: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600' },
+                { label: 'Plage tropicale', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600' },
+                { label: 'Montagne',        url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1600' },
+              ].map(s => (
+                <div
+                  key={s.label}
+                  onClick={() => setHero('bg_image', s.url)}
+                  style={{
+                    borderRadius: 8, overflow: 'hidden', cursor: 'pointer',
+                    border: form.hero.bg_image === s.url ? '2.5px solid var(--primary)' : '1.5px solid var(--g200)',
+                    transition: 'all .15s',
+                  }}
+                >
+                  <img
+                    src={s.url}
+                    alt={s.label}
+                    style={{ width: '100%', height: 72, objectFit: 'cover', display: 'block' }}
+                    onError={e => { e.target.style.background = '#f1f5f9'; }}
+                  />
+                  <p style={{
+                    fontSize: 10, padding: '4px 6px', margin: 0, fontWeight: 600,
+                    color: form.hero.bg_image === s.url ? 'var(--primary)' : 'var(--g600)',
+                    background: form.hero.bg_image === s.url ? 'rgba(15,76,92,.08)' : 'transparent',
+                  }}>
+                    {s.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tag */}
+          <div className="al-field">
+            <label className="al-label">Tag / Étiquette</label>
+            <input
+              className="al-input"
+              placeholder="✈️ Agence de voyages organisés"
+              value={form.hero.tag}
+              onChange={e => setHero('tag', e.target.value)}
+            />
+          </div>
+
+          {/* Titres */}
+          <div className="al-row-2">
+            <div className="al-field">
+              <label className="al-label">Titre principal</label>
+              <input
+                className="al-input"
+                placeholder="Découvrez le monde,"
+                value={form.hero.title}
+                onChange={e => setHero('title', e.target.value)}
+              />
+            </div>
+            <div className="al-field">
+              <label className="al-label">Titre accentué (couleur turquoise)</label>
+              <input
+                className="al-input"
+                placeholder="sans contraintes"
+                value={form.hero.title_accent}
+                onChange={e => setHero('title_accent', e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Sous-titre */}
+          <div className="al-field">
+            <label className="al-label">Sous-titre</label>
+            <textarea
+              className="al-textarea"
+              rows={3}
+              value={form.hero.sub}
+              onChange={e => setHero('sub', e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="al-form-footer" style={{
+          flexShrink: 0, borderTop: '1px solid var(--g200)',
+          padding: '16px 24px', display: 'flex', justifyContent: 'flex-end', gap: 8,
+        }}>
+          <button type="button" className="al-btn al-btn--ghost" onClick={onClose}>Annuler</button>
+          <button
+            type="button"
+            className="al-btn al-btn--primary"
+            disabled={loading}
+            onClick={handleSave}
+            style={{ background: 'linear-gradient(135deg,#7c3aed,#a855f7)', borderColor: 'transparent' }}
+          >
+            {loading ? 'Enregistrement...' : "💾 Enregistrer l'apparence"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────
+// Modal création / édition voyage
+// ─────────────────────────────────────────────────────────────
+
 const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
   const isEdit = !!pkg;
   const [loading, setLoading] = useState(false);
@@ -154,25 +387,25 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
   const [form, setForm] = useState(() => ({
     ...EMPTY,
     ...(pkg || {}),
-    price: pkg?.price ? String(pkg.price) : '',
+    price:     pkg?.price     ? String(pkg.price)     : '',
     old_price: pkg?.old_price ? String(pkg.old_price) : '',
-    duration: pkg?.duration ? String(pkg.duration) : '',
-    spots: pkg?.spots ? String(pkg.spots) : '30',
-    rating: pkg?.rating ? String(pkg.rating) : '5',
-    reviews: pkg?.reviews ? String(pkg.reviews) : '0',
-    programme: Array.isArray(pkg?.programme) ? pkg.programme : [],
-    inclus: Array.isArray(pkg?.inclus) ? pkg.inclus : [],
+    duration:  pkg?.duration  ? String(pkg.duration)  : '',
+    spots:     pkg?.spots     ? String(pkg.spots)     : '30',
+    rating:    pkg?.rating    ? String(pkg.rating)    : '5',
+    reviews:   pkg?.reviews   ? String(pkg.reviews)   : '0',
+    programme:  Array.isArray(pkg?.programme)  ? pkg.programme  : [],
+    inclus:     Array.isArray(pkg?.inclus)     ? pkg.inclus     : [],
     non_inclus: Array.isArray(pkg?.non_inclus) ? pkg.non_inclus : [],
-    is_active: pkg?.is_active !== false,
+    is_active:  pkg?.is_active !== false,
   }));
 
   const set = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const TABS = [
-    { key: 'general', label: 'General', icon: '📋' },
-    { key: 'detail', label: 'Details', icon: '📝' },
-    { key: 'media', label: 'Medias', icon: '🖼️' },
-    { key: 'advanced', label: 'Avance', icon: '⚙️' },
+    { key: 'general',  label: 'General',  icon: '📋' },
+    { key: 'detail',   label: 'Details',  icon: '📝' },
+    { key: 'media',    label: 'Medias',   icon: '🖼️' },
+    { key: 'advanced', label: 'Avance',   icon: '⚙️' },
   ];
 
   const handleSubmit = async (e) => {
@@ -187,18 +420,18 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
 
     try {
       const res = await fetch(isEdit ? `${API}/${pkg.id}` : API, {
-        method: isEdit ? 'PUT' : 'POST',
+        method:  isEdit ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
-          price: Number(form.price),
+          price:     Number(form.price),
           old_price: form.old_price ? Number(form.old_price) : null,
-          duration: Number(form.duration),
-          spots: Number(form.spots) || 30,
-          rating: Number(form.rating) || 5,
-          reviews: Number(form.reviews) || 0,
-          programme: form.programme,
-          inclus: form.inclus,
+          duration:  Number(form.duration),
+          spots:     Number(form.spots)   || 30,
+          rating:    Number(form.rating)  || 5,
+          reviews:   Number(form.reviews) || 0,
+          programme:  form.programme,
+          inclus:     form.inclus,
           non_inclus: form.non_inclus,
         }),
       });
@@ -208,7 +441,7 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
         notify(isEdit ? 'Voyage mis a jour ✅' : 'Voyage cree ✅');
         onSaved();
       } else {
-        notify(json.message || 'Erreur lors de l enregistrement', 'error');
+        notify(json.message || "Erreur lors de l enregistrement", 'error');
       }
     } catch {
       notify('Erreur reseau', 'error');
@@ -224,6 +457,7 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
         style={{ maxWidth: 760, maxHeight: '95vh', display: 'flex', flexDirection: 'column' }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Header */}
         <div className="al-modal__header" style={{ flexShrink: 0 }}>
           <div className="al-modal__title-wrap">
             <div className="al-modal__icon">
@@ -245,6 +479,7 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
           </button>
         </div>
 
+        {/* Tabs */}
         <div style={{ padding: '0 24px', borderBottom: '1px solid var(--g200)', flexShrink: 0 }}>
           <div style={{ display: 'flex', gap: 0 }}>
             {TABS.map((tab) => (
@@ -253,19 +488,11 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
                 style={{
-                  padding: '12px 18px',
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  fontSize: 12,
-                  fontWeight: 700,
+                  padding: '12px 18px', border: 'none', background: 'transparent', cursor: 'pointer',
+                  fontSize: 12, fontWeight: 700,
                   color: activeTab === tab.key ? 'var(--primary)' : 'var(--g400)',
                   borderBottom: activeTab === tab.key ? '2px solid var(--primary)' : '2px solid transparent',
-                  transition: 'all .15s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  whiteSpace: 'nowrap',
+                  transition: 'all .15s', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap',
                 }}
               >
                 <span>{tab.icon}</span>
@@ -275,8 +502,11 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
           </div>
         </div>
 
+        {/* Body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
           <form id="voyage-form" onSubmit={handleSubmit} style={{ display: 'contents' }}>
+
+            {/* ── GENERAL ── */}
             {activeTab === 'general' && (
               <>
                 <ModalField label="Titre" req>
@@ -335,6 +565,7 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
               </>
             )}
 
+            {/* ── DETAIL ── */}
             {activeTab === 'detail' && (
               <>
                 <div className="al-row-2">
@@ -405,6 +636,7 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
               </>
             )}
 
+            {/* ── MEDIA ── */}
             {activeTab === 'media' && (
               <>
                 <ModalField label="Image principale">
@@ -428,23 +660,24 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
                     {[
                       { label: 'Istanbul', url: 'https://images.unsplash.com/photo-1527838832700-5059252407fa?w=1200' },
-                      { label: 'Paris', url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200' },
-                      { label: 'Dubai', url: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200' },
-                      { label: 'Rome', url: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1200' },
+                      { label: 'Paris',    url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200' },
+                      { label: 'Dubai',    url: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200' },
+                      { label: 'Rome',     url: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1200' },
                     ].map((suggestion) => (
                       <div
                         key={suggestion.label}
                         onClick={() => set('image_url', suggestion.url)}
                         style={{
-                          borderRadius: 8,
-                          overflow: 'hidden',
-                          cursor: 'pointer',
+                          borderRadius: 8, overflow: 'hidden', cursor: 'pointer',
                           border: form.image_url === suggestion.url ? '2.5px solid var(--primary)' : '1.5px solid var(--g200)',
                           transition: 'all .15s',
                         }}
                       >
                         <img src={suggestion.url} alt={suggestion.label} style={{ width: '100%', height: 72, objectFit: 'cover', display: 'block' }} />
-                        <p style={{ fontSize: 10, padding: '4px 6px', margin: 0, color: form.image_url === suggestion.url ? 'var(--primary)' : 'var(--g600)', fontWeight: 600 }}>
+                        <p style={{
+                          fontSize: 10, padding: '4px 6px', margin: 0, fontWeight: 600,
+                          color: form.image_url === suggestion.url ? 'var(--primary)' : 'var(--g600)',
+                        }}>
                           {suggestion.label}
                         </p>
                       </div>
@@ -454,6 +687,7 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
               </>
             )}
 
+            {/* ── ADVANCED ── */}
             {activeTab === 'advanced' && (
               <>
                 <div className="al-row-2">
@@ -482,10 +716,11 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
           </form>
         </div>
 
-        <div
-          className="al-form-footer"
-          style={{ flexShrink: 0, borderTop: '1px solid var(--g200)', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-        >
+        {/* Footer */}
+        <div className="al-form-footer" style={{
+          flexShrink: 0, borderTop: '1px solid var(--g200)', padding: '16px 24px',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
           <div style={{ display: 'flex', gap: 8 }}>
             {TABS.map((tab) => (
               <button
@@ -493,18 +728,13 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
                 style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  border: 'none',
+                  width: 8, height: 8, borderRadius: '50%', border: 'none',
                   background: activeTab === tab.key ? 'var(--primary)' : 'var(--g300)',
-                  cursor: 'pointer',
-                  transition: 'all .15s',
+                  cursor: 'pointer', transition: 'all .15s',
                 }}
               />
             ))}
           </div>
-
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="button" className="al-btn al-btn--ghost" onClick={onClose}>Annuler</button>
             <button type="submit" form="voyage-form" className="al-btn al-btn--primary" disabled={loading}>
@@ -517,10 +747,14 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
   );
 };
 
+// ─────────────────────────────────────────────────────────────
+// Panneau détail latéral
+// ─────────────────────────────────────────────────────────────
+
 const VoyageDetail = ({ voyage, onClose, onEdit, onDelete, isMain }) => {
-  const avail = voyage.available_spots !== undefined ? Number(voyage.available_spots) : Number(voyage.spots);
+  const avail  = voyage.available_spots !== undefined ? Number(voyage.available_spots) : Number(voyage.spots);
   const isFull = avail <= 0;
-  const isLow = avail <= 5 && avail > 0;
+  const isLow  = avail <= 5 && avail > 0;
 
   const InfoRow = ({ icon, label, value }) => value ? (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 12px', borderRadius: 8, background: 'var(--g50)', border: '1px solid var(--g100)' }}>
@@ -530,14 +764,16 @@ const VoyageDetail = ({ voyage, onClose, onEdit, onDelete, isMain }) => {
   ) : null;
 
   const continentLabel = { europe: 'Europe', asie: 'Asie', afrique: 'Afrique', amerique: 'Amerique', ocean: 'Oceanie' };
-  const saisonLabel = { ete: 'Ete', hiver: 'Hiver', printemps: 'Printemps', automne: 'Automne', 'toute-annee': "Toute l annee" };
-  const budgetLabel = { economique: 'Economique', standard: 'Standard', premium: 'Premium', luxe: 'Luxe' };
+  const saisonLabel    = { ete: 'Ete', hiver: 'Hiver', printemps: 'Printemps', automne: 'Automne', 'toute-annee': "Toute l annee" };
+  const budgetLabel    = { economique: 'Economique', standard: 'Standard', premium: 'Premium', luxe: 'Luxe' };
 
   return (
     <div style={{ width: 330, flexShrink: 0, borderLeft: '1px solid var(--g200)', display: 'flex', flexDirection: 'column', background: '#fff', animation: 'alModalIn .25s var(--ease)', overflowY: 'auto' }}>
       <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--g100)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: '#fff', zIndex: 2 }}>
         <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--g400)', textTransform: 'uppercase', letterSpacing: '.1em' }}>Details voyage</p>
-        <button className="al-modal__close" onClick={onClose}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg></button>
+        <button className="al-modal__close" onClick={onClose}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+        </button>
       </div>
 
       <div style={{ width: '100%', height: 170, background: 'var(--g100)', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
@@ -548,8 +784,14 @@ const VoyageDetail = ({ voyage, onClose, onEdit, onDelete, isMain }) => {
               <p style={{ fontSize: 12, color: 'rgba(255,255,255,.65)' }}>Pas d image</p>
             </div>}
         <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <span style={{ padding: '3px 9px', borderRadius: 999, background: voyage.is_active ? '#10b981' : '#94a3b8', color: '#fff', fontSize: 11, fontWeight: 700 }}>{voyage.is_active ? '● Actif' : '● Inactif'}</span>
-          {voyage.badge && <span style={{ padding: '3px 9px', borderRadius: 999, background: '#fff7ed', color: '#c2410c', fontSize: 11, fontWeight: 700 }}>{voyage.badge}</span>}
+          <span style={{ padding: '3px 9px', borderRadius: 999, background: voyage.is_active ? '#10b981' : '#94a3b8', color: '#fff', fontSize: 11, fontWeight: 700 }}>
+            {voyage.is_active ? '● Actif' : '● Inactif'}
+          </span>
+          {voyage.badge && (
+            <span style={{ padding: '3px 9px', borderRadius: 999, background: '#fff7ed', color: '#c2410c', fontSize: 11, fontWeight: 700 }}>
+              {voyage.badge}
+            </span>
+          )}
         </div>
       </div>
 
@@ -557,7 +799,11 @@ const VoyageDetail = ({ voyage, onClose, onEdit, onDelete, isMain }) => {
         <div>
           <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--g900)', lineHeight: 1.3 }}>{voyage.title}</h3>
           {voyage.subtitle && <p style={{ fontSize: 12, color: 'var(--g500)', marginTop: 4 }}>{voyage.subtitle}</p>}
-          {(voyage.pays || voyage.destination) && <p style={{ fontSize: 12, color: 'var(--g400)', marginTop: 6 }}>{[voyage.pays, voyage.destination].filter(Boolean).join(' · ')}</p>}
+          {(voyage.pays || voyage.destination) && (
+            <p style={{ fontSize: 12, color: 'var(--g400)', marginTop: 6 }}>
+              {[voyage.pays, voyage.destination].filter(Boolean).join(' · ')}
+            </p>
+          )}
         </div>
 
         {voyage.description && (
@@ -578,11 +824,11 @@ const VoyageDetail = ({ voyage, onClose, onEdit, onDelete, isMain }) => {
         <div>
           <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--g400)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8, paddingBottom: 6, borderBottom: '1px solid var(--g100)' }}>Informations</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <InfoRow icon="🗓" label="Duree" value={voyage.duration ? `${voyage.duration} jour${voyage.duration > 1 ? 's' : ''}` : null} />
-            <InfoRow icon="✈️" label="Depart" value={voyage.departure || null} />
+            <InfoRow icon="🗓" label="Duree"     value={voyage.duration ? `${voyage.duration} jour${voyage.duration > 1 ? 's' : ''}` : null} />
+            <InfoRow icon="✈️" label="Depart"    value={voyage.departure || null} />
             <InfoRow icon="🌍" label="Continent" value={continentLabel[voyage.continent] || null} />
-            <InfoRow icon="🌤" label="Saison" value={saisonLabel[voyage.saison] || null} />
-            <InfoRow icon="💰" label="Budget" value={budgetLabel[voyage.budget] || null} />
+            <InfoRow icon="🌤" label="Saison"    value={saisonLabel[voyage.saison] || null} />
+            <InfoRow icon="💰" label="Budget"    value={budgetLabel[voyage.budget] || null} />
             {voyage.categorie && <InfoRow icon="🏷" label="Categorie" value={voyage.categorie} />}
           </div>
         </div>
@@ -592,11 +838,15 @@ const VoyageDetail = ({ voyage, onClose, onEdit, onDelete, isMain }) => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 12px', borderRadius: 8, background: isFull ? '#fee2e2' : isLow ? '#fff7ed' : '#d1fae5', border: `1px solid ${isFull ? '#fca5a5' : isLow ? '#fed7aa' : '#a7f3d0'}` }}>
               <span style={{ fontSize: 12, color: isFull ? '#991b1b' : isLow ? '#92400e' : '#065f46' }}>🪑 Places disponibles</span>
-              <span style={{ fontSize: 13, fontWeight: 800, color: isFull ? '#e92f64' : isLow ? '#f97316' : '#065f46' }}>{isFull ? 'Complet' : `${avail} / ${voyage.spots}`}</span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: isFull ? '#e92f64' : isLow ? '#f97316' : '#065f46' }}>
+                {isFull ? 'Complet' : `${avail} / ${voyage.spots}`}
+              </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 12px', borderRadius: 8, background: 'rgba(15,76,92,.05)', border: '1px solid rgba(15,76,92,.1)' }}>
               <span style={{ fontSize: 12, color: 'var(--g500)' }}>📋 Reservations</span>
-              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--primary)' }}>{voyage.reservation_count || 0} inscrit{voyage.reservation_count > 1 ? 's' : ''}</span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--primary)' }}>
+                {voyage.reservation_count || 0} inscrit{voyage.reservation_count > 1 ? 's' : ''}
+              </span>
             </div>
           </div>
         </div>
@@ -607,7 +857,12 @@ const VoyageDetail = ({ voyage, onClose, onEdit, onDelete, isMain }) => {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
           Modifier
         </button>
-        <button className="al-btn al-btn--danger" onClick={() => { onDelete(voyage.id); onClose(); }} title={isMain ? 'Supprimer ce voyage' : 'Reserve a l administrateur principal'} style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}>
+        <button
+          className="al-btn al-btn--danger"
+          onClick={() => { onDelete(voyage.id); onClose(); }}
+          title={isMain ? 'Supprimer ce voyage' : "Reserve a l administrateur principal"}
+          style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" /></svg>
           {isMain ? 'Supprimer' : 'Supprimer 🔒'}
         </button>
@@ -616,13 +871,19 @@ const VoyageDetail = ({ voyage, onClose, onEdit, onDelete, isMain }) => {
   );
 };
 
+// ─────────────────────────────────────────────────────────────
+// Composant principal
+// ─────────────────────────────────────────────────────────────
+
 const VoyagePackages = () => {
-  const [voyages, setVoyages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [editPkg, setEditPkg] = useState(null);
-  const [selected, setSelected] = useState(null);
+  const [voyages,    setVoyages]    = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [toast,      setToast]      = useState(null);
+  const [showModal,  setShowModal]  = useState(false);
+  const [showCovers, setShowCovers] = useState(false);
+  const [editPkg,    setEditPkg]    = useState(null);
+  const [selected,   setSelected]   = useState(null);
+  const [covers,     setCovers]     = useState(null);
 
   const isMain = (() => {
     try { return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main'; }
@@ -647,14 +908,24 @@ const VoyagePackages = () => {
     }
   };
 
-  useEffect(() => { fetchVoyages(); }, []);
+  const fetchCovers = async () => {
+    try {
+      const r = await fetch(COVERS_API);
+      const j = await r.json();
+      if (j.success) setCovers(j.data);
+    } catch { /* ignore */ }
+  };
+
+  useEffect(() => {
+    fetchVoyages();
+    fetchCovers();
+  }, []);
 
   const handleDelete = async (id) => {
     if (!isMain) {
-      notify('Seul l administrateur principal peut supprimer un voyage', 'error');
+      notify("Seul l administrateur principal peut supprimer un voyage", 'error');
       return;
     }
-
     if (!window.confirm('Supprimer ce voyage ?')) return;
 
     const r = await fetch(`${API}/${id}`, { method: 'DELETE' });
@@ -669,8 +940,8 @@ const VoyagePackages = () => {
   };
 
   const stats = {
-    total: voyages.length,
-    active: voyages.filter((v) => v.is_active).length,
+    total:    voyages.length,
+    active:   voyages.filter((v) => v.is_active).length,
     inactive: voyages.filter((v) => !v.is_active).length,
     totalRes: voyages.reduce((a, v) => a + (parseInt(v.reservation_count) || 0), 0),
   };
@@ -680,29 +951,89 @@ const VoyagePackages = () => {
       title="Voyages Organises"
       breadcrumb={[{ label: 'Voyages Organises' }, { label: 'Catalogue', active: true }]}
       actions={
-        <button className="al-btn al-btn--primary" onClick={() => { setEditPkg(null); setShowModal(true); }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
-          Nouveau voyage
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {/* Bouton apparence page */}
+          <button
+            className="al-btn al-btn--ghost"
+            onClick={() => setShowCovers(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <path d="M21 15l-5-5L5 21"/>
+            </svg>
+            Apparence page
+          </button>
+          {/* Bouton nouveau voyage */}
+          <button className="al-btn al-btn--primary" onClick={() => { setEditPkg(null); setShowModal(true); }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Nouveau voyage
+          </button>
+        </div>
       }
       toast={toast}
     >
+      {/* Statistiques */}
       <div className="al-stats al-stats--4">
         {[
-          { label: 'Total voyages', value: stats.total, color: 'blue', icon: <><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6" /></> },
-          { label: 'Actifs', value: stats.active, color: 'green', icon: <><path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" /></> },
-          { label: 'Inactifs', value: stats.inactive, color: 'gray', icon: <><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></> },
-          { label: 'Total reservations', value: stats.totalRes, color: 'teal', icon: <><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" /><rect x="9" y="3" width="6" height="4" rx="1" /></> },
+          { label: 'Total voyages',     value: stats.total,    color: 'blue',  icon: <><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6" /></> },
+          { label: 'Actifs',            value: stats.active,   color: 'green', icon: <><path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" /></> },
+          { label: 'Inactifs',          value: stats.inactive, color: 'gray',  icon: <><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></> },
+          { label: 'Total reservations',value: stats.totalRes, color: 'teal',  icon: <><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" /><rect x="9" y="3" width="6" height="4" rx="1" /></> },
         ].map((s) => (
           <div key={s.label} className={`al-stat al-stat--${s.color}`}>
-            <div className="al-stat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">{s.icon}</svg></div>
+            <div className="al-stat__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">{s.icon}</svg>
+            </div>
             <div><p className="al-stat__value">{s.value}</p><p className="al-stat__label">{s.label}</p></div>
           </div>
         ))}
       </div>
 
+      {/* Aperçu miniature du cover hero — cliquable pour ouvrir la modal */}
+      {covers && (
+        <div style={{ margin: '0 32px 16px' }}>
+          <div
+            onClick={() => setShowCovers(true)}
+            style={{
+              borderRadius: 12, overflow: 'hidden', position: 'relative', height: 70,
+              cursor: 'pointer', border: '1.5px solid var(--g200)',
+              background: 'linear-gradient(135deg,#0f4c5c,#1a7a8a)',
+              transition: 'transform .15s, box-shadow .15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,.15)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+          >
+            {covers.hero?.bg_image && (
+              <img
+                src={covers.hero.bg_image}
+                alt="hero cover"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: .45 }}
+                onError={e => { e.target.style.display = 'none'; }}
+              />
+            )}
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.35)' }}/>
+            <div style={{ position: 'relative', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, height: '100%' }}>
+              <span style={{ fontSize: 18 }}>🖼️</span>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#fff', margin: 0 }}>
+                  {covers.hero?.title || 'Découvrez le monde,'}{' '}
+                  <span style={{ color: '#1ecad3' }}>{covers.hero?.title_accent || 'sans contraintes'}</span>
+                </p>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,.7)', margin: 0 }}>
+                  Cliquer pour modifier l'image hero de la page publique
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tableau principal */}
       <div style={{ display: 'flex', margin: '0 32px 32px', background: '#fff', borderRadius: 16, border: '1px solid var(--g200)', boxShadow: '0 4px 12px rgba(15,76,92,.08)', overflow: 'hidden' }}>
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+
           <div className="al-toolbar">
             <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--g800)', flex: 1 }}>Liste des voyages</p>
             <button className="al-btn al-btn--ghost" onClick={fetchVoyages}>
@@ -712,21 +1043,46 @@ const VoyagePackages = () => {
           </div>
 
           {loading ? (
-            <div className="al-loading"><div className="al-spinner-wrap"><div className="al-spinner" /></div><p style={{ fontSize: 13, color: 'var(--g400)' }}>Chargement...</p></div>
+            <div className="al-loading">
+              <div className="al-spinner-wrap"><div className="al-spinner" /></div>
+              <p style={{ fontSize: 13, color: 'var(--g400)' }}>Chargement...</p>
+            </div>
           ) : voyages.length === 0 ? (
-            <div className="al-empty"><div className="al-empty__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg></div><p className="al-empty__title">Aucun voyage</p><p className="al-empty__sub">Creez votre premier voyage organise.</p></div>
+            <div className="al-empty">
+              <div className="al-empty__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" /></svg>
+              </div>
+              <p className="al-empty__title">Aucun voyage</p>
+              <p className="al-empty__sub">Creez votre premier voyage organise.</p>
+            </div>
           ) : (
             <div className="al-table-wrap">
               <table className="al-table">
-                <thead><tr><th>Voyage</th><th>Prix</th><th>Duree</th><th>Depart</th><th>Places dispo</th><th>Reservations</th><th>Statut</th><th>Actions</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Voyage</th>
+                    <th>Prix</th>
+                    <th>Duree</th>
+                    <th>Depart</th>
+                    <th>Places dispo</th>
+                    <th>Reservations</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {voyages.map((v) => {
-                    const avail = v.available_spots !== undefined ? Number(v.available_spots) : Number(v.spots);
+                    const avail  = v.available_spots !== undefined ? Number(v.available_spots) : Number(v.spots);
                     const isFull = avail <= 0;
-                    const isLow = avail <= 5 && avail > 0;
-                    const isSel = selected?.id === v.id;
+                    const isLow  = avail <= 5 && avail > 0;
+                    const isSel  = selected?.id === v.id;
                     return (
-                      <tr key={v.id} className={`al-row ${isSel ? 'al-row--selected' : ''}`} style={{ cursor: 'pointer' }} onClick={() => setSelected(isSel ? null : v)}>
+                      <tr
+                        key={v.id}
+                        className={`al-row ${isSel ? 'al-row--selected' : ''}`}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setSelected(isSel ? null : v)}
+                      >
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             {v.image_url
@@ -735,26 +1091,54 @@ const VoyagePackages = () => {
                                   <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5" style={{ width: 20, height: 20 }}><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6" /></svg>
                                 </div>}
                             <div>
-                              <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--g800)' }}>{v.title}{v.badge && <span style={{ marginLeft: 7, padding: '2px 7px', borderRadius: 999, background: '#fff7ed', color: '#c2410c', fontSize: 10, fontWeight: 700 }}>{v.badge}</span>}</p>
-                              <p style={{ fontSize: 11, color: 'var(--g400)', marginTop: 2 }}>{v.pays} {v.destination ? `· ${v.destination}` : ''}</p>
+                              <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--g800)' }}>
+                                {v.title}
+                                {v.badge && <span style={{ marginLeft: 7, padding: '2px 7px', borderRadius: 999, background: '#fff7ed', color: '#c2410c', fontSize: 10, fontWeight: 700 }}>{v.badge}</span>}
+                              </p>
+                              <p style={{ fontSize: 11, color: 'var(--g400)', marginTop: 2 }}>
+                                {v.pays} {v.destination ? `· ${v.destination}` : ''}
+                              </p>
                             </div>
                           </div>
                         </td>
-                        <td><p style={{ fontWeight: 700, fontSize: 13, color: 'var(--primary)' }}>{fPrice(v.price)}</p>{v.old_price && <p style={{ fontSize: 11, color: 'var(--g400)', textDecoration: 'line-through' }}>{fPrice(v.old_price)}</p>}</td>
+                        <td>
+                          <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--primary)' }}>{fPrice(v.price)}</p>
+                          {v.old_price && <p style={{ fontSize: 11, color: 'var(--g400)', textDecoration: 'line-through' }}>{fPrice(v.old_price)}</p>}
+                        </td>
                         <td><span style={{ fontWeight: 600, fontSize: 13 }}>{v.duration} j</span></td>
                         <td><span style={{ fontSize: 12, color: 'var(--g600)' }}>{v.departure || '—'}</span></td>
                         <td>
-                          <span style={{ fontWeight: 700, fontSize: 13, color: isFull ? '#e92f64' : isLow ? '#f97316' : '#065f46' }}>{isFull ? '❌ Complet' : `${avail} / ${v.spots}`}</span>
+                          <span style={{ fontWeight: 700, fontSize: 13, color: isFull ? '#e92f64' : isLow ? '#f97316' : '#065f46' }}>
+                            {isFull ? '❌ Complet' : `${avail} / ${v.spots}`}
+                          </span>
                           {isLow && <p style={{ fontSize: 10, color: '#f97316', marginTop: 2 }}>🔥 Presque complet</p>}
                         </td>
-                        <td><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999, background: 'rgba(15,76,92,.08)', color: 'var(--primary)', fontSize: 12, fontWeight: 700 }}>{v.reservation_count || 0} inscrit{v.reservation_count > 1 ? 's' : ''}</span></td>
-                        <td><span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: v.is_active ? '#d1fae5' : 'var(--g100)', color: v.is_active ? '#065f46' : 'var(--g500)' }}><span style={{ width: 6, height: 6, borderRadius: '50%', background: v.is_active ? '#10b981' : 'var(--g400)' }} />{v.is_active ? 'Actif' : 'Inactif'}</span></td>
+                        <td>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999, background: 'rgba(15,76,92,.08)', color: 'var(--primary)', fontSize: 12, fontWeight: 700 }}>
+                            {v.reservation_count || 0} inscrit{v.reservation_count > 1 ? 's' : ''}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: v.is_active ? '#d1fae5' : 'var(--g100)', color: v.is_active ? '#065f46' : 'var(--g500)' }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: v.is_active ? '#10b981' : 'var(--g400)' }} />
+                            {v.is_active ? 'Actif' : 'Inactif'}
+                          </span>
+                        </td>
                         <td onClick={(e) => e.stopPropagation()}>
                           <div style={{ display: 'flex', gap: 6 }}>
-                            <button className="al-action-btn al-action-btn--edit" onClick={() => { setEditPkg(v); setShowModal(true); }} title="Modifier">
+                            <button
+                              className="al-action-btn al-action-btn--edit"
+                              onClick={() => { setEditPkg(v); setShowModal(true); }}
+                              title="Modifier"
+                            >
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                             </button>
-                            <button className="al-action-btn al-action-btn--delete" onClick={() => handleDelete(v.id)} title={isMain ? 'Supprimer' : 'Reserve a l administrateur principal'} style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}>
+                            <button
+                              className="al-action-btn al-action-btn--delete"
+                              onClick={() => handleDelete(v.id)}
+                              title={isMain ? 'Supprimer' : "Reserve a l administrateur principal"}
+                              style={{ opacity: isMain ? 1 : 0.4, cursor: isMain ? 'pointer' : 'not-allowed' }}
+                            >
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" /></svg>
                             </button>
                           </div>
@@ -766,19 +1150,40 @@ const VoyagePackages = () => {
               </table>
             </div>
           )}
-          <div className="al-table-footer"><p className="al-count">{voyages.length} voyage{voyages.length !== 1 ? 's' : ''}</p></div>
+
+          <div className="al-table-footer">
+            <p className="al-count">{voyages.length} voyage{voyages.length !== 1 ? 's' : ''}</p>
+          </div>
         </div>
 
+        {/* Panneau détail latéral */}
         {selected && (
-          <VoyageDetail voyage={selected} onClose={() => setSelected(null)} onEdit={(v) => { setEditPkg(v); setShowModal(true); }} onDelete={handleDelete} isMain={isMain} />
+          <VoyageDetail
+            voyage={selected}
+            onClose={() => setSelected(null)}
+            onEdit={(v) => { setEditPkg(v); setShowModal(true); }}
+            onDelete={handleDelete}
+            isMain={isMain}
+          />
         )}
       </div>
 
+      {/* Modal création / édition voyage */}
       {showModal && (
         <PkgModal
           pkg={editPkg}
           onClose={() => { setShowModal(false); setEditPkg(null); }}
           onSaved={() => { setShowModal(false); setEditPkg(null); fetchVoyages(); }}
+          notify={notify}
+        />
+      )}
+
+      {/* Modal apparence page */}
+      {showCovers && (
+        <CoversModal
+          covers={covers}
+          onClose={() => setShowCovers(false)}
+          onSaved={(newCovers) => { setCovers(newCovers); setShowCovers(false); }}
           notify={notify}
         />
       )}
