@@ -11,7 +11,6 @@ import frCircuits from './locales/fr/circuits.json';
 import frBooking  from './locales/fr/booking.json';
 import frOmra     from './locales/fr/omra.json';
 import frDestinations from './locales/fr/destinations.json';
-import frHotels from './locales/fr/hotels.json';
 import frVoyages  from './locales/fr/voyages.json';
 
 // ── Namespaces EN ──────────────────────────────────────────────
@@ -24,7 +23,6 @@ import enBooking  from './locales/en/booking.json';
 import enOmra     from './locales/en/omra.json';
 import enVoyages  from './locales/en/voyages.json';
 import enDestinations from './locales/en/destinations.json';
-import enHotels from './locales/en/hotels.json';
 
 
 i18n
@@ -32,12 +30,12 @@ i18n
   .use(initReactI18next)
   .init({
     resources: {
-      fr: { common: frCommon, navbar: frNavbar, footer: frFooter, contact: frContact, circuits: frCircuits, booking: frBooking, omra: frOmra, voyages: frVoyages, destinations: frDestinations, hotels: frHotels },
-      en: { common: enCommon, navbar: enNavbar, footer: enFooter, contact: enContact, circuits: enCircuits, booking: enBooking, omra: enOmra, voyages: enVoyages, destinations: enDestinations, hotels: enHotels },
+      fr: { common: frCommon, navbar: frNavbar, footer: frFooter, contact: frContact, circuits: frCircuits, booking: frBooking, omra: frOmra, voyages: frVoyages, destinations: frDestinations },
+      en: { common: enCommon, navbar: enNavbar, footer: enFooter, contact: enContact, circuits: enCircuits, booking: enBooking, omra: enOmra, voyages: enVoyages, destinations: enDestinations },
     },
     fallbackLng: 'fr',
     defaultNS: 'common',
-    ns: ['common', 'navbar', 'footer', 'contact', 'circuits', 'booking', 'omra', 'voyages', 'destinations', 'hotels'],
+    ns: ['common', 'navbar', 'footer', 'contact', 'circuits', 'booking', 'omra', 'voyages', 'destinations'],
     supportedLngs: ['fr', 'en'],
     load: 'languageOnly',
     detection: {

@@ -24,7 +24,6 @@ const circuitReservationRoutes = require('./routes/circuitreservationRoutes');
 const promotionsRoutes         = require('./routes/promotionsRoutes');
 const adminAuthRoutes          = require('./routes/adminAuthRoutes');
 const mediaRoutes              = require('./routes/mediaRoutes');
-const hotelRoutes              = require('./routes/hotelRoutes');
 
 
 
@@ -71,7 +70,6 @@ app.use('/api/circuit-reservations', circuitReservationRoutes);
 app.use('/api/promotions',           promotionsRoutes);
 app.use('/api/admin-auth',           adminAuthRoutes);
 app.use('/api/media',                mediaRoutes);
-app.use('/api/hotels',               hotelRoutes);
 app.use('/api/flights', require('./routes/flightRoutes'));
 
  
@@ -94,14 +92,6 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, async () => {
   console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
-
-  try {
-    const { ensureHotelSchema, seedHotelsIfEmpty } = require('./services/hotelService');
-    await ensureHotelSchema();
-    await seedHotelsIfEmpty();
-  } catch (err) {
-    console.error('[startup] Erreur initialisation hotels:', err.message);
-  }
 
  
   // Auto-sync vols si la table est vide

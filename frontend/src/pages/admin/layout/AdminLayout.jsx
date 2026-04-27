@@ -17,7 +17,6 @@ const Icon = ({ name }) => {
     admins:     <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/><circle cx="19" cy="3" r="2" fill="currentColor"/></>,
     logo:       <><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></>,
     promotions: <><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></>,
-    hotels:     <><path d="M3 21V10l9-7 9 7v11"/><path d="M9 21V12h6v9"/><path d="M7 10h10"/></>,
   };
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">{paths[name]}</svg>
@@ -47,11 +46,6 @@ const NAV_BASE = [
       { label: 'Omra', icon: 'omra', sub: [
           { label: 'Forfaits',     path: '/admin/omra/packages',     badgeKey: null },
           { label: 'Réservations', path: '/admin/omra/reservations', badgeKey: 'omraPending' },
-      ]},
-      { label: 'Hôtels', icon: 'hotels', sub: [
-          { label: 'Catalogue',        path: '/admin/hotels',              badgeKey: null },
-          { label: 'Réservations',     path: '/admin/hotels/reservations', badgeKey: null },
-          { label: 'Gestion des prix', path: '/admin/hotels/pricing',      badgeKey: null },
       ]},
       // ── Updated: Billeterie / Vols ────────────────────────
       { label: 'Billeterie / Vols', icon: 'billets', sub: [

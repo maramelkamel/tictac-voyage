@@ -431,6 +431,7 @@ const ClientProfile = () => {
   const handleTabChange = (tab) => { setActiveTab(tab); setSearchParams({ tab }); };
   const handleFavoriteOpen = (favorite) => {
     const path = favorite.item_data?.detailPath || getFavoritePath(favorite.item_type, favorite.item_id);
+    if (path && path.startsWith('/hotels')) return;
     if (path) navigate(path);
   };
 
@@ -815,7 +816,6 @@ const ClientProfile = () => {
                           omra:    { label:'🕌 Omra',    bg:'#f5f3ff', color:'#7c3aed' },
                           voyage:  { label:'🏖️ Voyage',  bg:'#ede9fe', color:'#4338ca' },
                           circuit: { label:'🗺️ Circuit', bg:'#d1fae5', color:'#059669' },
-                          hotel:   { label:'🏨 Hôtel',   bg:'#e0fbfc', color:'#0e7490' },
                         };
                         const tm = typeMap[fav.item_type] || { label:fav.item_type, bg:'#f1f5f9', color:'#64748b' };
                         return (

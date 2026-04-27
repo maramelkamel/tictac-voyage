@@ -36,14 +36,6 @@ const MODULES = [
     ],
   },
   {
-    title: 'Hôtels',        color: 'teal',   status: 'active', desc: 'Catalogue & réservations',
-    links: [
-      { label: 'Catalogue',        path: '/admin/hotels',              sk: null,            badge: false },
-      { label: 'Réservations',     path: '/admin/hotels/reservations', sk: 'hotelsPending', badge: true  },
-      { label: 'Gestion des prix', path: '/admin/hotels/pricing',      sk: null,            badge: false },
-    ],
-  },
-  {
     title: 'Billeterie / Vols', color: 'blue', status: 'active', desc: 'Vols & tarification',
     links: [
       { label: 'Réservations',     path: '/admin/flights/reservations',       sk: 'flightsPending', badge: true  },
@@ -402,7 +394,7 @@ const Dashboard = () => {
     vehicles: 0, pending: 0, surMesure: 0, contactNew: 0,
     omraPending: 0, totalClients: 0, activeClients: 0,
     voyagesTotal: 0, voyagesPending: 0,
-    circuitsTotal: 0, circuitsPending: 0, hotelsPending: 0, flightsPending: 0,
+    circuitsTotal: 0, circuitsPending: 0, flightsPending: 0,
     totalReservations: 0, confirmedReservations: 0,
     completedReservations: 0, cancelledReservations: 0,
     pendingReservations: 0,
@@ -420,15 +412,13 @@ const Dashboard = () => {
       fetch('http://localhost:5000/api/voyage-reservations').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/circuits').then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/circuit-reservations').then(r => r.json()).catch(() => ({})),
-      fetch('http://localhost:5000/api/hotels/reservations', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/flights/reservations', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({})),
-    ]).then(([v, r, ct, cs, omra, clients, voyages, voyageRes, circuits, circuitRes, hotelRes, flightRes]) => {
+    ]).then(([v, r, ct, cs, omra, clients, voyages, voyageRes, circuits, circuitRes, flightRes]) => {
       const allRes = [
         ...(r.data       || []),
         ...(omra.data    || []),
         ...(voyageRes.data  || []),
         ...(circuitRes.data || []),
-        ...(hotelRes.data   || []),
         ...(flightRes.data  || []),
       ];
 
@@ -452,7 +442,6 @@ const Dashboard = () => {
         voyagesPending:        voyageRes.data?.filter(x => x.status === 'pending').length  || 0,
         circuitsTotal:         circuits.data?.length || 0,
         circuitsPending:       circuitRes.data?.filter(x => x.status === 'pending').length || 0,
-        hotelsPending:         hotelRes.data?.filter(x => x.status === 'pending').length  || 0,
         flightsPending:        flightRes.data?.filter(x => x.status === 'pending').length  || 0,
         totalReservations:     allRes.length,
         confirmedReservations: allRes.filter(x => x.status === 'confirmed').length,
@@ -465,7 +454,7 @@ const Dashboard = () => {
 
   const totalPending =
     st.pending + st.voyagesPending + st.circuitsPending +
-    st.omraPending + st.hotelsPending + st.flightsPending + st.surMesure + st.contactNew;
+    st.omraPending + st.flightsPending + st.surMesure + st.contactNew;
 
   /* ── KPI cards ── */
   const kpis = [
@@ -546,7 +535,6 @@ const Dashboard = () => {
         contactNew:        st.contactNew,
         voyagesPending:    st.voyagesPending,
         circuitsPending:   st.circuitsPending,
-        hotelsPending:     st.hotelsPending,
         flightsPending:    st.flightsPending,
       }}
     >
