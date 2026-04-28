@@ -214,6 +214,30 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
       </>
     );
 
+    if (type === 'hotel') return (
+      <>
+        <Section title="Hotel reserve">
+          <Row label="Hotel" value={r.hotel_name || null}/>
+          <Row label="Ville" value={r.hotel_city || null}/>
+          <Row label="Adresse" value={r.hotel_location || null}/>
+          <Row label="Check-in" value={fDate(r.check_in)}/>
+          <Row label="Check-out" value={fDate(r.check_out)}/>
+          <Row label="Voyageurs" value={r.adults ? `${r.adults} adulte${r.adults > 1 ? 's' : ''}` : null}/>
+          <Row label="Chambres" value={r.rooms ? `${r.rooms} chambre${r.rooms > 1 ? 's' : ''}` : null}/>
+        </Section>
+        <Section title="Paiement">
+          <Row label="Methode" value={r.payment_method === 'online' ? '💳 En ligne' : "🏪 A l'agence"}/>
+          <Row label="Statut paiement" value={r.payment_status === 'paid' ? '✅ Paye' : '⏳ En attente'} accent={r.payment_status === 'paid' ? '#059669' : '#c2410c'}/>
+          <Row label="Total" value={r.total_price ? `${Number(r.total_price).toLocaleString('fr-FR')} ${r.currency || ''}`.trim() : null} accent="#0F4C5C"/>
+        </Section>
+        {r.special_requests && (
+          <Section title="Demandes speciales">
+            <p style={{ fontSize:13, color:'#475569', background:'#f8fafc', padding:'12px 14px', borderRadius:8, lineHeight:1.6 }}>{r.special_requests}</p>
+          </Section>
+        )}
+      </>
+    );
+
     if (type === 'custom') {
       const nights = r.departure_date && r.return_date
         ? Math.ceil(Math.abs(new Date(r.return_date) - new Date(r.departure_date)) / 86400000)
@@ -370,6 +394,7 @@ const ClientProfile = () => {
   const [voyageRes,  setVoyageRes]  = useState([]);
   const [circuitRes, setCircuitRes] = useState([]);
   const [flightRes,  setFlightRes]  = useState([]);
+  const [hotelRes,   setHotelRes]   = useState([]);
   const [transRes,   setTransRes]   = useState([]);
   const [customRes,  setCustomRes]  = useState([]);
   const [messages,   setMessages]   = useState([]);
@@ -406,11 +431,12 @@ const ClientProfile = () => {
     try {
       const headers = { Authorization: `Bearer ${token}` };
       const e = email?.toLowerCase();
-      const [omra, voyage, circuit, flights, trans, custom, msgs, favs] = await Promise.all([
+      const [omra, voyage, circuit, flights, hotels, trans, custom, msgs, favs] = await Promise.all([
         fetch(`${API}/omra/reservations`,    { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/voyage-reservations`,  { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/circuit-reservations`, { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/flights/mine`,         { headers }).then(r=>r.json()).catch(()=>({})),
+        fetch(`${API}/hotels/mine`,          { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/requests`,             { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/custom-trips`,         { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/contact`,              { headers }).then(r=>r.json()).catch(()=>({})),
@@ -420,6 +446,7 @@ const ClientProfile = () => {
       setVoyageRes( (voyage.data  || []).filter(r => r.email?.toLowerCase() === e));
       setCircuitRes((circuit.data || []).filter(r => r.email?.toLowerCase() === e));
       setFlightRes( flights.data || []);
+      setHotelRes(  hotels.data || []);
       setTransRes(  (trans.data   || []).filter(r => r.email?.toLowerCase() === e));
       setCustomRes( (custom.data  || []).filter(r => r.email?.toLowerCase() === e));
       setMessages(  (msgs.data    || []).filter(r => r.email?.toLowerCase() === e));
@@ -451,7 +478,7 @@ const ClientProfile = () => {
     finally { setSaving(false); }
   };
 
-  const allReservations = [...omraRes, ...voyageRes, ...circuitRes, ...flightRes, ...transRes, ...customRes];
+  const allReservations = [...omraRes, ...voyageRes, ...circuitRes, ...flightRes, ...hotelRes, ...transRes, ...customRes];
   const totalRes        = allReservations.length;
   const loyalty         = getLoyaltyInfo(totalRes);
   const nextDiscount    = getNextDiscount(totalRes);

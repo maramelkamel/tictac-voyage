@@ -26,50 +26,51 @@ const getJson = async (path, params) => {
 
 export const getCityId = async (city) => getJson('/hotels/city-id', { city });
 
-export const getHotelsFromMakCorps = async ({
-  cityId,
-  page = 0,
-  currency = 'USD',
-  rooms = 1,
-  adults = 2,
-  checkin,
-  checkout,
-}) => getJson('/hotels/makcorps', {
-  cityId,
-  page,
-  currency,
-  rooms,
-  adults,
-  checkin,
-  checkout,
-});
+export const getHotelsFromMakCorps = async (cityIdOrOptions, options = {}) => {
+  const params = typeof cityIdOrOptions === 'object'
+    ? cityIdOrOptions
+    : { cityId: cityIdOrOptions, ...options };
 
-export const getHotelsFromBookingAPI = async ({
-  city,
-  bbox,
-  page = 1,
-  pageSize = 6,
-  checkin,
-  checkout,
-  adults = 2,
-  rooms = 1,
-  currency = 'USD',
-}) => getJson('/hotels/booking', {
-  city,
-  bbox,
-  page,
-  pageSize,
-  checkin,
-  checkout,
-  adults,
-  rooms,
-  currency,
-});
+  return getJson('/hotels/makcorps', {
+    cityId: params.cityId,
+    page: params.page ?? 0,
+    currency: params.currency ?? 'USD',
+    rooms: params.rooms ?? 1,
+    adults: params.adults ?? 2,
+    checkin: params.checkin,
+    checkout: params.checkout,
+  });
+};
+
+export const getHotelsFromBookingAPI = async (bboxOrOptions, options = {}) => {
+  const params = typeof bboxOrOptions === 'object'
+    ? bboxOrOptions
+    : { bbox: bboxOrOptions, ...options };
+
+  return getJson('/hotels/booking', {
+    city: params.city,
+    bbox: params.bbox,
+    page: params.page ?? 1,
+    pageSize: params.pageSize ?? 6,
+    checkin: params.checkin,
+    checkout: params.checkout,
+    adults: params.adults ?? 2,
+    rooms: params.rooms ?? 1,
+    currency: params.currency ?? 'USD',
+  });
+};
 
 export const getManualHotels = async ({ city, search } = {}) =>
   getJson('/hotels/manual', { city, search });
 
-export const createHotelBooking = async ({ hotel, reservation, payment_method }) => {
+export const createHotelBooking = async ({
+  hotel,
+  reservation,
+  payment_method,
+  promo_code = null,
+  applied_promotion = null,
+  display_total = null,
+}) => {
   const token = localStorage.getItem('token');
   if (!token) {
     throw new Error('Vous devez etre connecte pour reserver.');
@@ -81,12 +82,39 @@ export const createHotelBooking = async ({ hotel, reservation, payment_method })
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ hotel, reservation, payment_method }),
+    body: JSON.stringify({
+      hotel,
+      reservation,
+      payment_method,
+      promo_code,
+      applied_promotion,
+      display_total,
+    }),
   });
 
   const data = await response.json();
   if (!response.ok || data.success === false) {
     throw new Error(data.message || 'Booking failed.');
+  }
+
+  return data;
+};
+
+export const getMyHotelReservations = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('Vous devez etre connecte pour voir vos reservations.');
+  }
+
+  const response = await fetch(`${API_BASE}/hotels/mine`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const data = await response.json();
+
+  if (!response.ok || data.success === false) {
+    throw new Error(data.message || 'Failed to load hotel reservations.');
   }
 
   return data;

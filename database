@@ -1115,3 +1115,92 @@ npm install i18next react-i18next i18next-locize-backend i18next-browser-languag
 Miniar:
 ALTER TABLE omra_packages
 ALTER COLUMN image_url TYPE TEXT;
+
+
+-- ============================================================
+--  Hotels system - Booking + MakCorps
+--  Added for the Flights-like Hotels flow
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.hotels_catalog (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  city VARCHAR(120) NOT NULL,
+  address TEXT,
+  description TEXT,
+  image_url TEXT,
+  rating NUMERIC(3,1),
+  amenities JSONB NOT NULL DEFAULT '[]',
+  base_price NUMERIC(10,2),
+  currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+  availability VARCHAR(120) NOT NULL DEFAULT 'Available',
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.hotel_reservations (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER,
+  hotel_id INTEGER,
+  hotel_name VARCHAR(255) NOT NULL,
+  hotel_city VARCHAR(120),
+  hotel_location TEXT,
+  check_in DATE NOT NULL,
+  check_out DATE NOT NULL,
+  adults INTEGER NOT NULL DEFAULT 2,
+  rooms INTEGER NOT NULL DEFAULT 1,
+  total_price NUMERIC(10,2) NOT NULL DEFAULT 0,
+  currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+  promo_code VARCHAR(60),
+  applied_promotion JSONB,
+  payment_method VARCHAR(20) NOT NULL DEFAULT 'agency'
+    CHECK (payment_method IN ('online','agency')),
+  status VARCHAR(20) NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending','confirmed','cancelled','completed')),
+  payment_status VARCHAR(20) NOT NULL DEFAULT 'pending'
+    CHECK (payment_status IN ('pending','paid','refunded')),
+  holder_first_name VARCHAR(120) NOT NULL,
+  holder_last_name VARCHAR(120) NOT NULL,
+  holder_email VARCHAR(255) NOT NULL,
+  holder_phone VARCHAR(60) NOT NULL,
+  special_requests TEXT,
+  selected_hotel JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.hotel_reservations
+  ADD COLUMN IF NOT EXISTS promo_code VARCHAR(60),
+  ADD COLUMN IF NOT EXISTS applied_promotion JSONB;
+
+CREATE INDEX IF NOT EXISTS idx_hotels_catalog_city ON public.hotels_catalog (LOWER(city));
+CREATE INDEX IF NOT EXISTS idx_hotels_catalog_name ON public.hotels_catalog (LOWER(name));
+CREATE INDEX IF NOT EXISTS idx_hotel_reservations_user ON public.hotel_reservations (user_id);
+CREATE INDEX IF NOT EXISTS idx_hotel_reservations_status ON public.hotel_reservations (status);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_trigger
+    WHERE tgname = 'trg_hotels_catalog_updated'
+  ) THEN
+    CREATE TRIGGER trg_hotels_catalog_updated
+    BEFORE UPDATE ON public.hotels_catalog
+    FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_trigger
+    WHERE tgname = 'trg_hotel_reservations_updated'
+  ) THEN
+    CREATE TRIGGER trg_hotel_reservations_updated
+    BEFORE UPDATE ON public.hotel_reservations
+    FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+  END IF;
+END $$;

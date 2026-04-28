@@ -103,6 +103,14 @@ app.listen(PORT, async () => {
   } catch (err) {
     console.error('[startup] Erreur auto-sync vols:', err.message);
   }
+
+  try {
+    const { ensureHotelSchema, seedHotelsIfEmpty } = require('./services/hotelService');
+    await ensureHotelSchema();
+    await seedHotelsIfEmpty();
+  } catch (err) {
+    console.error('[startup] Erreur hotel bootstrap:', err.message);
+  }
 });
 
 module.exports = app;

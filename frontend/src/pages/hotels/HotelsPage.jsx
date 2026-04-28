@@ -4,6 +4,8 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import CardStyle from '../../components/CardStyle';
 import { getMergedHotels } from '../../services/hotelsService';
+import { usePromotions } from '../../hooks/usePromotions';
+import PromotionsSection from '../admin/promotions/PromotionsSection';
 import '../../styles/omrastyle.css';
 
 const CITY_OPTIONS = ['Tunis', 'Sousse', 'Hammamet'];
@@ -40,6 +42,7 @@ const HotelsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [warnings, setWarnings] = useState([]);
+  const { promos } = usePromotions('categorie', 'hotels');
 
   useEffect(() => {
     let cancelled = false;
@@ -133,6 +136,12 @@ const HotelsPage = () => {
           </p>
         </div>
       </div>
+
+      {promos.length > 0 && (
+        <div className="container" style={{ paddingTop: 24 }}>
+          <PromotionsSection promos={promos} titre="Promotions hotels" showCards={false} />
+        </div>
+      )}
 
       <div className="container" style={{ padding: '28px 0 60px' }}>
         <div style={{ background: '#fff', borderRadius: 18, padding: 24, border: '1px solid #e2e8f0', boxShadow: '0 10px 30px rgba(0,0,0,0.06)', marginBottom: 24 }}>

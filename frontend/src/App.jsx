@@ -45,6 +45,12 @@ import FlightListPage from './pages/flight/FlightsListPage';
 import FlightDetails from './pages/flight/FlightDetailPage';
 import FlightReservations from './pages/admin/flight/FlightReservations';
 import FlightPricingAdmin from './pages/admin/flight/FlightPricingAdmin';
+import HotelsPage from './pages/hotels/HotelsPage';
+import HotelReservationPage from './pages/hotels/HotelReservationPage';
+import HotelPaymentPage from './pages/hotels/HotelPaymentPage';
+import HotelExplainPage from './pages/hotels/HotelExplainPage';
+import HotelCatalogAdmin from './pages/admin/hotel/HotelCatalogAdmin';
+import HotelReservationsAdmin from './pages/admin/hotel/HotelReservationsAdmin';
 
 
 
@@ -102,6 +108,13 @@ function App() {
       <Route path="/flights/details"     element={<FlightDetails />} />
       <Route path="/admin/flights/reservations"       element={<FlightReservations />} />
       <Route path="/admin/flights/pricing"      element={<FlightPricingAdmin />} />
+      <Route path="/hotels" element={<HotelsPage />} />
+      <Route path="/hotels/results" element={<HotelsPage />} />
+      <Route path="/hotels/reserve" element={<HotelReservationPage />} />
+      <Route path="/hotels/payment" element={<HotelPaymentPage />} />
+      <Route path="/hotels/explain" element={<HotelExplainPage />} />
+      <Route path="/admin/hotels/catalog" element={<HotelCatalogAdmin />} />
+      <Route path="/admin/hotels/reservations" element={<HotelReservationsAdmin />} />
       
 
          

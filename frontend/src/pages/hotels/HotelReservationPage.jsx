@@ -36,7 +36,7 @@ const HotelReservationPage = () => {
           <h2 style={{ color: '#0F4C5C', marginBottom: 10 }}>No hotel selected</h2>
           <p style={{ color: '#64748b', marginBottom: 24 }}>Please choose a hotel before continuing to reservation.</p>
           <button
-            onClick={() => navigate('/hotels/search')}
+            onClick={() => navigate('/hotels')}
             style={{
               padding: '12px 24px',
               borderRadius: 12,
@@ -92,7 +92,7 @@ const HotelReservationPage = () => {
         <div className="container">
           <div className="flights-page-shell flights-reservation-shell">
             <div className="omra-page-breadcrumb" style={{ paddingTop: 8 }}>
-              <button onClick={() => navigate('/hotels/search')}><i className="fas fa-arrow-left" /> Hotels</button>
+              <button onClick={() => navigate('/hotels')}><i className="fas fa-arrow-left" /> Hotels</button>
               <i className="fas fa-chevron-right" style={{ fontSize: 10, color: 'var(--gray-400)' }} />
               <span style={{ color: 'var(--gray-700)', fontWeight: 700 }}>Reservation</span>
             </div>

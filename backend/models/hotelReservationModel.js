@@ -13,6 +13,7 @@ const parseJson = (value, fallback = []) => {
 const normalizeRow = (row) => ({
   ...row,
   selected_hotel: parseJson(row.selected_hotel, {}),
+  applied_promotion: parseJson(row.applied_promotion, null),
 });
 
 const create = async ({
@@ -27,6 +28,8 @@ const create = async ({
   rooms = 1,
   total_price,
   currency = 'USD',
+  promo_code = null,
+  applied_promotion = null,
   payment_method = 'agency',
   status = 'pending',
   payment_status = 'pending',
@@ -39,9 +42,9 @@ const create = async ({
 }) => {
   const { rows } = await pool.query(
     `INSERT INTO public.hotel_reservations
-      (user_id, hotel_id, hotel_name, hotel_city, hotel_location, check_in, check_out, adults, rooms, total_price, currency, payment_method, status, payment_status, holder_first_name, holder_last_name, holder_email, holder_phone, special_requests, selected_hotel)
+      (user_id, hotel_id, hotel_name, hotel_city, hotel_location, check_in, check_out, adults, rooms, total_price, currency, promo_code, applied_promotion, payment_method, status, payment_status, holder_first_name, holder_last_name, holder_email, holder_phone, special_requests, selected_hotel)
      VALUES
-      ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+      ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
      RETURNING *`,
     [
       user_id,
@@ -55,6 +58,8 @@ const create = async ({
       rooms,
       total_price,
       currency,
+      promo_code,
+      JSON.stringify(applied_promotion || null),
       payment_method,
       status,
       payment_status,

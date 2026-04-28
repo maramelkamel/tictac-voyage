@@ -1,7 +1,7 @@
 const HotelModel = require('../models/hotelModel');
 const HotelReservationModel = require('../models/hotelReservationModel');
 const hotelService = require('../services/hotelService');
-const { sendReservationStatusEmail } = require('../utils/mailer');
+const { sendAgencyReservationEmail, sendReservationStatusEmail } = require('../utils/mailer');
 
 const DEFAULT_AMENITIES = ['WiFi', 'Pool', 'Breakfast', 'Parking'];
 
@@ -173,6 +173,9 @@ const bookHotel = async (req, res) => {
       hotel,
       reservation,
       payment_method = 'agency',
+      promo_code = null,
+      applied_promotion = null,
+      display_total = null,
     } = req.body;
 
     if (!hotel?.name) {
@@ -184,6 +187,10 @@ const bookHotel = async (req, res) => {
     }
 
     const isOnline = payment_method === 'online';
+    const finalTotal = Number.isFinite(Number(display_total))
+      ? toNumber(display_total, 0)
+      : toNumber(hotel.price_numeric, 0);
+
     const saved = await HotelReservationModel.create({
       user_id: req.clientId || null,
       hotel_id: hotel.manual_id || null,
@@ -194,8 +201,10 @@ const bookHotel = async (req, res) => {
       check_out: reservation.check_out,
       adults: toNumber(reservation.adults, 2),
       rooms: toNumber(reservation.rooms, 1),
-      total_price: toNumber(hotel.price_numeric, 0),
+      total_price: finalTotal,
       currency: hotel.currency || 'USD',
+      promo_code,
+      applied_promotion,
       payment_method,
       status: isOnline ? 'confirmed' : 'pending',
       payment_status: isOnline ? 'paid' : 'pending',
@@ -204,25 +213,45 @@ const bookHotel = async (req, res) => {
       holder_email: reservation.holder_email,
       holder_phone: reservation.holder_phone,
       special_requests: reservation.special_requests || null,
-      selected_hotel: hotel,
+      selected_hotel: {
+        ...hotel,
+        applied_promotion: applied_promotion || null,
+      },
     });
 
-    await sendReservationStatusEmail({
-      email: reservation.holder_email,
-      firstName: reservation.holder_first_name,
-      type: 'hotel',
-      title: hotel.name,
-      status: saved.status,
-      details: {
-        Ville: saved.hotel_city,
-        'Check-in': saved.check_in,
-        'Check-out': saved.check_out,
-        Voyageurs: `${saved.adults} adulte(s)`,
-        Chambres: `${saved.rooms}`,
-        Paiement: isOnline ? 'En ligne' : "A l'agence",
-        Total: `${Number(saved.total_price).toLocaleString('fr-FR')} ${saved.currency}`,
-      },
-    }).catch((error) => console.error('Hotel reservation email failed:', error.message));
+    const emailDetails = {
+      Ville: saved.hotel_city,
+      'Check-in': saved.check_in,
+      'Check-out': saved.check_out,
+      Voyageurs: `${saved.adults} adulte(s)`,
+      Chambres: `${saved.rooms}`,
+      Paiement: isOnline ? 'En ligne' : "A l'agence",
+      Total: `${Number(saved.total_price).toLocaleString('fr-FR')} ${saved.currency}`,
+      'Code promo': promo_code || applied_promotion?.code_promo || null,
+    };
+
+    if (isOnline) {
+      await sendReservationStatusEmail({
+        email: reservation.holder_email,
+        firstName: reservation.holder_first_name,
+        type: 'hotel',
+        title: hotel.name,
+        status: saved.status,
+        details: emailDetails,
+      }).catch((error) => console.error('Hotel reservation email failed:', error.message));
+    } else {
+      await sendAgencyReservationEmail({
+        email: reservation.holder_email,
+        firstName: reservation.holder_first_name,
+        type: 'hotel',
+        title: hotel.name,
+        details: emailDetails,
+        promotionReminder: applied_promotion?.date_fin ? {
+          code: applied_promotion.code_promo,
+          date_fin: applied_promotion.date_fin,
+        } : null,
+      }).catch((error) => console.error('Hotel agency email failed:', error.message));
+    }
 
     return res.status(201).json({
       success: true,

@@ -1,7 +1,7 @@
 const HotelModel = require('../models/hotelModel');
 
 const MAKCORPS_API_KEY = process.env.MAKCORPS_API_KEY || '69f0c445bd5b9206d5e814e1';
-const RAPIDAPI_KEY = process.env.BOOKING_RAPIDAPI_KEY || 'd9315e07dbmsh661111331e771f4p12ac73jsn2ae4435d3080';
+const RAPIDAPI_KEY = process.env.BOOKING_RAPIDAPI_KEY || '';
 const RAPIDAPI_HOST = process.env.BOOKING_RAPIDAPI_HOST || 'apidojo-booking-v1.p.rapidapi.com';
 
 const CITY_BBOXES = {
@@ -99,6 +99,10 @@ const getHotelsFromBookingAPI = async ({
   rooms = 1,
   currency = 'USD',
 }) => {
+  if (!RAPIDAPI_KEY) {
+    throw new Error('Booking RapidAPI key is missing.');
+  }
+
   const offset = Math.max(0, (page - 1) * pageSize);
   const url = new URL(`https://${RAPIDAPI_HOST}/properties/list-by-map`);
 
@@ -177,6 +181,8 @@ const ensureHotelSchema = async () => {
       rooms INTEGER NOT NULL DEFAULT 1,
       total_price NUMERIC(10,2) NOT NULL DEFAULT 0,
       currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+      promo_code VARCHAR(60),
+      applied_promotion JSONB,
       payment_method VARCHAR(20) NOT NULL DEFAULT 'agency'
         CHECK (payment_method IN ('online','agency')),
       status VARCHAR(20) NOT NULL DEFAULT 'pending'
@@ -192,6 +198,12 @@ const ensureHotelSchema = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE public.hotel_reservations
+      ADD COLUMN IF NOT EXISTS promo_code VARCHAR(60),
+      ADD COLUMN IF NOT EXISTS applied_promotion JSONB;
   `);
 
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_hotels_catalog_city ON public.hotels_catalog (LOWER(city));`);

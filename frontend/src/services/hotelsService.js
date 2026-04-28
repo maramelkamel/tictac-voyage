@@ -14,6 +14,8 @@ const CITY_BBOXES = {
   Hammamet: '10.53,36.35,10.68,36.47',
 };
 
+const getCityBoundingBox = (city = 'Tunis') => CITY_BBOXES[city] || CITY_BBOXES.Tunis;
+
 const getDefaultDates = () => {
   const now = new Date();
   const checkInDate = new Date(now);
@@ -264,6 +266,7 @@ export const getMergedHotels = async ({
   const dates = checkin && checkout ? { checkin, checkout } : getDefaultDates();
 
   let bookingData = [];
+  let bookingMeta = { total: 0 };
   let makcorpsData = [];
   let manualData = [];
   const warnings = [];
@@ -276,7 +279,7 @@ export const getMergedHotels = async ({
   try {
     const bookingResponse = await getHotelsFromBookingAPI({
       city: safeCity,
-      bbox: CITY_BBOXES[safeCity] || CITY_BBOXES.Tunis,
+      bbox: getCityBoundingBox(safeCity),
       page,
       pageSize,
       checkin: dates.checkin,
@@ -286,6 +289,7 @@ export const getMergedHotels = async ({
       currency: 'USD',
     });
     bookingData = bookingResponse.hotels || [];
+    bookingMeta = bookingResponse;
     sources.booking = bookingData.length > 0;
   } catch (error) {
     warnings.push('Booking API is unavailable, showing fallback hotels.');
@@ -319,27 +323,37 @@ export const getMergedHotels = async ({
   let mergedHotels = [];
 
   if (bookingData.length > 0) {
+    // Booking is the primary source of truth for hotel structure.
+    // MakCorps is used only to enrich each Booking hotel with a matched price.
     mergedHotels = bookingData.map((bookingHotel) =>
       formatBookingHotel(bookingHotel, findMakcorpsMatch(bookingHotel, makcorpsData), safeCity)
     );
   } else if (makcorpsData.length > 0) {
+    // If Booking is unavailable, we still keep the UI alive with MakCorps-only entries.
     mergedHotels = makcorpsData.map((hotel) => formatMakcorpsOnlyHotel(hotel, safeCity));
   }
 
-  const manualHotels = manualData.map(formatManualHotel);
+  // Manual admin hotels stay available alongside API hotels.
+  // They are injected on the first page to avoid repeating the same manual entries on every page.
+  const manualHotels = page === 1 ? manualData.map(formatManualHotel) : [];
   const dedupedHotels = dedupeHotels([...manualHotels, ...mergedHotels]);
 
-  const start = (page - 1) * pageSize;
-  const pagedHotels = bookingData.length > 0
-    ? dedupedHotels
-    : dedupedHotels.slice(start, start + pageSize);
+  const totalFromApis = bookingData.length > 0
+    ? Number(bookingMeta.total) || bookingData.length
+    : dedupedHotels.length;
+  const total = bookingData.length > 0
+    ? Math.max(dedupedHotels.length, totalFromApis + manualHotels.length)
+    : dedupedHotels.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const pagedHotels = dedupedHotels.slice(0, pageSize);
 
   return {
     hotels: pagedHotels,
     page,
     pageSize,
-    total: bookingData.length > 0 ? dedupedHotels.length : dedupedHotels.length,
-    totalPages: Math.max(1, Math.ceil(dedupedHotels.length / pageSize)),
+    total,
+    totalPages,
     checkin: dates.checkin,
     checkout: dates.checkout,
     warnings,
