@@ -12,17 +12,90 @@ const buildQuery = (params = {}) => {
   return searchParams.toString();
 };
 
-const getJson = async (path, params) => {
+const parseJson = async (response) => {
+  try {
+    return await response.json();
+  } catch {
+    return {};
+  }
+};
+
+const normalizeMessage = (value = '') =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+const clearClientSession = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('client');
+};
+
+const clearAdminSession = () => {
+  localStorage.removeItem('adminToken');
+  localStorage.removeItem('admin');
+};
+
+const isExpiredTokenMessage = (message = '') => {
+  const normalized = normalizeMessage(message);
+  return normalized.includes('token invalide ou expire')
+    || normalized.includes('token manquant')
+    || normalized.includes('jwt expired')
+    || normalized.includes('jwt malformed');
+};
+
+const resolveErrorMessage = (message, authType) => {
+  if (!isExpiredTokenMessage(message)) {
+    return message || 'Request failed.';
+  }
+
+  if (authType === 'admin') {
+    clearAdminSession();
+    return 'Session admin expiree. Reconnectez-vous pour gerer les hotels.';
+  }
+
+  if (authType === 'client') {
+    clearClientSession();
+    return 'Votre session a expire. Reconnectez-vous pour continuer votre reservation.';
+  }
+
+  return message || 'Request failed.';
+};
+
+const requestJson = async (path, {
+  method = 'GET',
+  params,
+  body,
+  headers = {},
+  authType = null,
+} = {}) => {
   const query = buildQuery(params);
-  const response = await fetch(`${API_BASE}${path}${query ? `?${query}` : ''}`);
-  const data = await response.json();
+  const authToken = authType === 'admin'
+    ? localStorage.getItem('adminToken')
+    : authType === 'client'
+      ? localStorage.getItem('token')
+      : null;
+
+  const response = await fetch(`${API_BASE}${path}${query ? `?${query}` : ''}`, {
+    method,
+    headers: {
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      ...headers,
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+
+  const data = await parseJson(response);
 
   if (!response.ok || data.success === false) {
-    throw new Error(data.message || 'Request failed.');
+    throw new Error(resolveErrorMessage(data.message, authType));
   }
 
   return data;
 };
+
+const getJson = async (path, params) => requestJson(path, { params });
 
 export const getCityId = async (city) => getJson('/hotels/city-id', { city });
 
@@ -76,28 +149,18 @@ export const createHotelBooking = async ({
     throw new Error('Vous devez etre connecte pour reserver.');
   }
 
-  const response = await fetch(`${API_BASE}/hotels/book`, {
+  return requestJson('/hotels/book', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
+    authType: 'client',
+    body: {
       hotel,
       reservation,
       payment_method,
       promo_code,
       applied_promotion,
       display_total,
-    }),
+    },
   });
-
-  const data = await response.json();
-  if (!response.ok || data.success === false) {
-    throw new Error(data.message || 'Booking failed.');
-  }
-
-  return data;
 };
 
 export const getMyHotelReservations = async () => {
@@ -106,93 +169,42 @@ export const getMyHotelReservations = async () => {
     throw new Error('Vous devez etre connecte pour voir vos reservations.');
   }
 
-  const response = await fetch(`${API_BASE}/hotels/mine`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  const data = await response.json();
-
-  if (!response.ok || data.success === false) {
-    throw new Error(data.message || 'Failed to load hotel reservations.');
-  }
-
-  return data;
+  return requestJson('/hotels/mine', { authType: 'client' });
 };
 
 export const getAdminHotels = async ({ city, search } = {}) => {
-  const token = localStorage.getItem('adminToken');
-  const response = await fetch(`${API_BASE}/hotels/admin/hotels?${buildQuery({ city, search })}`, {
-    headers: { Authorization: `Bearer ${token}` },
+  return requestJson('/hotels/admin/hotels', {
+    params: { city, search },
+    authType: 'admin',
   });
-  const data = await response.json();
-  if (!response.ok || data.success === false) {
-    throw new Error(data.message || 'Failed to load hotels.');
-  }
-  return data;
 };
 
 export const saveAdminHotel = async (hotel, hotelId = null) => {
-  const token = localStorage.getItem('adminToken');
   const method = hotelId ? 'PUT' : 'POST';
   const path = hotelId ? `/hotels/admin/hotels/${hotelId}` : '/hotels/admin/hotels';
 
-  const response = await fetch(`${API_BASE}${path}`, {
+  return requestJson(path, {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(hotel),
+    authType: 'admin',
+    body: hotel,
   });
-
-  const data = await response.json();
-  if (!response.ok || data.success === false) {
-    throw new Error(data.message || 'Failed to save hotel.');
-  }
-  return data;
 };
 
 export const deleteAdminHotel = async (hotelId) => {
-  const token = localStorage.getItem('adminToken');
-  const response = await fetch(`${API_BASE}/hotels/admin/hotels/${hotelId}`, {
+  return requestJson(`/hotels/admin/hotels/${hotelId}`, {
     method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
+    authType: 'admin',
   });
-
-  const data = await response.json();
-  if (!response.ok || data.success === false) {
-    throw new Error(data.message || 'Failed to delete hotel.');
-  }
-  return data;
 };
 
 export const getHotelReservationsAdmin = async () => {
-  const token = localStorage.getItem('adminToken');
-  const response = await fetch(`${API_BASE}/hotels/reservations`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  const data = await response.json();
-  if (!response.ok || data.success === false) {
-    throw new Error(data.message || 'Failed to load reservations.');
-  }
-  return data;
+  return requestJson('/hotels/reservations', { authType: 'admin' });
 };
 
 export const updateHotelReservationStatus = async (reservationId, status) => {
-  const token = localStorage.getItem('adminToken');
-  const response = await fetch(`${API_BASE}/hotels/reservations/${reservationId}/status`, {
+  return requestJson(`/hotels/reservations/${reservationId}/status`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ status }),
+    authType: 'admin',
+    body: { status },
   });
-
-  const data = await response.json();
-  if (!response.ok || data.success === false) {
-    throw new Error(data.message || 'Failed to update reservation.');
-  }
-  return data;
 };

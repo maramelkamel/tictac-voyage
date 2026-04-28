@@ -35,7 +35,7 @@ const HotelExplainPage = () => {
       <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #0f3460 100%)', paddingTop: 120, paddingBottom: 36 }}>
         <div className="container">
           <div className="omra-page-breadcrumb" style={{ paddingTop: 0, marginBottom: 16 }}>
-            <button onClick={() => navigate('/hotels/search')}>
+            <button onClick={() => navigate('/hotels')}>
               <i className="fas fa-arrow-left" /> Hotels
             </button>
             <i className="fas fa-chevron-right" style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }} />

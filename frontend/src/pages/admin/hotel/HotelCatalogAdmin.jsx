@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../layout/AdminLayout';
 import { deleteAdminHotel, getAdminHotels, saveAdminHotel } from '../../../services/api';
 
@@ -17,8 +18,10 @@ const DEFAULT_FORM = {
 };
 
 const CITIES = ['Tunis', 'Sousse', 'Hammamet'];
+const DEFAULT_ADMIN_HOTEL_IMAGE = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80';
 
 const HotelCatalogAdmin = () => {
+  const navigate = useNavigate();
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -29,6 +32,16 @@ const HotelCatalogAdmin = () => {
   const [editingHotel, setEditingHotel] = useState(null);
   const [form, setForm] = useState(DEFAULT_FORM);
   const [saving, setSaving] = useState(false);
+
+  const redirectIfAdminSessionExpired = (message = '') => {
+    if (!message.toLowerCase().includes('session admin expiree')) {
+      return false;
+    }
+
+    notify(message, 'error');
+    setTimeout(() => navigate('/admin/login'), 900);
+    return true;
+  };
 
   const notify = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -43,6 +56,7 @@ const HotelCatalogAdmin = () => {
       const response = await getAdminHotels();
       setHotels(response.hotels || []);
     } catch (loadError) {
+      if (redirectIfAdminSessionExpired(loadError.message || '')) return;
       setError(loadError.message || 'Unable to load hotels catalog.');
     } finally {
       setLoading(false);
@@ -126,6 +140,7 @@ const HotelCatalogAdmin = () => {
       closeModal();
       await loadHotels();
     } catch (saveError) {
+      if (redirectIfAdminSessionExpired(saveError.message || '')) return;
       notify(saveError.message || 'Unable to save hotel.', 'error');
     } finally {
       setSaving(false);
@@ -141,6 +156,7 @@ const HotelCatalogAdmin = () => {
       notify('Hotel deleted successfully.');
       await loadHotels();
     } catch (deleteError) {
+      if (redirectIfAdminSessionExpired(deleteError.message || '')) return;
       notify(deleteError.message || 'Unable to delete hotel.', 'error');
     }
   };
@@ -224,7 +240,7 @@ const HotelCatalogAdmin = () => {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <img
-                          src={hotel.image_url || 'https://source.unsplash.com/120x80/?hotel'}
+                          src={hotel.image_url || DEFAULT_ADMIN_HOTEL_IMAGE}
                           alt={hotel.name}
                           style={{ width: 54, height: 42, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--g200)' }}
                         />

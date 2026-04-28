@@ -5,8 +5,13 @@ import {
   getManualHotels,
 } from './api';
 
-const UNSPLASH_HOTEL_IMAGE = 'https://source.unsplash.com/300x200/?hotel';
 const DEFAULT_AMENITIES = ['WiFi', 'Pool', 'Breakfast', 'Parking'];
+const CITY_FALLBACK_IMAGES = {
+  Tunis: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80',
+  Sousse: 'https://images.unsplash.com/photo-1522798514-97ceb8c4f1c8?w=1200&q=80',
+  Hammamet: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=1200&q=80',
+};
+const DEFAULT_HOTEL_IMAGE = 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=1200&q=80';
 
 const CITY_BBOXES = {
   Tunis: '10.10,36.60,10.30,36.85',
@@ -14,7 +19,13 @@ const CITY_BBOXES = {
   Hammamet: '10.53,36.35,10.68,36.47',
 };
 
-const getCityBoundingBox = (city = 'Tunis') => CITY_BBOXES[city] || CITY_BBOXES.Tunis;
+const toCityKey = (city = 'Tunis') => {
+  const normalized = city.trim().toLowerCase();
+  return Object.keys(CITY_BBOXES).find((item) => item.toLowerCase() === normalized) || 'Tunis';
+};
+
+const getCityBoundingBox = (city = 'Tunis') => CITY_BBOXES[toCityKey(city)] || CITY_BBOXES.Tunis;
+const getHotelImageFallback = (city = 'Tunis') => CITY_FALLBACK_IMAGES[toCityKey(city)] || DEFAULT_HOTEL_IMAGE;
 
 const getDefaultDates = () => {
   const now = new Date();
@@ -159,7 +170,7 @@ const formatBookingHotel = (bookingHotel, matchedMakcorps, city) => {
     displayPrice: priceInfo.displayPrice,
     currency: priceInfo.currency,
     rating: Number(rating),
-    image: bookingHotel?.main_photo_url || UNSPLASH_HOTEL_IMAGE,
+    image: bookingHotel?.main_photo_url || bookingHotel?.photo_main_url || getHotelImageFallback(city),
     location: bookingHotel?.address || city || 'Tunisia',
     city,
     amenities: DEFAULT_AMENITIES,
@@ -190,7 +201,7 @@ const formatMakcorpsOnlyHotel = (hotel, city) => {
     displayPrice: priceInfo.displayPrice,
     currency: priceInfo.currency,
     rating: Number(rating),
-    image: UNSPLASH_HOTEL_IMAGE,
+    image: getHotelImageFallback(city),
     location: city || 'Tunisia',
     city,
     amenities: DEFAULT_AMENITIES,
@@ -220,7 +231,7 @@ const formatManualHotel = (hotel) => {
     displayPrice: priceInfo.displayPrice,
     currency: priceInfo.currency,
     rating: Number(hotel.rating || getFallbackRating(seed)),
-    image: hotel.image_url || UNSPLASH_HOTEL_IMAGE,
+    image: hotel.image_url || getHotelImageFallback(hotel.city),
     location: hotel.address ? `${hotel.city}, ${hotel.address}` : hotel.city,
     city: hotel.city,
     amenities: amenityNames,
@@ -262,7 +273,7 @@ export const getMergedHotels = async ({
   adults = 2,
   rooms = 1,
 } = {}) => {
-  const safeCity = city || 'Tunis';
+  const safeCity = toCityKey(city || 'Tunis');
   const dates = checkin && checkout ? { checkin, checkout } : getDefaultDates();
 
   let bookingData = [];

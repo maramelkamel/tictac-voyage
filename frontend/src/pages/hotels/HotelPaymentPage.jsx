@@ -12,8 +12,20 @@ import {
 } from '../../utils/promotionPricing';
 import '../../styles/Payment.css';
 
-const ErrorPopup = ({ message, onClose }) => {
+const isSessionMessage = (message = '') => {
+  const normalized = message
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+  return normalized.includes('session')
+    || normalized.includes('reconnectez')
+    || normalized.includes('connecte');
+};
+
+const ErrorPopup = ({ message, onClose, onAction, actionLabel = 'Se reconnecter' }) => {
   if (!message) return null;
+  const sessionExpired = isSessionMessage(message);
 
   return (
     <div
@@ -29,12 +41,22 @@ const ErrorPopup = ({ message, onClose }) => {
         </div>
         <h3 style={{ fontSize: 18, fontWeight: 800, color: '#991b1b', marginBottom: 10 }}>Erreur de reservation</h3>
         <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.7, marginBottom: 28 }}>{message}</p>
-        <button
-          onClick={onClose}
-          style={{ padding: '13px 28px', borderRadius: 12, border: 'none', background: '#0F4C5C', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', width: '100%' }}
-        >
-          Fermer
-        </button>
+        <div style={{ display: 'grid', gap: 10 }}>
+          {sessionExpired && onAction && (
+            <button
+              onClick={onAction}
+              style={{ padding: '13px 28px', borderRadius: 12, border: 'none', background: '#E92F64', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', width: '100%' }}
+            >
+              {actionLabel}
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            style={{ padding: '13px 28px', borderRadius: 12, border: 'none', background: '#0F4C5C', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', width: '100%' }}
+          >
+            Fermer
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -196,7 +218,11 @@ const HotelPaymentPage = () => {
     <div className="payment-page">
       <Navbar />
 
-      <ErrorPopup message={popup} onClose={() => setPopup('')} />
+      <ErrorPopup
+        message={popup}
+        onClose={() => setPopup('')}
+        onAction={() => navigate('/SignIn')}
+      />
 
       <div className="payment-hero">
         <div className="container">

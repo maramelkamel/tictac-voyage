@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../layout/AdminLayout';
 import { getHotelReservationsAdmin, updateHotelReservationStatus } from '../../../services/api';
 
@@ -12,6 +13,7 @@ const STATUS_MAP = {
 const formatDate = (value) => value ? new Date(value).toLocaleDateString('fr-FR') : '—';
 
 const HotelReservationsAdmin = () => {
+  const navigate = useNavigate();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -33,6 +35,16 @@ const HotelReservationsAdmin = () => {
     setTimeout(() => setToast(null), 3500);
   };
 
+  const redirectIfAdminSessionExpired = (message = '') => {
+    if (!message.toLowerCase().includes('session admin expiree')) {
+      return false;
+    }
+
+    notify(message, 'error');
+    setTimeout(() => navigate('/admin/login'), 900);
+    return true;
+  };
+
   const loadReservations = async () => {
     setLoading(true);
     setError('');
@@ -41,6 +53,7 @@ const HotelReservationsAdmin = () => {
       const response = await getHotelReservationsAdmin();
       setReservations(response.data || []);
     } catch (loadError) {
+      if (redirectIfAdminSessionExpired(loadError.message || '')) return;
       setError(loadError.message || 'Unable to load hotel reservations.');
     } finally {
       setLoading(false);
@@ -90,6 +103,7 @@ const HotelReservationsAdmin = () => {
         setSelectedReservation((current) => ({ ...current, status: nextStatus }));
       }
     } catch (updateError) {
+      if (redirectIfAdminSessionExpired(updateError.message || '')) return;
       notify(updateError.message || 'Unable to update reservation status.', 'error');
     }
   };

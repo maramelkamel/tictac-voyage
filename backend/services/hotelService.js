@@ -1,7 +1,7 @@
 const HotelModel = require('../models/hotelModel');
 
 const MAKCORPS_API_KEY = process.env.MAKCORPS_API_KEY || '69f0c445bd5b9206d5e814e1';
-const RAPIDAPI_KEY = process.env.BOOKING_RAPIDAPI_KEY || '';
+const RAPIDAPI_KEY = process.env.BOOKING_RAPIDAPI_KEY || 'd9315e07dbmsh661111331e771f4p12ac73jsn2ae4435d3080';
 const RAPIDAPI_HOST = process.env.BOOKING_RAPIDAPI_HOST || 'apidojo-booking-v1.p.rapidapi.com';
 
 const CITY_BBOXES = {
@@ -252,7 +252,7 @@ const seedHotelsIfEmpty = async () => {
       city: 'Tunis',
       address: 'Centre-ville, Tunis',
       description: buildHotelDescription('Tunis Central Suites', 'Tunis'),
-      image_url: 'https://source.unsplash.com/300x200/?hotel,tunis',
+      image_url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80',
       rating: 4.4,
       amenities: DEFAULT_AMENITIES,
       base_price: 132,
@@ -263,7 +263,7 @@ const seedHotelsIfEmpty = async () => {
       city: 'Sousse',
       address: 'Marina El Kantaoui, Sousse',
       description: buildHotelDescription('Sousse Marina Hotel', 'Sousse'),
-      image_url: 'https://source.unsplash.com/300x200/?hotel,sousse',
+      image_url: 'https://images.unsplash.com/photo-1522798514-97ceb8c4f1c8?w=1200&q=80',
       rating: 4.6,
       amenities: DEFAULT_AMENITIES,
       base_price: 148,
@@ -274,7 +274,7 @@ const seedHotelsIfEmpty = async () => {
       city: 'Hammamet',
       address: 'Zone touristique, Hammamet',
       description: buildHotelDescription('Hammamet Garden Resort', 'Hammamet'),
-      image_url: 'https://source.unsplash.com/300x200/?hotel,hammamet',
+      image_url: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=1200&q=80',
       rating: 4.7,
       amenities: DEFAULT_AMENITIES,
       base_price: 165,
