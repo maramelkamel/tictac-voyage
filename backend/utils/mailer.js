@@ -13,6 +13,7 @@ const getTypeLabel = (type) => ({
   voyage: 'Voyage organise',
   circuit: 'Circuit Tunisie',
   flight: 'Billet d avion',
+  hotel: 'Hotel',
   transport: 'Transport',
   custom: 'Voyage sur mesure',
 }[type] || type);

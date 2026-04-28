@@ -71,6 +71,7 @@ app.use('/api/promotions',           promotionsRoutes);
 app.use('/api/admin-auth',           adminAuthRoutes);
 app.use('/api/media',                mediaRoutes);
 app.use('/api/flights', require('./routes/flightRoutes'));
+app.use('/api/hotels', require('./routes/hotelRoutes'));
 
  
 
