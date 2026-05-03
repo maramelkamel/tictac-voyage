@@ -10,7 +10,7 @@ const STATUS_MAP = {
   cancelled: { label: 'Annulee', bg: '#fee2e2', color: '#991b1b' },
 };
 
-const formatDate = (value) => value ? new Date(value).toLocaleDateString('fr-FR') : '—';
+const formatDate = (value) => value ? new Date(value).toLocaleDateString('fr-FR') : '-';
 
 const HotelReservationsAdmin = () => {
   const navigate = useNavigate();
@@ -191,8 +191,12 @@ const HotelReservationsAdmin = () => {
                         <p style={{ fontSize: 11, color: 'var(--g400)', marginTop: 2 }}>{reservation.hotel_city || reservation.hotel_location}</p>
                       </td>
                       <td>
-                        <p style={{ fontSize: 13, fontWeight: 600 }}>{formatDate(reservation.check_in)} → {formatDate(reservation.check_out)}</p>
-                        <p style={{ fontSize: 11, color: 'var(--g400)', marginTop: 2 }}>{reservation.adults} adulte(s) · {reservation.rooms} chambre(s)</p>
+                        <p style={{ fontSize: 13, fontWeight: 600 }}>{formatDate(reservation.check_in)} to {formatDate(reservation.check_out)}</p>
+                        <p style={{ fontSize: 11, color: 'var(--g400)', marginTop: 2 }}>
+                          {reservation.adults} adulte(s)
+                          {Number(reservation.children || 0) > 0 ? ` + ${reservation.children} enfant(s)` : ''}
+                          {' '}· {reservation.rooms} chambre(s)
+                        </p>
                       </td>
                       <td>
                         <p style={{ fontSize: 13, fontWeight: 600 }}>{reservation.holder_first_name} {reservation.holder_last_name}</p>
@@ -245,8 +249,21 @@ const HotelReservationsAdmin = () => {
               <div>
                 <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--g400)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 10 }}>Sejour</p>
                 <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>{selectedReservation.hotel_city || selectedReservation.hotel_location}</p>
-                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>{formatDate(selectedReservation.check_in)} → {formatDate(selectedReservation.check_out)}</p>
-                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>{selectedReservation.adults} adulte(s) · {selectedReservation.rooms} chambre(s)</p>
+                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>{formatDate(selectedReservation.check_in)} to {formatDate(selectedReservation.check_out)}</p>
+                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>
+                  {selectedReservation.adults} adulte(s)
+                  {Number(selectedReservation.children || 0) > 0 ? ` + ${selectedReservation.children} enfant(s)` : ''}
+                  {' '}· {selectedReservation.rooms} chambre(s)
+                </p>
+                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>Type: {selectedReservation.room_type || '-'}</p>
+                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>Pension: {selectedReservation.meal_plan || '-'}</p>
+                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>Vue: {selectedReservation.room_view || '-'}</p>
+                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>Lit: {selectedReservation.bed_preference || '-'}</p>
+                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>Arrivee: {selectedReservation.arrival_time || '-'}</p>
+                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>Transfert: {selectedReservation.airport_transfer ? 'Oui' : 'Non'}</p>
+                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>
+                  Extras: {selectedReservation.selected_extras?.length ? selectedReservation.selected_extras.join(', ') : '-'}
+                </p>
               </div>
 
               <div>

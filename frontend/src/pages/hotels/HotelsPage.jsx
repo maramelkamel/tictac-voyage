@@ -8,205 +8,217 @@ import { usePromotions } from '../../hooks/usePromotions';
 import PromotionsSection from '../admin/promotions/PromotionsSection';
 import { useFavorites } from '../../hooks/useFavorites';
 import { buildFavoriteItemData, getFavoriteKey } from '../../utils/favorites';
-import { getHotelPageCover, getHotelsCatalog, getPopularHotels } from '../../services/api';
+import { getHotelsCatalog, getPopularHotels } from '../../services/api';
 import '../../styles/omrastyle.css';
 
-const DEFAULT_COVER = {
-  hero: {
-    bg_image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1600&q=80',
-    tag: 'Hotels en Tunisie',
-    title: 'Trouvez votre',
-    title_accent: 'hotel ideal',
-    sub: 'Des adresses choisies avec soin, des offres actives et un parcours de reservation identique aux voyages organises.',
+// ─── Hero slides (rotate every 6 s) ──────────────────────────
+const HERO_SLIDES = [
+  {
+    bg: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=1600&q=80',
+    tag: '🏨 Premium Hotels in Tunisia',
+    title: 'Find Your',
+    accent: 'Perfect Stay',
+    sub: 'Handpicked hotels with live availability, exclusive rates and seamless online booking.',
   },
-};
+  {
+    bg: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1600&q=80',
+    tag: '🌊 Beachfront Resorts',
+    title: 'Sun, Sand &',
+    accent: 'Total Relaxation',
+    sub: 'All-inclusive beachfront resorts across Hammamet, Sousse and Djerba.',
+  },
+  {
+    bg: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1600&q=80',
+    tag: '⭐ 5-Star Luxury',
+    title: 'Luxury Beyond',
+    accent: 'Expectations',
+    sub: 'World-class hospitality with authentic Tunisian warmth and modern elegance.',
+  },
+];
 
-const FILTERS = ['Tous', 'Tunis', 'Sousse', 'Hammamet', 'Djerba'];
+const CITY_FILTERS = ['All', 'Tunis', 'Sousse', 'Hammamet', 'Djerba'];
 
 const HotelsPage = () => {
   const navigate = useNavigate();
   const promotionsRef = useRef(null);
-  const resultsRef = useRef(null);
+  const resultsRef   = useRef(null);
+  const bestRef      = useRef(null);
+
   const { promos } = usePromotions('categorie', 'hotels');
   const { favoriteIds, isAuthenticated, toggleFavorite } = useFavorites('hotel');
 
-  const [covers, setCovers] = useState(DEFAULT_COVER);
-  const [hotels, setHotels] = useState([]);
-  const [popularHotels, setPopularHotels] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [search, setSearch] = useState({
-    city: '',
-    checkin: '',
-    checkout: '',
-    adults: '2',
-    rooms: '1',
-    minRating: '',
-  });
-  const [activeFilter, setActiveFilter] = useState('Tous');
-  const [sortBy, setSortBy] = useState('featured');
-  const [onlyFeatured, setOnlyFeatured] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(6);
+  // ── Hero rotation ──────────────────────────────────────────
+  const [heroIdx, setHeroIdx] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setHeroIdx(i => (i + 1) % HERO_SLIDES.length), 6000);
+    return () => clearInterval(id);
+  }, []);
+
+  // ── Data ──────────────────────────────────────────────────
+  const [hotels, setHotels]           = useState([]);
+  const [popularHotels, setPopular]   = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [catalogResponse, popularResponse, coverResponse] = await Promise.all([
+        const [catalogRes, popularRes] = await Promise.all([
           getHotelsCatalog(),
           getPopularHotels(4),
-          getHotelPageCover(),
         ]);
-
-        setHotels(catalogResponse.data || []);
-        setPopularHotels(popularResponse.data || []);
-        setCovers(coverResponse.data || DEFAULT_COVER);
-      } catch (fetchError) {
-        setError(fetchError.message || 'Impossible de charger les hotels.');
+        setHotels(catalogRes.data || []);
+        setPopular(popularRes.data || []);
+      } catch (err) {
+        setError(err.message || 'Unable to load hotels.');
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
-  const handleSearch = (nextSearch) => {
-    setSearch(nextSearch);
-    if (nextSearch.city) setActiveFilter(nextSearch.city);
+  // ── Search / filter state ─────────────────────────────────
+  const [search, setSearch] = useState({
+    city: '', checkin: '', checkout: '', adults: '2', rooms: '1', minRating: '',
+  });
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [onlyFeatured, setOnlyFeatured] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(6);
+
+  const handleSearch = (next) => {
+    setSearch(next);
+    if (next.city) setActiveFilter(next.city);
     setVisibleCount(6);
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   };
 
   const handleFavoriteToggle = async (hotel) => {
-    if (!isAuthenticated) {
-      navigate('/SignIn');
-      return;
-    }
-
+    if (!isAuthenticated) { navigate('/SignIn'); return; }
     try {
       await toggleFavorite({
         itemType: 'hotel',
         itemId: hotel.id,
         itemData: buildFavoriteItemData('hotel', {
-          ...hotel,
-          title: hotel.name,
-          image: hotel.image_url,
-          price: hotel.base_price,
-          location: hotel.address,
+          ...hotel, title: hotel.name, image: hotel.image_url, price: hotel.base_price, location: hotel.address,
         }),
       });
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
-  const filteredHotels = useMemo(() => {
-    let nextHotels = [...hotels];
+  const handleDetails = (hotel) => navigate(`/hotels/details/${hotel.id}`, { state: { hotel, search } });
+  const handleReserve = (hotel) => navigate('/hotels/reserve', { state: { hotel, search } });
 
-    if (activeFilter !== 'Tous') {
-      nextHotels = nextHotels.filter((hotel) => hotel.city === activeFilter);
-    }
+  // ── Filtered list (no sort — default: featured first) ─────
+  const filteredHotels = useMemo(() => {
+    let list = [...hotels];
+
+    if (activeFilter !== 'All')
+      list = list.filter(h => h.city === activeFilter);
 
     if (search.city) {
-      const query = search.city.toLowerCase();
-      nextHotels = nextHotels.filter((hotel) =>
-        hotel.city?.toLowerCase().includes(query)
-        || hotel.name?.toLowerCase().includes(query)
-        || hotel.address?.toLowerCase().includes(query)
+      const q = search.city.toLowerCase();
+      list = list.filter(h =>
+        h.city?.toLowerCase().includes(q) ||
+        h.name?.toLowerCase().includes(q) ||
+        h.address?.toLowerCase().includes(q)
       );
     }
 
-    if (search.minRating) {
-      nextHotels = nextHotels.filter((hotel) => Number(hotel.rating || 0) >= Number(search.minRating));
-    }
+    if (search.minRating)
+      list = list.filter(h => Number(h.rating || 0) >= Number(search.minRating));
 
-    if (onlyFeatured) {
-      nextHotels = nextHotels.filter((hotel) => hotel.is_featured);
-    }
+    if (onlyFeatured)
+      list = list.filter(h => h.is_featured);
 
-    const roomCount = Number(search.rooms || 0);
-    if (roomCount > 0) {
-      nextHotels = nextHotels.filter((hotel) => Number(hotel.available_rooms || 0) >= roomCount);
-    }
+    const rooms = Number(search.rooms || 0);
+    if (rooms > 0)
+      list = list.filter(h => Number(h.available_rooms || 0) >= rooms);
 
-    switch (sortBy) {
-      case 'price_asc':
-        nextHotels.sort((left, right) => Number(left.base_price || 0) - Number(right.base_price || 0));
-        break;
-      case 'price_desc':
-        nextHotels.sort((left, right) => Number(right.base_price || 0) - Number(left.base_price || 0));
-        break;
-      case 'rating':
-        nextHotels.sort((left, right) => Number(right.rating || 0) - Number(left.rating || 0));
-        break;
-      case 'popular':
-        nextHotels.sort((left, right) => Number(right.reservation_count || 0) - Number(left.reservation_count || 0));
-        break;
-      default:
-        nextHotels.sort((left, right) => {
-          if (left.is_featured === right.is_featured) return Number(left.display_order || 0) - Number(right.display_order || 0);
-          return left.is_featured ? -1 : 1;
-        });
-        break;
-    }
+    // Featured first, then by display_order
+    list.sort((a, b) => {
+      if (a.is_featured !== b.is_featured) return a.is_featured ? -1 : 1;
+      return Number(a.display_order || 0) - Number(b.display_order || 0);
+    });
 
-    return nextHotels;
-  }, [hotels, activeFilter, search, onlyFeatured, sortBy]);
+    return list;
+  }, [hotels, activeFilter, search, onlyFeatured]);
 
   const visibleHotels = filteredHotels.slice(0, visibleCount);
 
-  const handleDetails = (hotel) => {
-    navigate(`/hotels/details/${hotel.id}`, {
-      state: {
-        hotel,
-        search,
-      },
-    });
-  };
-
-  const handleReserve = (hotel) => {
-    navigate('/hotels/reserve', {
-      state: {
-        hotel,
-        search,
-      },
-    });
-  };
+  const slide = HERO_SLIDES[heroIdx];
 
   return (
     <div>
       <Navbar />
 
+      {/* ── Hero (rotating) ─────────────────────────────────── */}
       <section className="omra-hero">
-        <div
-          className="omra-hero__bg"
-          style={{
-            backgroundImage: `url('${covers?.hero?.bg_image || DEFAULT_COVER.hero.bg_image}')`,
-          }}
-        />
+        {HERO_SLIDES.map((s, i) => (
+          <div
+            key={i}
+            className="omra-hero__bg"
+            style={{
+              backgroundImage: `url('${s.bg}')`,
+              opacity: i === heroIdx ? 1 : 0,
+              transition: 'opacity 1.2s ease',
+              position: 'absolute',
+              inset: 0,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              filter: 'brightness(0.45)',
+            }}
+          />
+        ))}
         <div className="omra-hero__pattern" />
         <div className="omra-hero__overlay" />
+
         <div className="omra-hero__content">
           <span className="omra-hero__tag">
             <i className="fas fa-hotel" style={{ color: '#e8306a' }} />
-            {covers?.hero?.tag || DEFAULT_COVER.hero.tag}
+            {slide.tag}
           </span>
-          <h1 className="omra-hero__title">
-            {covers?.hero?.title || DEFAULT_COVER.hero.title}<br />
-            <span>{covers?.hero?.title_accent || DEFAULT_COVER.hero.title_accent}</span>
+          <h1 className="omra-hero__title" key={heroIdx} style={{ animation: 'fadeInUp 0.6s ease' }}>
+            {slide.title}<br />
+            <span>{slide.accent}</span>
           </h1>
-          <p className="omra-hero__subtitle">
-            {covers?.hero?.sub || DEFAULT_COVER.hero.sub}
-          </p>
+          <p className="omra-hero__subtitle">{slide.sub}</p>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 26 }}>
-            <button className="btn btn-primary" onClick={() => promotionsRef.current?.scrollIntoView({ behavior: 'smooth' })}>
-              <i className="fas fa-tags" /> Offres valables
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 30 }}>
+            <button
+              className="btn btn-primary"
+              onClick={() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              <i className="fas fa-bed" /> Browse Hotels
             </button>
-            <button className="btn btn-glass" onClick={() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' })}>
-              <i className="fas fa-bed" /> Voir les hotels
+            <button
+              className="btn btn-glass"
+              onClick={() => bestRef.current?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              <i className="fas fa-star" /> Top Picks
             </button>
+          </div>
+
+          {/* Slide dots */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 28 }}>
+            {HERO_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setHeroIdx(i)}
+                style={{
+                  width: i === heroIdx ? 28 : 8,
+                  height: 8,
+                  borderRadius: 4,
+                  background: i === heroIdx ? '#e8306a' : 'rgba(255,255,255,0.4)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  padding: 0,
+                }}
+              />
+            ))}
           </div>
 
           <div className="omra-hero__search-wrapper">
@@ -215,27 +227,18 @@ const HotelsPage = () => {
         </div>
       </section>
 
-      {promos.length > 0 && (
-        <section ref={promotionsRef} style={{ padding: '18px 0 0' }}>
-          <div className="container">
-            <PromotionsSection promos={promos} titre="Offres hotels disponibles" />
-          </div>
-        </section>
-      )}
-
+      {/* ── Stats bar ───────────────────────────────────────── */}
       <section className="omra-stats">
         <div className="container">
           <div className="omra-stats__grid">
             {[
-              { icon: 'fas fa-hotel', value: hotels.length, label: 'Hotels en catalogue' },
-              { icon: 'fas fa-heart', value: popularHotels.length, label: 'Hotels vedettes' },
-              { icon: 'fas fa-user-check', value: hotels.reduce((sum, hotel) => sum + Number(hotel.reservation_count || 0), 0), label: 'Reservations hotels' },
-              { icon: 'fas fa-percentage', value: `${Math.round(popularHotels[0]?.occupancy_percentage || 0)}%`, label: 'Popularite max' },
-            ].map((item) => (
+              { icon: 'fas fa-hotel',       value: hotels.length,  label: 'Hotels in catalogue' },
+              { icon: 'fas fa-map-marker-alt', value: CITY_FILTERS.length - 1, label: 'Destinations' },
+              { icon: 'fas fa-user-check',  value: hotels.reduce((s, h) => s + Number(h.reservation_count || 0), 0), label: 'Total bookings' },
+              { icon: 'fas fa-star',        value: popularHotels[0] ? `${popularHotels[0].rating}★` : '4.8★', label: 'Average rating' },
+            ].map(item => (
               <div key={item.label} className="omra-stats__item">
-                <div className="omra-stats__icon">
-                  <i className={item.icon} />
-                </div>
+                <div className="omra-stats__icon"><i className={item.icon} /></div>
                 <div>
                   <div className="omra-stats__value">{item.value}</div>
                   <div className="omra-stats__label">{item.label}</div>
@@ -246,99 +249,57 @@ const HotelsPage = () => {
         </div>
       </section>
 
-      <section className="omra-section omra-section--white">
-        <div className="container">
-          <div className="omra-section__header">
-            <span className="omra-section__tag">Selection du moment</span>
-            <h2 className="omra-section__title">Les 4 hotels les plus demandes</h2>
-            <p className="omra-section__desc">
-              Classement automatique base sur les reservations et le pourcentage d occupation.
-            </p>
+      {/* ── Promotions ──────────────────────────────────────── */}
+      {promos.length > 0 && (
+        <section ref={promotionsRef} style={{ padding: '18px 0 0' }}>
+          <div className="container">
+            <PromotionsSection promos={promos} titre="Current Hotel Offers" />
           </div>
+        </section>
+      )}
 
-          <div className="omra-cards-grid">
-            {popularHotels.slice(0, 4).map((hotel) => (
-              <HotelCard
-                key={hotel.id}
-                hotel={hotel}
-                onDetails={handleDetails}
-                onReserve={handleReserve}
-                isFavorite={favoriteIds.has(getFavoriteKey(hotel.id))}
-                onFavoriteToggle={handleFavoriteToggle}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
+      {/* ── Hotel Catalogue ─────────────────────────────────── */}
       <section className="omra-section omra-section--gray" ref={resultsRef}>
         <div className="container">
           <div className="omra-section__header">
-            <span className="omra-section__tag">Catalogue hotels</span>
-            <h2 className="omra-section__title">Choisissez votre sejour hotel</h2>
+            <span className="omra-section__tag">Hotel Catalogue</span>
+            <h2 className="omra-section__title">Choose Your Stay</h2>
             <p className="omra-section__desc">
-              Meme logique que Voyages Organises, mais pour les hotels avec promotions, favoris et reservation en ligne.
+              Select a meal plan directly on each card to see the adjusted price instantly.
             </p>
           </div>
 
+          {/* City filters */}
           <div className="omra-filters-bar">
             <div className="omra-filters">
-              {FILTERS.map((filter) => (
+              {CITY_FILTERS.map(f => (
                 <button
-                  key={filter}
-                  className={`omra-filter-btn ${activeFilter === filter ? 'omra-filter-btn--active' : ''}`}
-                  onClick={() => {
-                    setActiveFilter(filter);
-                    setVisibleCount(6);
-                  }}
+                  key={f}
+                  className={`omra-filter-btn ${activeFilter === f ? 'omra-filter-btn--active' : ''}`}
+                  onClick={() => { setActiveFilter(f); setVisibleCount(6); }}
                 >
-                  {filter}
+                  {f}
                 </button>
               ))}
+              <button
+                className={`omra-filter-btn ${onlyFeatured ? 'omra-filter-btn--active' : ''}`}
+                onClick={() => { setOnlyFeatured(p => !p); setVisibleCount(6); }}
+                style={{ borderStyle: 'dashed' }}
+              >
+                <i className="fas fa-bookmark" style={{ fontSize: 11, marginRight: 4 }} />
+                {onlyFeatured ? 'All Hotels' : 'Featured Only'}
+              </button>
             </div>
-            <p className="omra-filters-count"><strong>{filteredHotels.length}</strong> hotel(s) disponible(s)</p>
+            <p className="omra-filters-count">
+              <strong>{filteredHotels.length}</strong> hotel{filteredHotels.length !== 1 ? 's' : ''} available
+            </p>
           </div>
 
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, padding: '20px 24px', marginBottom: 28 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
-              <div>
-                <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.06em', display: 'block', marginBottom: 8 }}>
-                  Tri
-                </label>
-                <select
-                  value={sortBy}
-                  onChange={(event) => {
-                    setSortBy(event.target.value);
-                    setVisibleCount(6);
-                  }}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 13, color: '#1e293b', background: '#fff', fontFamily: 'inherit' }}
-                >
-                  <option value="featured">Mise en avant</option>
-                  <option value="popular">Popularite</option>
-                  <option value="rating">Meilleure note</option>
-                  <option value="price_asc">Prix croissant</option>
-                  <option value="price_desc">Prix decroissant</option>
-                </select>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'end' }}>
-                <button
-                  className={`omra-filter-btn ${onlyFeatured ? 'omra-filter-btn--active' : ''}`}
-                  onClick={() => {
-                    setOnlyFeatured((current) => !current);
-                    setVisibleCount(6);
-                  }}
-                >
-                  {onlyFeatured ? 'Hotels vedettes uniquement' : 'Afficher les hotels vedettes'}
-                </button>
-              </div>
-            </div>
-          </div>
-
+          {/* Loading */}
           {loading && (
             <div style={{ textAlign: 'center', padding: '80px 20px' }}>
               <div style={{ width: 44, height: 44, border: '3px solid #e2e8f0', borderTopColor: '#0F4C5C', borderRadius: '50%', animation: 'spin .7s linear infinite', margin: '0 auto 16px' }} />
-              <p style={{ color: '#94a3b8', fontSize: 14 }}>Chargement des hotels...</p>
+              <p style={{ color: '#94a3b8', fontSize: 14 }}>Loading hotels...</p>
             </div>
           )}
 
@@ -351,7 +312,7 @@ const HotelsPage = () => {
           {!loading && !error && (
             <>
               <div className="omra-cards-grid">
-                {visibleHotels.map((hotel) => (
+                {visibleHotels.map(hotel => (
                   <HotelCard
                     key={hotel.id}
                     hotel={hotel}
@@ -366,35 +327,31 @@ const HotelsPage = () => {
               {visibleHotels.length === 0 && (
                 <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--gray-400)' }}>
                   <div style={{ fontSize: '3rem', marginBottom: 16 }}>🔍</div>
-                  <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--gray-600)', marginBottom: 8 }}>
-                    Aucun hotel ne correspond a vos criteres.
+                  <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--gray-600)', marginBottom: 8 }}>
+                    No hotels match your criteria.
                   </p>
                   <button
                     className="omra-filter-btn"
                     onClick={() => {
-                      setSearch({
-                        city: '',
-                        checkin: '',
-                        checkout: '',
-                        adults: '2',
-                        rooms: '1',
-                        minRating: '',
-                      });
-                      setActiveFilter('Tous');
-                      setSortBy('featured');
+                      setSearch({ city: '', checkin: '', checkout: '', adults: '2', rooms: '1', minRating: '' });
+                      setActiveFilter('All');
                       setOnlyFeatured(false);
                       setVisibleCount(6);
                     }}
                   >
-                    Reinitialiser les filtres
+                    Reset Filters
                   </button>
                 </div>
               )}
 
               {visibleCount < filteredHotels.length && (
                 <div style={{ textAlign: 'center', marginTop: 40 }}>
-                  <button className="omra-filter-btn" style={{ padding: '12px 24px', background: 'var(--primary)', color: 'white', border: 'none' }} onClick={() => setVisibleCount((current) => current + 6)}>
-                    Voir plus de hotels ({filteredHotels.length - visibleCount} restants)
+                  <button
+                    className="omra-filter-btn"
+                    style={{ padding: '12px 28px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 50 }}
+                    onClick={() => setVisibleCount(c => c + 6)}
+                  >
+                    Load more ({filteredHotels.length - visibleCount} remaining)
                   </button>
                 </div>
               )}
@@ -403,8 +360,82 @@ const HotelsPage = () => {
         </div>
       </section>
 
+      {/* ── Best Hotels (bottom) ─────────────────────────────── */}
+      <section className="omra-section omra-section--white" ref={bestRef}>
+        <div className="container">
+          <div className="omra-section__header">
+            <span className="omra-section__tag">Top Picks</span>
+            <h2 className="omra-section__title">Our Most Popular Hotels</h2>
+            <p className="omra-section__desc">
+              Ranked automatically by bookings and occupancy rate. These are the ones guests love most.
+            </p>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <div style={{ width: 36, height: 36, border: '3px solid #e2e8f0', borderTopColor: '#0F4C5C', borderRadius: '50%', animation: 'spin .7s linear infinite', margin: '0 auto' }} />
+            </div>
+          ) : (
+            <div className="omra-cards-grid">
+              {popularHotels.slice(0, 4).map(hotel => (
+                <HotelCard
+                  key={hotel.id}
+                  hotel={hotel}
+                  onDetails={handleDetails}
+                  onReserve={handleReserve}
+                  isFavorite={favoriteIds.has(getFavoriteKey(hotel.id))}
+                  onFavoriteToggle={handleFavoriteToggle}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* CTA banner */}
+          <div style={{
+            marginTop: 56,
+            background: 'linear-gradient(135deg, #0F4C5C 0%, #0a3a47 100%)',
+            borderRadius: 24,
+            padding: '48px 40px',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+          }}>
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <span style={{ fontSize: 40, display: 'block', marginBottom: 16 }}>🏨</span>
+              <h3 style={{ fontSize: 28, fontWeight: 900, color: '#fff', marginBottom: 12 }}>
+                Can't find what you're looking for?
+              </h3>
+              <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 15, maxWidth: 480, margin: '0 auto 28px', lineHeight: 1.7 }}>
+                Our travel experts can arrange custom hotel packages tailored to your dates, budget and preferences.
+              </p>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => navigate('/Contact')}
+                >
+                  <i className="fas fa-headset" /> Talk to an Expert
+                </button>
+                <button
+                  className="btn btn-glass"
+                  onClick={() => navigate('/CustomTripAbroad')}
+                >
+                  <i className="fas fa-magic" /> Custom Package
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <Footer />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 };

@@ -198,6 +198,57 @@ const HotelDetailsPage = () => {
                 </div>
               )}
 
+              {(hotel.meal_plans || []).length > 0 && (
+                <div className="detail-card">
+                  <div className="detail-card__head">
+                    <div className="detail-card__accent" />
+                    <h3 className="detail-card__title">Formules disponibles</h3>
+                  </div>
+                  <div className="detail-includes-grid">
+                    {hotel.meal_plans.map((item, index) => (
+                      <div key={index} className="detail-inc-tag">
+                        <div className="detail-inc-icon">OK</div>
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(hotel.room_views || []).length > 0 && (
+                <div className="detail-card">
+                  <div className="detail-card__head">
+                    <div className="detail-card__accent" />
+                    <h3 className="detail-card__title">Vues de chambres</h3>
+                  </div>
+                  <div className="detail-includes-grid">
+                    {hotel.room_views.map((item, index) => (
+                      <div key={index} className="detail-inc-tag">
+                        <div className="detail-inc-icon">OK</div>
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(hotel.reservation_extras || []).length > 0 && (
+                <div className="detail-card">
+                  <div className="detail-card__head">
+                    <div className="detail-card__accent" />
+                    <h3 className="detail-card__title">Extras reservables</h3>
+                  </div>
+                  <div className="detail-includes-grid">
+                    {hotel.reservation_extras.map((item, index) => (
+                      <div key={index} className="detail-inc-tag">
+                        <div className="detail-inc-icon">+</div>
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {(hotel.amenities || []).length > 0 && (
                 <div className="detail-card">
                   <div className="detail-card__head">

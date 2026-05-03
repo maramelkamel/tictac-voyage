@@ -1,108 +1,324 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../layout/AdminLayout';
 
 const MODULES = [
   {
-    title: 'Transport',
-    color: '#0f766e',
-    description: 'Vehicules, transferts et demandes clients',
+    title: 'Transport', color: 'teal', status: 'active', desc: 'Vehicules & transferts',
     links: [
-      { label: 'Vehicules', path: '/admin/transport', key: 'vehicles' },
-      { label: 'Demandes', path: '/admin/transport/requests', key: 'transportPending', badge: true },
+      { label: 'Vehicules', path: '/admin/transport', sk: 'vehicles', badge: false },
+      { label: 'Demandes', path: '/admin/transport/requests', sk: 'pending', badge: true },
     ],
   },
   {
-    title: 'Voyages organises',
-    color: '#4338ca',
-    description: 'Catalogue et reservations internationales',
+    title: 'Voyages Organises', color: 'indigo', status: 'active', desc: 'Catalogue & reservations',
     links: [
-      { label: 'Catalogue', path: '/admin/voyages/VoyagePackages', key: 'voyagesTotal' },
-      { label: 'Reservations', path: '/admin/voyages/VoyageReservations', key: 'voyagesPending', badge: true },
+      { label: 'Catalogue', path: '/admin/voyages/VoyagePackages', sk: 'voyagesTotal', badge: false },
+      { label: 'Reservations', path: '/admin/voyages/VoyageReservations', sk: 'voyagesPending', badge: true },
     ],
   },
   {
-    title: 'Circuits',
-    color: '#15803d',
-    description: 'Circuits Tunisie nord et sud',
+    title: 'Circuits', color: 'green', status: 'active', desc: 'Nord & Sud Tunisie',
     links: [
-      { label: 'Catalogue', path: '/admin/circuits/CircuitPackages', key: 'circuitsTotal' },
-      { label: 'Reservations', path: '/admin/circuits/CircuitReservations', key: 'circuitsPending', badge: true },
+      { label: 'Catalogue', path: '/admin/circuits/CircuitPackages', sk: 'circuitsTotal', badge: false },
+      { label: 'Reservations', path: '/admin/circuits/CircuitReservations', sk: 'circuitsPending', badge: true },
     ],
   },
   {
-    title: 'Omra',
-    color: '#7c3aed',
-    description: 'Forfaits, departs et reservations',
+    title: 'Omra', color: 'violet', status: 'active', desc: 'Forfaits pelerinage',
     links: [
-      { label: 'Forfaits', path: '/admin/omra/packages', key: 'omraTotal' },
-      { label: 'Reservations', path: '/admin/omra/reservations', key: 'omraPending', badge: true },
+      { label: 'Forfaits', path: '/admin/omra/packages', sk: null },
+      { label: 'Reservations', path: '/admin/omra/reservations', sk: 'omraPending', badge: true },
     ],
   },
   {
-    title: 'Billeterie / Vols',
-    color: '#2563eb',
-    description: 'Reservations vols et gestion des prix',
+    title: 'Billeterie / Vols', color: 'blue', status: 'active', desc: 'Vols & tarification',
     links: [
-      { label: 'Reservations', path: '/admin/flights/reservations', key: 'flightsPending', badge: true },
-      { label: 'Tarification', path: '/admin/flights/pricing', key: 'flightsPricing' },
+      { label: 'Reservations', path: '/admin/flights/reservations', sk: 'flightsPending', badge: true },
+      { label: 'Gestion des prix', path: '/admin/flights/pricing', sk: null, badge: false },
     ],
   },
   {
-    title: 'Hotels',
-    color: '#0f4c5c',
-    description: 'Catalogue hotels, page publique et reservations',
+    title: 'Hotels', color: 'teal', status: 'active', desc: 'Catalogue hotel & reservations',
     links: [
-      { label: 'Catalogue', path: '/admin/hotels/catalog', key: 'hotelsTotal' },
-      { label: 'Reservations', path: '/admin/hotels/reservations', key: 'hotelsPending', badge: true },
+      { label: 'Catalogue', path: '/admin/hotels/catalog', sk: 'hotelsTotal', badge: false },
+      { label: 'Reservations', path: '/admin/hotels/reservations', sk: 'hotelsPending', badge: true },
     ],
   },
   {
-    title: 'Voyage sur mesure',
-    color: '#ea580c',
-    description: 'Demandes personnalisees',
+    title: 'Voyage sur Mesure', color: 'orange', status: 'pending', desc: 'Demandes personnalisees',
     links: [
-      { label: 'Demandes', path: '/admin/sur-mesure', key: 'surMesure', badge: true },
+      { label: 'Demandes', path: '/admin/sur-mesure', sk: 'surMesure', badge: true },
     ],
   },
   {
-    title: 'Contact',
-    color: '#dc2626',
-    description: 'Messages recents du site',
+    title: 'Contact', color: 'red', status: 'pending', desc: 'Messages formulaire',
     links: [
-      { label: 'Messages', path: '/admin/contact', key: 'contactNew', badge: true },
+      { label: 'Messages', path: '/admin/contact', sk: 'contactNew', badge: true },
     ],
   },
   {
-    title: 'Clients',
-    color: '#64748b',
-    description: 'Base clients et activite',
+    title: 'Clients', color: 'gray', status: 'active', desc: 'Clients & historique',
     links: [
-      { label: 'Tous les clients', path: '/admin/clients/ClientsAdmin', key: 'totalClients' },
+      { label: 'Tous les clients', path: '/admin/clients/ClientsAdmin', sk: 'totalClients', badge: false },
     ],
   },
 ];
 
-const statCardStyle = {
-  background: '#fff',
-  borderRadius: 18,
-  border: '1px solid #e2e8f0',
-  padding: 20,
-  boxShadow: '0 6px 20px rgba(15,76,92,.06)',
+const MODULE_ICONS = {
+  teal: <><rect x="3" y="3" width="18" height="16" rx="2" /><path d="M3 9h18M3 14h18M8 9v5M13 9v5M18 9v5" /><circle cx="7" cy="21" r="1.5" /><circle cx="17" cy="21" r="1.5" /></>,
+  indigo: <><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></>,
+  green: <><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z" /><path d="M8 2v16M16 6v16" /></>,
+  violet: <><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" /></>,
+  blue: <><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></>,
+  orange: <><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" /></>,
+  red: <><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></>,
+  gray: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></>,
+};
+
+const Bars3D = ({ values = [], colors = [] }) => {
+  const max = Math.max(...values, 1);
+  const maxH = 48;
+  const w = 13;
+  const gap = 6;
+  const totalW = values.length * (w + gap) - gap;
+  const startX = Math.round((120 - totalW) / 2);
+
+  return (
+    <svg width="120" height="60" viewBox="0 0 120 60" fill="none" style={{ overflow: 'visible' }}>
+      {values.map((value, index) => {
+        const h = Math.max(5, Math.round((value / max) * maxH));
+        const x = startX + index * (w + gap);
+        const y = 56 - h;
+        const color = colors[index % colors.length] || '#94a3b8';
+        return (
+          <g key={index}>
+            <ellipse cx={x + w / 2} cy={58} rx={w / 2 + 1} ry={2} fill={color} opacity={0.18} />
+            <rect x={x} y={y} width={w} height={h} rx={2} fill={color} />
+            <polygon points={`${x + w},${y} ${x + w + 4},${y - 3} ${x + w + 4},${y + h - 3} ${x + w},${y + h}`} fill={`${color}bb`} />
+            <polygon points={`${x},${y} ${x + w},${y} ${x + w + 4},${y - 3} ${x + 4},${y - 3}`} fill={`${color}dd`} />
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
+const Pie3D = ({ slices = [] }) => {
+  const total = slices.reduce((sum, slice) => sum + (slice.value || 0), 0);
+  if (total === 0) {
+    return (
+      <svg width="120" height="60" viewBox="0 0 120 60" fill="none">
+        <ellipse cx="60" cy="38" rx="44" ry="18" fill="#e2e8f0" />
+        <ellipse cx="60" cy="30" rx="44" ry="18" fill="#f1f5f9" stroke="#e2e8f0" strokeWidth="1" />
+      </svg>
+    );
+  }
+
+  const cx = 60;
+  const cy = 28;
+  const rx = 44;
+  const ry = 18;
+  const depth = 11;
+  const arcs = [];
+  let startAngle = -Math.PI / 2;
+
+  slices.forEach((slice) => {
+    if ((slice.value || 0) === 0) return;
+    const angle = (slice.value / total) * 2 * Math.PI;
+    arcs.push({ color: slice.color, startAngle, angle, endAngle: startAngle + angle });
+    startAngle += angle;
+  });
+
+  const point = (angle) => ({
+    x: cx + rx * Math.cos(angle),
+    y: cy + ry * Math.sin(angle),
+  });
+
+  const slicePath = (arc) => {
+    const start = point(arc.startAngle);
+    const end = point(arc.endAngle);
+    const largeArc = arc.angle > Math.PI ? 1 : 0;
+    return `M ${cx} ${cy} L ${start.x} ${start.y} A ${rx} ${ry} 0 ${largeArc} 1 ${end.x} ${end.y} Z`;
+  };
+
+  const sidePath = (arc) => {
+    const clippedStart = Math.max(arc.startAngle, 0);
+    const clippedEnd = Math.min(arc.endAngle, Math.PI);
+    if (clippedStart >= clippedEnd) return null;
+    const start = point(clippedStart);
+    const end = point(clippedEnd);
+    const largeArc = (clippedEnd - clippedStart) > Math.PI ? 1 : 0;
+    return `M ${start.x} ${start.y} A ${rx} ${ry} 0 ${largeArc} 1 ${end.x} ${end.y}
+            L ${end.x} ${end.y + depth} A ${rx} ${ry} 0 ${largeArc} 0 ${start.x} ${start.y + depth} Z`;
+  };
+
+  return (
+    <svg width="120" height="60" viewBox="0 0 120 60" fill="none">
+      {arcs.map((arc, index) => {
+        const side = sidePath(arc);
+        return side ? <path key={`side-${index}`} d={side} fill={arc.color} opacity={0.55} /> : null;
+      })}
+      {arcs.map((arc, index) => (
+        <path key={`slice-${index}`} d={slicePath(arc)} fill={arc.color} stroke="#fff" strokeWidth="1" />
+      ))}
+    </svg>
+  );
+};
+
+const Triangles3D = ({ values = [], colors = [] }) => {
+  const max = Math.max(...values, 1);
+  const config = [
+    { cx: 22, bw: 36 },
+    { cx: 60, bw: 30 },
+    { cx: 96, bw: 24 },
+  ];
+  return (
+    <svg width="120" height="60" viewBox="0 0 120 60" fill="none">
+      {values.slice(0, 3).map((value, index) => {
+        const h = Math.max(8, Math.round((value / max) * 46));
+        const { cx, bw } = config[index];
+        const color = colors[index % colors.length] || '#94a3b8';
+        const top = 56 - h;
+        return (
+          <g key={index}>
+            <ellipse cx={cx} cy={58} rx={bw / 2 + 2} ry={2.5} fill={color} opacity={0.2} />
+            <polygon points={`${cx},${top} ${cx - bw / 2},56 ${cx + bw / 2},56`} fill={color} />
+            <polygon points={`${cx},${top} ${cx + bw / 2},56 ${cx + bw / 2 + 4},53 ${cx + 4},${top - 3}`} fill={`${color}aa`} />
+            <polygon points={`${cx},${top} ${cx + 4},${top - 3} ${cx + 4},${top - 3}`} fill={`${color}cc`} />
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
+const Donuts3D = ({ values = [], colors = [] }) => {
+  const renderDonut = (vals, cols, cx, cy, r, depth) => {
+    const innerR = r * 0.45;
+    const total = vals.reduce((sum, value) => sum + (value || 0), 0) || 1;
+    const paths = [];
+    let start = -Math.PI / 2;
+
+    vals.forEach((value, index) => {
+      if (!value) return;
+      const angle = (value / total) * 2 * Math.PI;
+      const end = start + angle;
+      const x1 = cx + r * Math.cos(start);
+      const y1 = cy + r * Math.sin(start);
+      const x2 = cx + r * Math.cos(end);
+      const y2 = cy + r * Math.sin(end);
+      const i1 = cx + innerR * Math.cos(start);
+      const iy1 = cy + innerR * Math.sin(start);
+      const i2 = cx + innerR * Math.cos(end);
+      const iy2 = cy + innerR * Math.sin(end);
+      const largeArc = angle > Math.PI ? 1 : 0;
+      paths.push(
+        <path
+          key={index}
+          d={`M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} L ${i2} ${iy2} A ${innerR} ${innerR} 0 ${largeArc} 0 ${i1} ${iy1} Z`}
+          fill={cols[index % cols.length] || '#e2e8f0'}
+          stroke="#fff"
+          strokeWidth="1"
+        />
+      );
+      start = end;
+    });
+
+    return (
+      <g>
+        <ellipse cx={cx} cy={cy + depth} rx={r} ry={r * 0.3} fill={cols[0] || '#e2e8f0'} opacity={0.22} />
+        {paths}
+        <circle cx={cx} cy={cy} r={innerR} fill="#fff" />
+      </g>
+    );
+  };
+
+  return (
+    <svg width="120" height="60" viewBox="0 0 120 60" fill="none">
+      {renderDonut(values.slice(0, 2), colors.slice(0, 2), 34, 30, 26, 8)}
+      {renderDonut(values.slice(2, 4), colors.slice(2, 4), 88, 34, 20, 7)}
+    </svg>
+  );
+};
+
+const KpiCard = ({ kpi }) => {
+  const numericValue = typeof kpi.value === 'number' ? kpi.value : null;
+  const pct = numericValue !== null && kpi.total > 0
+    ? Math.round((numericValue / kpi.total) * 100)
+    : null;
+
+  return (
+    <div className={`dash-kpi dash-kpi--${kpi.color}`}>
+      <div className="dash-kpi__shape">{kpi.shape}</div>
+      <div className="dash-kpi__body">
+        <p className="dash-kpi__label">{kpi.label}</p>
+        <div className="dash-kpi__row">
+          <span className="dash-kpi__value">{kpi.value}</span>
+          {pct !== null && <span className={`dash-kpi__pct dash-kpi__pct--${kpi.trend}`}>{pct}%</span>}
+        </div>
+        <p className="dash-kpi__sub">{kpi.sub}</p>
+        {pct !== null && (
+          <div className="dash-kpi__bar-wrap">
+            <div className={`dash-kpi__bar dash-kpi__bar--${kpi.color}`} style={{ width: `${Math.min(pct, 100)}%` }} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const ModuleCard = ({ mod, st, navigate }) => {
+  const firstSk = mod.links.find((link) => link.sk)?.sk;
+  const total = firstSk ? st[firstSk] : null;
+  return (
+    <div className={`dash-card dash-card--${mod.color} dash-card--status-${mod.status}`}>
+      <div className="dash-card__head">
+        <div className="dash-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+            {MODULE_ICONS[mod.color]}
+          </svg>
+        </div>
+        <div className="dash-card__info">
+          <p className="dash-card__title">{mod.title}</p>
+          <p className="dash-card__desc">{mod.desc}</p>
+        </div>
+        {total !== null && <span className="dash-card__total">{total}</span>}
+      </div>
+      <div className="dash-card__body">
+        {mod.links.map((link) => {
+          const count = link.sk ? st[link.sk] : null;
+          return (
+            <button key={link.path} className="dash-link" onClick={() => navigate(link.path)}>
+              <span className="dash-link__label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="dash-link__arrow">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+                {link.label}
+              </span>
+              {count !== null && (
+                <span className={`dash-link__count${link.badge && count > 0 ? ' dash-link__count--badge' : ''}`}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 };
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem('adminToken') || '';
-  const [stats, setStats] = useState({
+  const [st, setSt] = useState({
     vehicles: 0,
-    transportPending: 0,
+    pending: 0,
     surMesure: 0,
     contactNew: 0,
-    omraTotal: 0,
     omraPending: 0,
     totalClients: 0,
-    activeClients: 0,
     voyagesTotal: 0,
     voyagesPending: 0,
     circuitsTotal: 0,
@@ -123,7 +339,6 @@ const Dashboard = () => {
       fetch('http://localhost:5000/api/requests').then((response) => response.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/custom-trips').then((response) => response.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/contact/stats').then((response) => response.json()).catch(() => ({})),
-      fetch('http://localhost:5000/api/omra/packages').then((response) => response.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/omra/reservations').then((response) => response.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/clients').then((response) => response.json()).catch(() => ({})),
       fetch('http://localhost:5000/api/voyages-organises').then((response) => response.json()).catch(() => ({})),
@@ -138,7 +353,6 @@ const Dashboard = () => {
       transportRequests,
       customTrips,
       contactStats,
-      omraPackages,
       omraReservations,
       clients,
       voyages,
@@ -158,26 +372,13 @@ const Dashboard = () => {
         ...(hotelReservations.data || []),
       ];
 
-      const activeEmails = new Set(
-        allReservations
-          .map((item) => (item.email || item.holder_email || '').toLowerCase())
-          .filter(Boolean)
-      );
-
-      const activeClients = (clients.data || []).reduce((total, client) => {
-        const email = (client.email || '').toLowerCase();
-        return email && activeEmails.has(email) ? total + 1 : total;
-      }, 0);
-
-      setStats({
+      setSt({
         vehicles: transports.data?.length || 0,
-        transportPending: transportRequests.data?.filter((item) => item.status === 'pending').length || 0,
+        pending: transportRequests.data?.filter((item) => item.status === 'pending').length || 0,
         surMesure: customTrips.data?.filter((item) => item.status === 'pending').length || 0,
         contactNew: parseInt(contactStats.data?.nouveaux, 10) || 0,
-        omraTotal: omraPackages.data?.length || 0,
         omraPending: omraReservations.data?.filter((item) => item.status === 'pending').length || 0,
         totalClients: clients.data?.length || 0,
-        activeClients,
         voyagesTotal: voyages.data?.length || 0,
         voyagesPending: voyageReservations.data?.filter((item) => item.status === 'pending').length || 0,
         circuitsTotal: circuits.data?.length || 0,
@@ -194,181 +395,132 @@ const Dashboard = () => {
     });
   }, [token]);
 
-  const totalPending = useMemo(() => (
-    stats.transportPending
-    + stats.voyagesPending
-    + stats.circuitsPending
-    + stats.omraPending
-    + stats.flightsPending
-    + stats.hotelsPending
-    + stats.surMesure
-    + stats.contactNew
-  ), [stats]);
+  const totalPending = st.pending
+    + st.voyagesPending
+    + st.circuitsPending
+    + st.omraPending
+    + st.flightsPending
+    + st.hotelsPending
+    + st.surMesure
+    + st.contactNew;
+
+  const kpis = [
+    {
+      label: 'Clients inscrits',
+      value: st.totalClients,
+      total: 0,
+      color: 'blue',
+      trend: 'up',
+      sub: 'Total comptes crees',
+      shape: (
+        <Bars3D
+          values={[st.pending, st.voyagesPending, st.circuitsPending, st.omraPending, st.hotelsPending]}
+          colors={['#38bdf8', '#1ECAD3', '#818cf8', '#f472b6', '#34d399']}
+        />
+      ),
+    },
+    {
+      label: 'Reservations totales',
+      value: st.totalReservations,
+      total: st.totalReservations,
+      color: 'teal',
+      trend: 'info',
+      sub: `${st.confirmedReservations} confirmees · ${st.pendingReservations} en attente`,
+      shape: (
+        <Pie3D slices={[
+          { value: st.confirmedReservations, color: '#10b981' },
+          { value: st.pendingReservations, color: '#f97316' },
+          { value: st.completedReservations, color: '#1ECAD3' },
+          { value: st.cancelledReservations, color: '#E92F64' },
+        ]} />
+      ),
+    },
+    {
+      label: 'Actions en attente',
+      value: totalPending,
+      total: st.totalReservations + st.surMesure + st.contactNew,
+      color: 'orange',
+      trend: 'warn',
+      sub: totalPending > 0 ? 'Intervention requise' : 'Tout est traite',
+      shape: (
+        <Triangles3D
+          values={[
+            st.pending + st.flightsPending,
+            st.voyagesPending + st.circuitsPending + st.omraPending,
+            st.hotelsPending + st.surMesure + st.contactNew,
+          ]}
+          colors={['#f97316', '#fbbf24', '#fb923c']}
+        />
+      ),
+    },
+    {
+      label: 'Taux de confirmation',
+      value: st.totalReservations > 0
+        ? `${Math.round((st.confirmedReservations / st.totalReservations) * 100)}%`
+        : '0%',
+      total: 0,
+      color: 'green',
+      trend: 'up',
+      sub: `${st.completedReservations} voyages termines · ${st.cancelledReservations} annules`,
+      shape: (
+        <Donuts3D
+          values={[st.confirmedReservations, st.pendingReservations, st.completedReservations, st.cancelledReservations]}
+          colors={['#10b981', '#f97316', '#1ECAD3', '#E92F64']}
+        />
+      ),
+    },
+  ];
 
   return (
     <AdminLayout
       title="Dashboard"
       breadcrumb={[{ label: 'Dashboard', active: true }]}
       badges={{
-        transportRequests: stats.transportPending,
-        omraPending: stats.omraPending,
-        surMesure: stats.surMesure,
-        contactNew: stats.contactNew,
-        voyagesPending: stats.voyagesPending,
-        circuitsPending: stats.circuitsPending,
-        flightsPending: stats.flightsPending,
-        hotelsPending: stats.hotelsPending,
+        transportRequests: st.pending,
+        omraPending: st.omraPending,
+        surMesure: st.surMesure,
+        contactNew: st.contactNew,
+        voyagesPending: st.voyagesPending,
+        circuitsPending: st.circuitsPending,
+        flightsPending: st.flightsPending,
+        hotelsPending: st.hotelsPending,
       }}
     >
-      <div style={{ display: 'grid', gap: 22 }}>
-        <section
-          style={{
-            borderRadius: 24,
-            padding: '28px 30px',
-            color: '#fff',
-            background: 'linear-gradient(135deg,#0f4c5c 0%, #1ecad3 100%)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 20,
-            flexWrap: 'wrap',
-          }}
-        >
+      <div className="dash-page">
+        <div className="dash-banner">
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', opacity: 0.78, letterSpacing: '.08em' }}>
-              Administration Tictac Voyages
-            </div>
-            <h2 style={{ fontSize: 32, fontWeight: 900, margin: '8px 0 10px' }}>
-              Tous vos modules, y compris Hotels, au meme endroit
-            </h2>
-            <p style={{ fontSize: 14, lineHeight: 1.7, maxWidth: 720, color: 'rgba(255,255,255,.88)' }}>
-              Surveillez les reservations, l'activite client, les promotions et les taches en attente sans quitter le dashboard.
-            </p>
+            <span className="dash-banner__eyebrow">Bienvenue dans votre espace</span>
+            <h2 className="dash-banner__title">TicTac Voyage Admin</h2>
+            <p className="dash-banner__sub">Gerez tous vos modules depuis ce tableau de bord, avec Hotels en plus.</p>
           </div>
-          <button
-            onClick={() => navigate('/admin/hotels/reservations')}
-            style={{
-              border: '1px solid rgba(255,255,255,.25)',
-              background: totalPending > 0 ? '#E92F64' : 'rgba(255,255,255,.14)',
-              color: '#fff',
-              borderRadius: 16,
-              padding: '16px 18px',
-              minWidth: 180,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
-            <div style={{ fontSize: 28, fontWeight: 900 }}>{totalPending}</div>
-            <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.92 }}>
-              action(s) en attente
-            </div>
-          </button>
-        </section>
-
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16 }}>
-          {[
-            {
-              label: 'Reservations totales',
-              value: stats.totalReservations,
-              sub: `${stats.confirmedReservations} confirmees`,
-              color: '#0f4c5c',
-            },
-            {
-              label: 'Hotels en ligne',
-              value: stats.hotelsTotal,
-              sub: `${stats.hotelsPending} reservation(s) hotel en attente`,
-              color: '#1ecad3',
-            },
-            {
-              label: 'Clients actifs',
-              value: stats.activeClients,
-              sub: `${stats.totalClients} comptes au total`,
-              color: '#2563eb',
-            },
-            {
-              label: 'Taux de confirmation',
-              value: stats.totalReservations ? `${Math.round((stats.confirmedReservations / stats.totalReservations) * 100)}%` : '0%',
-              sub: `${stats.completedReservations} terminees | ${stats.cancelledReservations} annulees`,
-              color: '#16a34a',
-            },
-          ].map((card) => (
-            <div key={card.label} style={statCardStyle}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: `${card.color}15`, color: card.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, marginBottom: 14 }}>
-                {String(card.value).slice(0, 2)}
+          {totalPending > 0 && (
+            <button className="dash-alert" onClick={() => navigate(st.hotelsPending > 0 ? '/admin/hotels/reservations' : '/admin/transport/requests')}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+                <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+              </svg>
+              <div>
+                <p className="dash-alert__num">{totalPending}</p>
+                <p className="dash-alert__lbl">action{totalPending > 1 ? 's' : ''} en attente</p>
               </div>
-              <div style={{ fontSize: 12, color: '#64748b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '.08em' }}>{card.label}</div>
-              <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', marginTop: 8 }}>{card.value}</div>
-              <div style={{ fontSize: 13, color: '#64748b', marginTop: 8, lineHeight: 1.6 }}>{card.sub}</div>
-            </div>
-          ))}
-        </section>
+            </button>
+          )}
+        </div>
 
-        <section>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 12 }}>
-            Modules
+        <div>
+          <p className="dash-section-lbl">Vue d'ensemble</p>
+          <div className="dash-kpi-row">
+            {kpis.map((kpi) => <KpiCard key={kpi.label} kpi={kpi} />)}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16 }}>
-            {MODULES.map((module) => {
-              const primaryValue = module.links[0]?.key ? stats[module.links[0].key] ?? 0 : 0;
-              return (
-                <div key={module.title} style={statCardStyle}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
-                    <div>
-                      <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a' }}>{module.title}</div>
-                      <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.6 }}>{module.description}</div>
-                    </div>
-                    <div style={{ minWidth: 42, height: 42, borderRadius: 14, background: `${module.color}18`, color: module.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>
-                      {primaryValue}
-                    </div>
-                  </div>
-                  <div style={{ display: 'grid', gap: 10 }}>
-                    {module.links.map((link) => {
-                      const value = link.key ? stats[link.key] ?? 0 : null;
-                      return (
-                        <button
-                          key={link.path}
-                          onClick={() => navigate(link.path)}
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            borderRadius: 14,
-                            border: '1px solid #e2e8f0',
-                            background: '#f8fafc',
-                            padding: '12px 14px',
-                            cursor: 'pointer',
-                            fontFamily: 'inherit',
-                          }}
-                        >
-                          <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{link.label}</span>
-                          {value !== null && (
-                            <span
-                              style={{
-                                minWidth: 30,
-                                height: 30,
-                                borderRadius: 999,
-                                background: link.badge && value > 0 ? '#E92F64' : `${module.color}18`,
-                                color: link.badge && value > 0 ? '#fff' : module.color,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: 12,
-                                fontWeight: 800,
-                                padding: '0 10px',
-                              }}
-                            >
-                              {value}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+        </div>
+
+        <div>
+          <p className="dash-section-lbl">Modules</p>
+          <div className="dash-grid">
+            {MODULES.map((mod) => (
+              <ModuleCard key={mod.title} mod={mod} st={st} navigate={navigate} />
+            ))}
           </div>
-        </section>
+        </div>
       </div>
     </AdminLayout>
   );

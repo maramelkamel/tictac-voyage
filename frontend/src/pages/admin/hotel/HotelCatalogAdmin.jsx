@@ -32,6 +32,9 @@ const EMPTY_FORM = {
   amenities: [],
   highlights: [],
   room_types: [],
+  meal_plans: [],
+  room_views: [],
+  reservation_extras: [],
   policies: [],
   nearby_places: [],
   property_type: 'Resort & Spa',
@@ -367,6 +370,9 @@ const HotelModal = ({ hotel, onClose, onSaved, notify }) => {
     amenities: hotel?.amenities || [],
     highlights: hotel?.highlights || [],
     room_types: hotel?.room_types || [],
+    meal_plans: hotel?.meal_plans || [],
+    room_views: hotel?.room_views || [],
+    reservation_extras: hotel?.reservation_extras || [],
     policies: hotel?.policies || [],
     nearby_places: hotel?.nearby_places || [],
     stars: hotel?.stars ? String(hotel.stars) : EMPTY_FORM.stars,
@@ -400,6 +406,9 @@ const HotelModal = ({ hotel, onClose, onSaved, notify }) => {
         amenities: normalizeTextList(form.amenities),
         highlights: normalizeTextList(form.highlights),
         room_types: normalizeTextList(form.room_types),
+        meal_plans: normalizeTextList(form.meal_plans),
+        room_views: normalizeTextList(form.room_views),
+        reservation_extras: normalizeTextList(form.reservation_extras),
         policies: normalizeTextList(form.policies),
         nearby_places: normalizeTextList(form.nearby_places),
       }, hotel?.id || null);
@@ -540,10 +549,18 @@ const HotelModal = ({ hotel, onClose, onSaved, notify }) => {
 
           <div className="al-row-2">
             <EditableList label="Types de chambres" items={form.room_types} onChange={(next) => setField('room_types', next)} placeholder="Ex: Suite familiale" />
-            <EditableList label="A proximite" items={form.nearby_places} onChange={(next) => setField('nearby_places', next)} placeholder="Ex: Medina de Tunis - 12 min" />
+            <EditableList label="Pensions / formules" items={form.meal_plans} onChange={(next) => setField('meal_plans', next)} placeholder="Ex: All inclusive" />
           </div>
 
-          <EditableList label="Politiques hotel" items={form.policies} onChange={(next) => setField('policies', next)} placeholder="Ex: Annulation gratuite 48h avant" />
+          <div className="al-row-2">
+            <EditableList label="Vues de chambres" items={form.room_views} onChange={(next) => setField('room_views', next)} placeholder="Ex: Vue mer frontale" />
+            <EditableList label="Extras de reservation" items={form.reservation_extras} onChange={(next) => setField('reservation_extras', next)} placeholder="Ex: Transfert aeroport" />
+          </div>
+
+          <div className="al-row-2">
+            <EditableList label="A proximite" items={form.nearby_places} onChange={(next) => setField('nearby_places', next)} placeholder="Ex: Medina de Tunis - 12 min" />
+            <EditableList label="Politiques hotel" items={form.policies} onChange={(next) => setField('policies', next)} placeholder="Ex: Annulation gratuite 48h avant" />
+          </div>
 
           <div className="al-form-footer">
             <button type="button" className="al-btn al-btn--ghost" onClick={onClose}>
@@ -605,6 +622,23 @@ const HotelDetailsPanel = ({ hotel, onClose, onEdit, onDelete }) => {
               <span key={item} style={{ padding: '6px 10px', borderRadius: 999, background: 'rgba(15,76,92,.08)', color: 'var(--primary)', fontSize: 12, fontWeight: 700 }}>
                 {item}
               </span>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--g400)', textTransform: 'uppercase', marginBottom: 8 }}>Reservation en front</p>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {[
+              ['Chambres', (hotel.room_types || []).join(', ') || '-'],
+              ['Pensions', (hotel.meal_plans || []).join(', ') || hotel.meals || '-'],
+              ['Vues', (hotel.room_views || []).join(', ') || '-'],
+              ['Extras', (hotel.reservation_extras || []).join(', ') || '-'],
+            ].map(([label, value]) => (
+              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 13, color: 'var(--g700)' }}>
+                <span style={{ color: 'var(--g400)' }}>{label}</span>
+                <span style={{ fontWeight: 700, textAlign: 'right' }}>{value}</span>
+              </div>
             ))}
           </div>
         </div>

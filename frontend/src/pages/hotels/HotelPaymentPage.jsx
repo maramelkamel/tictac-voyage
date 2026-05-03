@@ -163,6 +163,9 @@ const HotelPaymentPage = () => {
   const totalPrix = Number(state.totalPrix || 0) || (Number(hotel.base_price || 0) * Number(reservation.rooms || 1));
   const currency = hotel.currency || 'TND';
   const pricing = getPromotionPricing(totalPrix, appliedPromotion);
+  const extrasLabel = Array.isArray(reservation.selected_extras) && reservation.selected_extras.length > 0
+    ? reservation.selected_extras.join(', ')
+    : 'Aucun';
 
   const handleCardChange = (event) => {
     const { name, value } = event.target;
@@ -203,16 +206,14 @@ const HotelPaymentPage = () => {
     setPromoMessage(`Code ${matchedPromotion.code_promo} applique.`);
   };
 
-  const saveReservation = async (paymentMethod) => {
-    return createHotelBooking({
-      hotel,
-      reservation,
-      payment_method: paymentMethod,
-      promo_code: appliedPromotion?.code_promo || null,
-      applied_promotion: serializeAppliedPromotion(appliedPromotion, 'hotels'),
-      display_total: pricing.finalAmount,
-    });
-  };
+  const saveReservation = async (paymentMethod) => createHotelBooking({
+    hotel,
+    reservation,
+    payment_method: paymentMethod,
+    promo_code: appliedPromotion?.code_promo || null,
+    applied_promotion: serializeAppliedPromotion(appliedPromotion, 'hotels'),
+    display_total: pricing.finalAmount,
+  });
 
   const handleOnlineSubmit = async (event) => {
     event.preventDefault();
@@ -221,7 +222,7 @@ const HotelPaymentPage = () => {
       await saveReservation('online');
       setMethod('online');
       setSuccessMessage(
-        `Votre paiement de ${pricing.finalAmount.toLocaleString('fr-FR')} ${currency} a ete traite. La confirmation a ete envoyee a ${reservation.holder_email}.`
+        `Votre paiement de ${pricing.finalAmount.toLocaleString('fr-FR')} ${currency} a ete traite. Confirmation envoyee a ${reservation.holder_email}.`
       );
       setSubmitted(true);
     } catch (error) {
@@ -293,17 +294,11 @@ const HotelPaymentPage = () => {
       <div className="payment-hero">
         <div className="container">
           <div className="payment-breadcrumb">
-            <button className="payment-breadcrumb__btn" onClick={() => navigate('/hotels')}>
-              Hotels
-            </button>
+            <button className="payment-breadcrumb__btn" onClick={() => navigate('/hotels')}>Hotels</button>
             <span className="payment-breadcrumb__sep">/</span>
-            <button className="payment-breadcrumb__btn" onClick={() => navigate(-2)}>
-              {hotel.city}
-            </button>
+            <button className="payment-breadcrumb__btn" onClick={() => navigate(-2)}>{hotel.city}</button>
             <span className="payment-breadcrumb__sep">/</span>
-            <button className="payment-breadcrumb__btn" onClick={() => navigate(-1)}>
-              Reservation
-            </button>
+            <button className="payment-breadcrumb__btn" onClick={() => navigate(-1)}>Reservation</button>
             <span className="payment-breadcrumb__sep">/</span>
             <span className="payment-breadcrumb__current">Paiement</span>
           </div>
@@ -351,9 +346,7 @@ const HotelPaymentPage = () => {
 
               <div className="payment-card">
                 <h3 className="payment-card__title">Code promo</h3>
-                <p className="payment-card__subtitle">
-                  Ajoutez le code promo de cette page pour recalculer le total.
-                </p>
+                <p className="payment-card__subtitle">Ajoutez le code promo de cette page pour recalculer le total.</p>
                 <div className="pay-form-row" style={{ alignItems: 'flex-end' }}>
                   <div className="pay-field" style={{ flex: 1 }}>
                     <label className="pay-label">Code promo</label>
@@ -389,47 +382,19 @@ const HotelPaymentPage = () => {
 
               <div className="payment-card">
                 <h3 className="payment-card__title">Choisissez votre mode de paiement</h3>
-                <p className="payment-card__subtitle">
-                  Meme logique que la page Voyage Organise, avec confirmation immediate de votre reservation hotel.
-                </p>
+                <p className="payment-card__subtitle">Selectionnez l'option qui vous convient le mieux.</p>
                 <div className="payment-method-row">
-                  <button
-                    className={`payment-method-btn ${method === 'online' ? 'payment-method-btn--online' : ''}`}
-                    onClick={() => setMethod('online')}
-                  >
+                  <button className={`payment-method-btn ${method === 'online' ? 'payment-method-btn--online' : ''}`} onClick={() => setMethod('online')}>
                     <div className="payment-method-btn__icon">Card</div>
-                    <div className={`payment-method-btn__title ${method === 'online' ? 'payment-method-btn__title--online' : ''}`}>
-                      Payer en ligne
-                    </div>
-                    <div className="payment-method-btn__desc">
-                      Carte bancaire, e-Dinar
-                      <br />
-                      Paiement immediat et securise
-                    </div>
-                    {method === 'online' && (
-                      <div className="payment-method-btn__badge payment-method-btn__badge--online">
-                        Selectionne
-                      </div>
-                    )}
+                    <div className={`payment-method-btn__title ${method === 'online' ? 'payment-method-btn__title--online' : ''}`}>Payer en ligne</div>
+                    <div className="payment-method-btn__desc">Carte bancaire, e-Dinar<br />Paiement immediat et securise</div>
+                    {method === 'online' && <div className="payment-method-btn__badge payment-method-btn__badge--online">Selectionne</div>}
                   </button>
-                  <button
-                    className={`payment-method-btn ${method === 'agency' ? 'payment-method-btn--agency' : ''}`}
-                    onClick={() => setMethod('agency')}
-                  >
+                  <button className={`payment-method-btn ${method === 'agency' ? 'payment-method-btn--agency' : ''}`} onClick={() => setMethod('agency')}>
                     <div className="payment-method-btn__icon">Agence</div>
-                    <div className={`payment-method-btn__title ${method === 'agency' ? 'payment-method-btn__title--agency' : ''}`}>
-                      Payer a l'agence
-                    </div>
-                    <div className="payment-method-btn__desc">
-                      Especes ou virement
-                      <br />
-                      Rendez-vous en agence
-                    </div>
-                    {method === 'agency' && (
-                      <div className="payment-method-btn__badge payment-method-btn__badge--agency">
-                        Selectionne
-                      </div>
-                    )}
+                    <div className={`payment-method-btn__title ${method === 'agency' ? 'payment-method-btn__title--agency' : ''}`}>Payer a l'agence</div>
+                    <div className="payment-method-btn__desc">Especes ou virement<br />Rendez-vous en agence</div>
+                    {method === 'agency' && <div className="payment-method-btn__badge payment-method-btn__badge--agency">Selectionne</div>}
                   </button>
                 </div>
               </div>
@@ -516,9 +481,7 @@ const HotelPaymentPage = () => {
                             value={cardForm.cvv}
                             onChange={handleCardChange}
                           />
-                          <span className="pay-input-info" title="Code a 3 ou 4 chiffres au dos de votre carte">
-                            i
-                          </span>
+                          <span className="pay-input-info" title="Code a 3 ou 4 chiffres au dos de votre carte">i</span>
                         </div>
                       </div>
                     </div>
@@ -607,14 +570,20 @@ const HotelPaymentPage = () => {
               <div className="payment-trip-card">
                 <img src={hotel.image_url} alt={hotel.name} className="payment-trip-card__img" />
                 <div className="payment-trip-card__body">
-                  <div className="payment-trip-card__country">{hotel.city} · {hotel.property_type || 'Hotel'}</div>
+                  <div className="payment-trip-card__country">{hotel.city} - {hotel.property_type || 'Hotel'}</div>
                   <div className="payment-trip-card__title">{hotel.name}</div>
                   <div className="payment-trip-card__meta">
                     {[
                       { icon: 'Location', text: hotel.address },
                       { icon: 'Dates', text: `${reservation.check_in} -> ${reservation.check_out}` },
-                      { icon: 'Voyageurs', text: `${reservation.adults} adulte(s)` },
+                      { icon: 'Voyageurs', text: `${reservation.adults} adulte(s)${Number(reservation.children || 0) > 0 ? ` + ${reservation.children} enfant(s)` : ''}` },
                       { icon: 'Chambres', text: `${reservation.rooms} chambre(s)` },
+                      { icon: 'Room', text: reservation.room_type || 'Standard Room' },
+                      { icon: 'Pension', text: reservation.meal_plan || hotel.meals || 'Room only' },
+                      { icon: 'Vue', text: reservation.room_view || 'Standard view' },
+                      { icon: 'Lit', text: reservation.bed_preference || 'No preference' },
+                      { icon: 'Extras', text: extrasLabel },
+                      { icon: 'Transfert', text: reservation.airport_transfer ? 'Oui' : 'Non' },
                     ].map((item) => (
                       <div key={item.icon} className="payment-trip-card__meta-item">
                         <span>{item.icon}</span> {item.text}
@@ -628,6 +597,8 @@ const HotelPaymentPage = () => {
                 {[
                   { label: 'Prix / chambre', value: `${Number(hotel.base_price || 0).toLocaleString('fr-FR')} ${currency}` },
                   { label: `x ${reservation.rooms} chambre(s)`, value: `${totalPrix.toLocaleString('fr-FR')} ${currency}` },
+                  { label: 'Type de chambre', value: reservation.room_type || 'Standard Room' },
+                  { label: 'Formule', value: reservation.meal_plan || hotel.meals || 'Room only' },
                   ...(pricing.discountAmount > 0 ? [{ label: 'Reduction promo', value: `- ${pricing.discountAmount.toLocaleString('fr-FR')} ${currency}` }] : []),
                   { label: 'Taxes et frais', value: 'Inclus' },
                 ].map((row) => (

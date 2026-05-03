@@ -105,9 +105,8 @@ app.listen(PORT, async () => {
   }
 
   try {
-    const { ensureHotelSchema, seedHotelsIfEmpty } = require('./services/hotelService');
+    const { ensureHotelSchema } = require('./services/hotelService');
     await ensureHotelSchema();
-    await seedHotelsIfEmpty();
   } catch (err) {
     console.error('[startup] Erreur hotel bootstrap:', err.message);
   }

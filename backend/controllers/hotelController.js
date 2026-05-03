@@ -166,7 +166,15 @@ const bookHotel = async (req, res) => {
       check_in: reservation.check_in,
       check_out: reservation.check_out,
       adults: toNumber(reservation.adults, 2),
+      children: toNumber(reservation.children, 0),
       rooms: requestedRooms,
+      room_type: reservation.room_type || null,
+      meal_plan: reservation.meal_plan || null,
+      room_view: reservation.room_view || null,
+      bed_preference: reservation.bed_preference || null,
+      arrival_time: reservation.arrival_time || null,
+      airport_transfer: reservation.airport_transfer === true,
+      selected_extras: Array.isArray(reservation.selected_extras) ? reservation.selected_extras : [],
       total_price: finalTotal,
       currency: selectedHotel.currency || 'TND',
       promo_code,
@@ -181,16 +189,31 @@ const bookHotel = async (req, res) => {
       special_requests: reservation.special_requests || null,
       selected_hotel: {
         ...selectedHotel,
+        selected_room_type: reservation.room_type || null,
+        selected_meal_plan: reservation.meal_plan || null,
+        selected_room_view: reservation.room_view || null,
+        selected_extras: Array.isArray(reservation.selected_extras) ? reservation.selected_extras : [],
         applied_promotion: applied_promotion || null,
       },
     });
+
+    const extrasLabel = Array.isArray(saved.selected_extras) && saved.selected_extras.length > 0
+      ? saved.selected_extras.join(', ')
+      : null;
 
     const emailDetails = {
       Ville: saved.hotel_city,
       'Check-in': saved.check_in,
       'Check-out': saved.check_out,
-      Voyageurs: `${saved.adults} adulte(s)`,
+      Voyageurs: `${saved.adults} adulte(s)${saved.children ? `, ${saved.children} enfant(s)` : ''}`,
       Chambres: `${saved.rooms}`,
+      'Type de chambre': saved.room_type || null,
+      Pension: saved.meal_plan || null,
+      'Vue chambre': saved.room_view || null,
+      'Preference lit': saved.bed_preference || null,
+      "Heure d'arrivee": saved.arrival_time || null,
+      Transfert: saved.airport_transfer ? 'Oui' : 'Non',
+      Extras: extrasLabel,
       Paiement: isOnline ? 'En ligne' : "A l'agence",
       Total: `${Number(saved.total_price).toLocaleString('fr-FR')} ${saved.currency}`,
       'Code promo': promo_code || applied_promotion?.code_promo || null,
