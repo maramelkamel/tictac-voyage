@@ -60,6 +60,8 @@ export const getFavoritePath = (itemType, itemId) => {
       return `/VoyagesOrganise/Detail/${itemId}`;
     case 'circuit':
       return `/circuits/CircuitDetails/${itemId}`;
+    case 'hotel':
+      return `/hotels/details/${itemId}`;
     default:
       return null;
   }
@@ -96,6 +98,17 @@ export const buildFavoriteItemData = (itemType, item) => {
       ...baseData,
       subtitle: item.subtitle || '',
       region: item.region || '',
+      duration: item.duration || '',
+    };
+  }
+
+  if (itemType === 'hotel') {
+    return {
+      ...baseData,
+      subtitle: item.subtitle || '',
+      city: item.city || '',
+      address: item.address || item.location || '',
+      rating: item.rating || '',
       duration: item.duration || '',
     };
   }

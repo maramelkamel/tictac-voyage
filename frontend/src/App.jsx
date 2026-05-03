@@ -48,7 +48,7 @@ import FlightPricingAdmin from './pages/admin/flight/FlightPricingAdmin';
 import HotelsPage from './pages/hotels/HotelsPage';
 import HotelReservationPage from './pages/hotels/HotelReservationPage';
 import HotelPaymentPage from './pages/hotels/HotelPaymentPage';
-import HotelExplainPage from './pages/hotels/HotelExplainPage';
+import HotelDetailsPage from './pages/hotels/HotelDetailsPage';
 import HotelCatalogAdmin from './pages/admin/hotel/HotelCatalogAdmin';
 import HotelReservationsAdmin from './pages/admin/hotel/HotelReservationsAdmin';
 
@@ -110,9 +110,9 @@ function App() {
       <Route path="/admin/flights/pricing"      element={<FlightPricingAdmin />} />
       <Route path="/hotels" element={<HotelsPage />} />
       <Route path="/hotels/results" element={<HotelsPage />} />
+      <Route path="/hotels/details/:id" element={<HotelDetailsPage />} />
       <Route path="/hotels/reserve" element={<HotelReservationPage />} />
       <Route path="/hotels/payment" element={<HotelPaymentPage />} />
-      <Route path="/hotels/explain" element={<HotelExplainPage />} />
       <Route path="/admin/hotels/catalog" element={<HotelCatalogAdmin />} />
       <Route path="/admin/hotels/reservations" element={<HotelReservationsAdmin />} />
       

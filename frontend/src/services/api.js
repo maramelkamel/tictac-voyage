@@ -87,7 +87,6 @@ const requestJson = async (path, {
   });
 
   const data = await parseJson(response);
-
   if (!response.ok || data.success === false) {
     throw new Error(resolveErrorMessage(data.message, authType));
   }
@@ -95,46 +94,15 @@ const requestJson = async (path, {
   return data;
 };
 
-const getJson = async (path, params) => requestJson(path, { params });
-
-export const getCityId = async (city) => getJson('/hotels/city-id', { city });
-
-export const getHotelsFromMakCorps = async (cityIdOrOptions, options = {}) => {
-  const params = typeof cityIdOrOptions === 'object'
-    ? cityIdOrOptions
-    : { cityId: cityIdOrOptions, ...options };
-
-  return getJson('/hotels/makcorps', {
-    cityId: params.cityId,
-    page: params.page ?? 0,
-    currency: params.currency ?? 'USD',
-    rooms: params.rooms ?? 1,
-    adults: params.adults ?? 2,
-    checkin: params.checkin,
-    checkout: params.checkout,
-  });
-};
-
-export const getHotelsFromBookingAPI = async (bboxOrOptions, options = {}) => {
-  const params = typeof bboxOrOptions === 'object'
-    ? bboxOrOptions
-    : { bbox: bboxOrOptions, ...options };
-
-  return getJson('/hotels/booking', {
-    city: params.city,
-    bbox: params.bbox,
-    page: params.page ?? 1,
-    pageSize: params.pageSize ?? 6,
-    checkin: params.checkin,
-    checkout: params.checkout,
-    adults: params.adults ?? 2,
-    rooms: params.rooms ?? 1,
-    currency: params.currency ?? 'USD',
-  });
-};
-
-export const getManualHotels = async ({ city, search } = {}) =>
-  getJson('/hotels/manual', { city, search });
+export const getHotelsCatalog = async (params = {}) => requestJson('/hotels', { params });
+export const getPopularHotels = async (limit = 4) => requestJson('/hotels/popular', { params: { limit } });
+export const getHotelById = async (hotelId) => requestJson(`/hotels/${hotelId}`);
+export const getHotelPageCover = async () => requestJson('/hotels/covers');
+export const updateHotelPageCover = async (hero) => requestJson('/hotels/covers', {
+  method: 'PUT',
+  authType: 'admin',
+  body: { hero },
+});
 
 export const createHotelBooking = async ({
   hotel,
@@ -172,12 +140,11 @@ export const getMyHotelReservations = async () => {
   return requestJson('/hotels/mine', { authType: 'client' });
 };
 
-export const getAdminHotels = async ({ city, search } = {}) => {
-  return requestJson('/hotels/admin/hotels', {
+export const getAdminHotels = async ({ city, search } = {}) =>
+  requestJson('/hotels/admin/hotels', {
     params: { city, search },
     authType: 'admin',
   });
-};
 
 export const saveAdminHotel = async (hotel, hotelId = null) => {
   const method = hotelId ? 'PUT' : 'POST';
@@ -190,21 +157,18 @@ export const saveAdminHotel = async (hotel, hotelId = null) => {
   });
 };
 
-export const deleteAdminHotel = async (hotelId) => {
-  return requestJson(`/hotels/admin/hotels/${hotelId}`, {
+export const deleteAdminHotel = async (hotelId) =>
+  requestJson(`/hotels/admin/hotels/${hotelId}`, {
     method: 'DELETE',
     authType: 'admin',
   });
-};
 
-export const getHotelReservationsAdmin = async () => {
-  return requestJson('/hotels/reservations', { authType: 'admin' });
-};
+export const getHotelReservationsAdmin = async () =>
+  requestJson('/hotels/reservations', { authType: 'admin' });
 
-export const updateHotelReservationStatus = async (reservationId, status) => {
-  return requestJson(`/hotels/reservations/${reservationId}/status`, {
+export const updateHotelReservationStatus = async (reservationId, status) =>
+  requestJson(`/hotels/reservations/${reservationId}/status`, {
     method: 'PATCH',
     authType: 'admin',
     body: { status },
   });
-};

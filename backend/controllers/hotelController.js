@@ -1,104 +1,82 @@
 const HotelModel = require('../models/hotelModel');
 const HotelReservationModel = require('../models/hotelReservationModel');
-const hotelService = require('../services/hotelService');
 const { sendAgencyReservationEmail, sendReservationStatusEmail } = require('../utils/mailer');
 
-const DEFAULT_AMENITIES = ['WiFi', 'Pool', 'Breakfast', 'Parking'];
+const DEFAULT_HOTEL_COVERS = {
+  hero: {
+    bg_image: '',
+    tag: 'Hotels en Tunisie',
+    title: 'Trouvez votre',
+    title_accent: 'hotel ideal',
+    sub: 'Des adresses choisies avec soin, des promotions actives et un parcours de reservation identique a vos voyages organises.',
+  },
+};
 
 const toNumber = (value, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const getCityId = async (req, res) => {
+const getPublicHotels = async (req, res) => {
   try {
-    const city = req.query.city || 'Tunis';
-    const result = await hotelService.getCityId(city);
-    return res.json({ success: true, ...result });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-const getMakCorpsHotels = async (req, res) => {
-  try {
-    const {
-      cityId,
-      page = 0,
-      currency = 'USD',
-      rooms = 1,
-      adults = 2,
-      checkin,
-      checkout,
-    } = req.query;
-
-    if (!cityId) {
-      return res.status(400).json({ success: false, message: 'cityId is required.' });
-    }
-
-    const result = await hotelService.getHotelsFromMakCorps({
-      cityId,
-      page: toNumber(page, 0),
-      currency,
-      rooms: toNumber(rooms, 1),
-      adults: toNumber(adults, 2),
-      checkin,
-      checkout,
-    });
-
-    return res.json({ success: true, ...result });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-const getBookingHotels = async (req, res) => {
-  try {
-    const {
-      city = 'Tunis',
-      bbox,
-      page = 1,
-      pageSize = 10,
-      checkin,
-      checkout,
-      adults = 2,
-      rooms = 1,
-      currency = 'USD',
-    } = req.query;
-
-    const result = await hotelService.getHotelsFromBookingAPI({
-      city,
-      bbox,
-      page: toNumber(page, 1),
-      pageSize: toNumber(pageSize, 10),
-      checkin,
-      checkout,
-      adults: toNumber(adults, 2),
-      rooms: toNumber(rooms, 1),
-      currency,
-    });
-
-    return res.json({ success: true, bbox: bbox || hotelService.getCityBbox(city), ...result });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-const getManualHotels = async (req, res) => {
-  try {
-    const hotels = await HotelModel.getAll({
+    const hotels = await HotelModel.getPublicHotels({
       city: req.query.city,
       search: req.query.search,
+      sortBy: req.query.sortBy,
+      featuredOnly: req.query.featured === 'true',
     });
-    return res.json({ success: true, hotels });
+    return res.json({ success: true, data: hotels });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getPopularHotels = async (req, res) => {
+  try {
+    const hotels = await HotelModel.getPopularHotels(toNumber(req.query.limit, 4));
+    return res.json({ success: true, data: hotels });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getHotelById = async (req, res) => {
+  try {
+    const hotel = await HotelModel.getById(req.params.id);
+    if (!hotel || hotel.is_active === false) {
+      return res.status(404).json({ success: false, message: 'Hotel not found.' });
+    }
+    return res.json({ success: true, data: hotel });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getHotelCovers = async (req, res) => {
+  try {
+    const covers = await HotelModel.getSetting('hotel-covers');
+    return res.json({ success: true, data: covers || DEFAULT_HOTEL_COVERS });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Unable to load hotel page settings.' });
+  }
+};
+
+const updateHotelCovers = async (req, res) => {
+  try {
+    if (!req.body?.hero) {
+      return res.status(400).json({ success: false, message: 'Hero data is required.' });
+    }
+
+    const saved = await HotelModel.setSetting('hotel-covers', { hero: req.body.hero });
+    return res.json({ success: true, data: saved, message: 'Hotel page appearance updated.' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Unable to update hotel page settings.' });
   }
 };
 
 const getAdminHotels = async (req, res) => {
   try {
-    const hotels = await HotelModel.getAll({
+    const hotels = await HotelModel.getAdminHotels({
       city: req.query.city,
       search: req.query.search,
     });
@@ -110,19 +88,7 @@ const getAdminHotels = async (req, res) => {
 
 const createHotel = async (req, res) => {
   try {
-    const hotel = await HotelModel.create({
-      name: req.body.name,
-      city: req.body.city,
-      address: req.body.address,
-      description: req.body.description,
-      image_url: req.body.image_url,
-      rating: req.body.rating,
-      amenities: req.body.amenities?.length ? req.body.amenities : DEFAULT_AMENITIES,
-      base_price: req.body.base_price,
-      currency: req.body.currency || 'USD',
-      availability: req.body.availability || 'Available',
-    });
-
+    const hotel = await HotelModel.create(req.body);
     return res.status(201).json({ success: true, hotel });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -131,20 +97,7 @@ const createHotel = async (req, res) => {
 
 const updateHotel = async (req, res) => {
   try {
-    const hotel = await HotelModel.update(req.params.id, {
-      name: req.body.name,
-      city: req.body.city,
-      address: req.body.address,
-      description: req.body.description,
-      image_url: req.body.image_url,
-      rating: req.body.rating,
-      amenities: req.body.amenities?.length ? req.body.amenities : DEFAULT_AMENITIES,
-      base_price: req.body.base_price,
-      currency: req.body.currency || 'USD',
-      availability: req.body.availability || 'Available',
-      is_active: req.body.is_active ?? true,
-    });
-
+    const hotel = await HotelModel.update(req.params.id, req.body);
     if (!hotel) {
       return res.status(404).json({ success: false, message: 'Hotel not found.' });
     }
@@ -178,7 +131,7 @@ const bookHotel = async (req, res) => {
       display_total = null,
     } = req.body;
 
-    if (!hotel?.name) {
+    if (!hotel?.name || !hotel?.id) {
       return res.status(400).json({ success: false, message: 'Hotel data is required.' });
     }
 
@@ -186,23 +139,36 @@ const bookHotel = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Reservation holder information is required.' });
     }
 
+    const selectedHotel = await HotelModel.getById(hotel.id);
+    if (!selectedHotel) {
+      return res.status(404).json({ success: false, message: 'Hotel not found.' });
+    }
+
+    const requestedRooms = toNumber(reservation.rooms, 1);
+    if (selectedHotel.available_rooms < requestedRooms) {
+      return res.status(400).json({
+        success: false,
+        message: `Only ${selectedHotel.available_rooms} room(s) remain available for this hotel.`,
+      });
+    }
+
     const isOnline = payment_method === 'online';
     const finalTotal = Number.isFinite(Number(display_total))
       ? toNumber(display_total, 0)
-      : toNumber(hotel.price_numeric, 0);
+      : toNumber(selectedHotel.base_price, 0);
 
     const saved = await HotelReservationModel.create({
       user_id: req.clientId || null,
-      hotel_id: hotel.manual_id || null,
-      hotel_name: hotel.name,
-      hotel_city: hotel.city || reservation.city || 'Tunisia',
-      hotel_location: hotel.location || reservation.city || 'Tunisia',
+      hotel_id: selectedHotel.id,
+      hotel_name: selectedHotel.name,
+      hotel_city: selectedHotel.city || reservation.city || 'Tunisia',
+      hotel_location: selectedHotel.address || reservation.city || 'Tunisia',
       check_in: reservation.check_in,
       check_out: reservation.check_out,
       adults: toNumber(reservation.adults, 2),
-      rooms: toNumber(reservation.rooms, 1),
+      rooms: requestedRooms,
       total_price: finalTotal,
-      currency: hotel.currency || 'USD',
+      currency: selectedHotel.currency || 'TND',
       promo_code,
       applied_promotion,
       payment_method,
@@ -214,7 +180,7 @@ const bookHotel = async (req, res) => {
       holder_phone: reservation.holder_phone,
       special_requests: reservation.special_requests || null,
       selected_hotel: {
-        ...hotel,
+        ...selectedHotel,
         applied_promotion: applied_promotion || null,
       },
     });
@@ -235,7 +201,7 @@ const bookHotel = async (req, res) => {
         email: reservation.holder_email,
         firstName: reservation.holder_first_name,
         type: 'hotel',
-        title: hotel.name,
+        title: selectedHotel.name,
         status: saved.status,
         details: emailDetails,
       }).catch((error) => console.error('Hotel reservation email failed:', error.message));
@@ -244,7 +210,7 @@ const bookHotel = async (req, res) => {
         email: reservation.holder_email,
         firstName: reservation.holder_first_name,
         type: 'hotel',
-        title: hotel.name,
+        title: selectedHotel.name,
         details: emailDetails,
         promotionReminder: applied_promotion?.date_fin ? {
           code: applied_promotion.code_promo,
@@ -333,10 +299,11 @@ const updateReservationStatus = async (req, res) => {
 };
 
 module.exports = {
-  getCityId,
-  getMakCorpsHotels,
-  getBookingHotels,
-  getManualHotels,
+  getPublicHotels,
+  getPopularHotels,
+  getHotelById,
+  getHotelCovers,
+  updateHotelCovers,
   getAdminHotels,
   createHotel,
   updateHotel,

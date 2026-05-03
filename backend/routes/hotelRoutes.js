@@ -22,13 +22,12 @@ const requireClient = (req, res, next) => {
   }
 };
 
-router.get('/city-id', controller.getCityId);
-router.get('/makcorps', controller.getMakCorpsHotels);
-router.get('/booking', controller.getBookingHotels);
-router.get('/manual', controller.getManualHotels);
+router.get('/popular', controller.getPopularHotels);
+router.get('/covers', controller.getHotelCovers);
+router.put('/covers', requireAdmin, controller.updateHotelCovers);
 
-router.post('/book', requireClient, controller.bookHotel);
 router.get('/mine', requireClient, controller.getMyReservations);
+router.post('/book', requireClient, controller.bookHotel);
 
 router.get('/reservations', requireAdmin, controller.getReservations);
 router.patch('/reservations/:id/status', requireAdmin, controller.updateReservationStatus);
@@ -37,5 +36,8 @@ router.get('/admin/hotels', requireAdmin, controller.getAdminHotels);
 router.post('/admin/hotels', requireAdmin, controller.createHotel);
 router.put('/admin/hotels/:id', requireAdmin, controller.updateHotel);
 router.delete('/admin/hotels/:id', requireAdmin, controller.deleteHotel);
+
+router.get('/', controller.getPublicHotels);
+router.get('/:id', controller.getHotelById);
 
 module.exports = router;
