@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import HomePage from './pages/home/HomePage';
+
 import Omra from './pages/Omra/Omra';
 import Reserve from './pages/Omra/Reserve';
 import Details from './pages/Omra/Details';
@@ -59,7 +59,7 @@ function App() {
     <Router>
       
       <Routes>
-        <Route path="/" element={<HomePage />} />
+       
         <Route path="/Omra/Omra" element={<Omra />} />
         <Route path="/Omra/Details/:id" element={<Details />} />
         <Route path="/Omra/Reserve/:id" element={<Reserve />} />
