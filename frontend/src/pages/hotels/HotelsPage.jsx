@@ -4,6 +4,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import HotelCard from '../../components/HotelCard';
 import HotelsSearchBar from '../../components/HotelsSearchBar';
+import SortFilter from '../../components/SortFilter';
 import { usePromotions } from '../../hooks/usePromotions';
 import PromotionsSection from '../admin/promotions/PromotionsSection';
 import { useFavorites } from '../../hooks/useFavorites';
@@ -26,11 +27,23 @@ const DEFAULT_CITIES = [
 
 const DEFAULT_HERO = {
   bg_image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1600&q=80',
+  photo_1: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1600&q=80',
+  photo_2: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=1600&q=80',
+  photo_3: 'https://images.unsplash.com/photo-1522798514-97ceb8c4f1c8?w=1600&q=80',
+  photo_4: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1600&q=80',
   tag: 'Hotels en Tunisie',
   title: 'Trouvez votre',
   title_accent: 'sejour ideal',
   sub: 'Des hotels alimentes uniquement depuis votre base de donnees, avec disponibilite, tarifs et reservation en ligne.',
 };
+
+const HOTEL_SORT_OPTIONS = [
+  { value: 'featured', label: 'Recommandes' },
+  { value: 'popular', label: 'Les plus demandes' },
+  { value: 'rating', label: 'Mieux notes' },
+  { value: 'price_asc', label: 'Prix croissant' },
+  { value: 'price_desc', label: 'Prix decroissant' },
+];
 
 const HotelsPage = () => {
   const navigate = useNavigate();
@@ -45,15 +58,16 @@ const HotelsPage = () => {
   const [cover, setCover] = useState(DEFAULT_HERO);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [search, setSearch] = useState({
     city: '',
     checkin: '',
     checkout: '',
-    adults: '2',
-    rooms: '1',
+    budget: '',
+    persons: '2',
   });
   const [activeCity, setActiveCity] = useState('all');
-  const [starFilter, setStarFilter] = useState(0);
+  const [sortBy, setSortBy] = useState('featured');
   const [featuredOnly, setFeaturedOnly] = useState(false);
   const [visibleCount, setVisibleCount] = useState(6);
 
@@ -69,7 +83,11 @@ const HotelsPage = () => {
 
         setHotels(catalogRes.data || []);
         setPopularHotels(popularRes.data || []);
-        setCover({ ...DEFAULT_HERO, ...(coverRes.data?.hero || {}) });
+        const nextCover = { ...DEFAULT_HERO, ...(coverRes.data?.hero || {}) };
+        if (!nextCover.photo_1) {
+          nextCover.photo_1 = nextCover.bg_image || DEFAULT_HERO.photo_1;
+        }
+        setCover(nextCover);
       } catch (fetchError) {
         setError(fetchError.message || 'Impossible de charger les hotels.');
       } finally {
@@ -79,6 +97,32 @@ const HotelsPage = () => {
 
     fetchData();
   }, []);
+
+  const heroPhotos = useMemo(() => {
+    const photos = [cover.photo_1, cover.photo_2, cover.photo_3, cover.photo_4]
+      .map((photo) => photo?.trim())
+      .filter(Boolean);
+
+    if (photos.length > 0) {
+      return photos;
+    }
+
+    return [cover.bg_image || DEFAULT_HERO.bg_image];
+  }, [cover]);
+
+  useEffect(() => {
+    setActiveHeroIndex(0);
+  }, [heroPhotos]);
+
+  useEffect(() => {
+    if (heroPhotos.length <= 1) return undefined;
+
+    const interval = window.setInterval(() => {
+      setActiveHeroIndex((current) => (current + 1) % heroPhotos.length);
+    }, 6000);
+
+    return () => window.clearInterval(interval);
+  }, [heroPhotos]);
 
   const cityOptions = useMemo(() => {
     const merged = [...DEFAULT_CITIES, ...hotels.map((hotel) => hotel.city).filter(Boolean)];
@@ -144,33 +188,58 @@ const HotelsPage = () => {
       );
     }
 
-    if (starFilter > 0) {
-      list = list.filter((hotel) => Number(hotel.stars || 0) >= starFilter);
-    }
-
     if (featuredOnly) {
       list = list.filter((hotel) => hotel.is_featured);
     }
 
-    const requestedRooms = Number(search.rooms || 0);
-    if (requestedRooms > 0) {
-      list = list.filter((hotel) => Number(hotel.available_rooms || 0) >= requestedRooms);
+    const requestedBudget = Number(search.budget || 0);
+    if (requestedBudget > 0) {
+      list = list.filter((hotel) => {
+        const price = Number(hotel.base_price || 0);
+        return price > 0 && price <= requestedBudget;
+      });
     }
 
     list.sort((a, b) => {
+      if (sortBy === 'price_asc') {
+        const aPrice = a.base_price === null || a.base_price === undefined ? Number.POSITIVE_INFINITY : Number(a.base_price);
+        const bPrice = b.base_price === null || b.base_price === undefined ? Number.POSITIVE_INFINITY : Number(b.base_price);
+        return aPrice - bPrice;
+      }
+
+      if (sortBy === 'price_desc') {
+        const aPrice = a.base_price === null || a.base_price === undefined ? Number.NEGATIVE_INFINITY : Number(a.base_price);
+        const bPrice = b.base_price === null || b.base_price === undefined ? Number.NEGATIVE_INFINITY : Number(b.base_price);
+        return bPrice - aPrice;
+      }
+
+      if (sortBy === 'rating') {
+        if (Number(b.rating || 0) !== Number(a.rating || 0)) return Number(b.rating || 0) - Number(a.rating || 0);
+        return Number(b.reviews || 0) - Number(a.reviews || 0);
+      }
+
+      if (sortBy === 'popular') {
+        if (Number(b.reservation_count || 0) !== Number(a.reservation_count || 0)) {
+          return Number(b.reservation_count || 0) - Number(a.reservation_count || 0);
+        }
+        if (Number(b.occupancy_percentage || 0) !== Number(a.occupancy_percentage || 0)) {
+          return Number(b.occupancy_percentage || 0) - Number(a.occupancy_percentage || 0);
+        }
+      }
+
       if (a.is_featured !== b.is_featured) return a.is_featured ? -1 : 1;
       if (Number(a.display_order || 0) !== Number(b.display_order || 0)) {
         return Number(a.display_order || 0) - Number(b.display_order || 0);
       }
-      if (Number(b.stars || 0) !== Number(a.stars || 0)) return Number(b.stars || 0) - Number(a.stars || 0);
-      return Number(b.rating || 0) - Number(a.rating || 0);
+      if (Number(b.rating || 0) !== Number(a.rating || 0)) return Number(b.rating || 0) - Number(a.rating || 0);
+      return a.name.localeCompare(b.name, 'fr');
     });
 
     return list;
-  }, [activeCity, featuredOnly, hotels, search.city, search.rooms, starFilter]);
+  }, [activeCity, featuredOnly, hotels, search.budget, search.city, sortBy]);
 
   const visibleHotels = filteredHotels.slice(0, visibleCount);
-  const topHotels = popularHotels.length ? popularHotels : filteredHotels.slice(0, 4);
+  const topHotels = popularHotels.length ? popularHotels : filteredHotels.slice(0, 3);
   const totalReservations = hotels.reduce((sum, hotel) => sum + Number(hotel.reservation_count || 0), 0);
   const averageRating = hotels.length
     ? (hotels.reduce((sum, hotel) => sum + Number(hotel.rating || 0), 0) / hotels.length).toFixed(1)
@@ -203,13 +272,18 @@ const HotelsPage = () => {
       <Navbar />
 
       <section className="omra-hero" style={{ minHeight: '92vh' }}>
-        <div
-          className="omra-hero__bg"
-          style={{
-            backgroundImage: `url('${cover.bg_image || DEFAULT_HERO.bg_image}')`,
-            filter: 'brightness(0.42)',
-          }}
-        />
+        {heroPhotos.map((photo, index) => (
+          <div
+            key={`${photo}-${index}`}
+            className="omra-hero__bg"
+            style={{
+              backgroundImage: `url('${photo}')`,
+              filter: 'brightness(0.42)',
+              opacity: index === activeHeroIndex ? 1 : 0,
+              transition: 'opacity 1s ease',
+            }}
+          />
+        ))}
         <div className="omra-hero__pattern" />
         <div
           className="omra-hero__overlay"
@@ -250,15 +324,7 @@ const HotelsPage = () => {
       <section style={{ background: '#fff4f7', borderTop: '1px solid rgba(232,48,106,0.08)', borderBottom: '1px solid rgba(232,48,106,0.08)' }}>
         <div className="container" style={{ padding: '26px 20px' }}>
           <div style={{ display: 'grid', gap: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <div>
-                <p style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#be185d', marginBottom: 6 }}>
-                  Filtres rapides
-                </p>
-                <h2 style={{ fontSize: 'clamp(24px, 4vw, 34px)', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-                  Cherchez par etoiles et destination
-                </h2>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <button
                 className={`omra-filter-btn ${featuredOnly ? 'omra-filter-btn--active' : ''}`}
                 style={featuredOnly ? { background: '#e8306a', borderColor: '#e8306a' } : { borderColor: '#f3b3c7', color: '#9f1239' }}
@@ -267,27 +333,6 @@ const HotelsPage = () => {
                 <i className="fas fa-heart" style={{ marginRight: 6 }} />
                 {featuredOnly ? 'Tous les hotels' : 'Hotels vedettes'}
               </button>
-            </div>
-
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#9f1239', alignSelf: 'center' }}>Etoiles :</span>
-              {[1, 2, 3, 4, 5].map((value) => (
-                <button
-                  key={value}
-                  onClick={() => setStarFilter((current) => (current === value ? 0 : value))}
-                  style={{
-                    padding: '10px 16px',
-                    borderRadius: 999,
-                    border: `1.5px solid ${starFilter === value ? '#e8306a' : '#f4c7d4'}`,
-                    background: starFilter === value ? '#e8306a' : '#fff',
-                    color: starFilter === value ? '#fff' : '#9f1239',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {value} ★
-                </button>
-              ))}
             </div>
 
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -357,9 +402,12 @@ const HotelsPage = () => {
                 {filteredHotels.length} resultat{filteredHotels.length !== 1 ? 's' : ''}
               </button>
             </div>
-            <p className="omra-filters-count">
-              <strong>{visibleHotels.length}</strong> hotel{visibleHotels.length !== 1 ? 's' : ''} affiche{visibleHotels.length !== 1 ? 's' : ''}
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <p className="omra-filters-count">
+                <strong>{visibleHotels.length}</strong> hotel{visibleHotels.length !== 1 ? 's' : ''} affiche{visibleHotels.length !== 1 ? 's' : ''}
+              </p>
+              <SortFilter sortBy={sortBy} setSortBy={setSortBy} options={HOTEL_SORT_OPTIONS} />
+            </div>
           </div>
 
           {loading && (
@@ -400,10 +448,10 @@ const HotelsPage = () => {
                     className="omra-filter-btn"
                     style={{ borderColor: '#f4c7d4', color: '#9f1239' }}
                     onClick={() => {
-                      setSearch({ city: '', checkin: '', checkout: '', adults: '2', rooms: '1' });
+                      setSearch({ city: '', checkin: '', checkout: '', budget: '', persons: '2' });
                       setActiveCity('all');
                       setFeaturedOnly(false);
-                      setStarFilter(0);
+                      setSortBy('featured');
                       setVisibleCount(6);
                     }}
                   >
@@ -442,16 +490,40 @@ const HotelsPage = () => {
               <div style={{ width: 36, height: 36, border: '3px solid #fbcfe8', borderTopColor: '#e8306a', borderRadius: '50%', animation: 'spin .7s linear infinite', margin: '0 auto' }} />
             </div>
           ) : (
-            <div className="omra-cards-grid">
-              {topHotels.slice(0, 4).map((hotel) => (
-                <HotelCard
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: 20,
+              }}
+            >
+              {topHotels.slice(0, 3).map((hotel) => (
+                <button
                   key={hotel.id}
-                  hotel={hotel}
-                  onDetails={handleDetails}
-                  onReserve={handleReserve}
-                  isFavorite={favoriteIds.has(getFavoriteKey(hotel.id))}
-                  onFavoriteToggle={handleFavoriteToggle}
-                />
+                  type="button"
+                  onClick={() => handleDetails(hotel)}
+                  style={{
+                    border: '1px solid rgba(15,23,42,0.08)',
+                    borderRadius: 22,
+                    background: '#fff',
+                    overflow: 'hidden',
+                    boxShadow: '0 14px 34px rgba(15,23,42,0.08)',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    padding: 0,
+                  }}
+                >
+                  <img
+                    src={hotel.image_url || hotel.gallery?.find(Boolean)}
+                    alt={hotel.name}
+                    style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
+                  />
+                  <div style={{ padding: '16px 18px' }}>
+                    <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#0f172a' }}>
+                      {hotel.name}
+                    </p>
+                  </div>
+                </button>
               ))}
             </div>
           )}

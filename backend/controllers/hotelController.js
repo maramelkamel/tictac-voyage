@@ -5,11 +5,22 @@ const { sendAgencyReservationEmail, sendReservationStatusEmail } = require('../u
 const DEFAULT_HOTEL_COVERS = {
   hero: {
     bg_image: '',
+    photo_1: '',
+    photo_2: '',
+    photo_3: '',
+    photo_4: '',
     tag: 'Hotels en Tunisie',
     title: 'Trouvez votre',
     title_accent: 'hotel ideal',
     sub: 'Des adresses choisies avec soin, des promotions actives et un parcours de reservation identique a vos voyages organises.',
   },
+};
+
+const normalizeHotelHero = (hero = {}) => {
+  const next = { ...DEFAULT_HOTEL_COVERS.hero, ...(hero || {}) };
+  if (!next.photo_1) next.photo_1 = next.bg_image || '';
+  if (!next.bg_image) next.bg_image = next.photo_1 || '';
+  return next;
 };
 
 const toNumber = (value, fallback = 0) => {
@@ -55,7 +66,8 @@ const getHotelById = async (req, res) => {
 const getHotelCovers = async (req, res) => {
   try {
     const covers = await HotelModel.getSetting('hotel-covers');
-    return res.json({ success: true, data: covers || DEFAULT_HOTEL_COVERS });
+    const hero = normalizeHotelHero(covers?.hero);
+    return res.json({ success: true, data: { ...DEFAULT_HOTEL_COVERS, ...(covers || {}), hero } });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Unable to load hotel page settings.' });
   }
@@ -67,7 +79,7 @@ const updateHotelCovers = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Hero data is required.' });
     }
 
-    const saved = await HotelModel.setSetting('hotel-covers', { hero: req.body.hero });
+    const saved = await HotelModel.setSetting('hotel-covers', { hero: normalizeHotelHero(req.body.hero) });
     return res.json({ success: true, data: saved, message: 'Hotel page appearance updated.' });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Unable to update hotel page settings.' });

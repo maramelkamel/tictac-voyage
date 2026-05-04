@@ -14,12 +14,23 @@ const MEDIA_API = 'http://localhost:5000/api/media/upload';
 const DEFAULT_COVER = {
   hero: {
     bg_image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1600&q=80',
+    photo_1: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1600&q=80',
+    photo_2: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=1600&q=80',
+    photo_3: 'https://images.unsplash.com/photo-1522798514-97ceb8c4f1c8?w=1600&q=80',
+    photo_4: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1600&q=80',
     tag: 'Hotels en Tunisie',
     title: 'Trouvez votre',
     title_accent: 'hotel ideal',
     sub: 'Une selection premium, des promotions actives et un parcours de reservation identique aux voyages organises.',
   },
 };
+
+const HERO_PHOTO_FIELDS = [
+  { key: 'photo_1', label: 'Photo 1' },
+  { key: 'photo_2', label: 'Photo 2' },
+  { key: 'photo_3', label: 'Photo 3' },
+  { key: 'photo_4', label: 'Photo 4' },
+];
 
 const EMPTY_FORM = {
   name: '',
@@ -69,6 +80,13 @@ const normalizeTextList = (value) => {
 const formatPrice = (value, currency = 'TND') => {
   const amount = Number(value || 0);
   return amount ? `${amount.toLocaleString('fr-FR')} ${currency}` : '-';
+};
+
+const normalizeHeroCover = (hero = {}) => {
+  const next = { ...DEFAULT_COVER.hero, ...(hero || {}) };
+  if (!next.photo_1) next.photo_1 = next.bg_image || DEFAULT_COVER.hero.photo_1;
+  if (!next.bg_image) next.bg_image = next.photo_1 || DEFAULT_COVER.hero.bg_image;
+  return next;
 };
 
 const getToken = () => localStorage.getItem('adminToken') || '';
@@ -258,15 +276,21 @@ const GalleryEditor = ({ images = [], onChange, notify }) => {
 };
 
 const CoverModal = ({ covers, onClose, onSaved, notify }) => {
-  const [hero, setHero] = useState({ ...DEFAULT_COVER.hero, ...(covers?.hero || {}) });
+  const [hero, setHero] = useState(normalizeHeroCover(covers?.hero));
   const [saving, setSaving] = useState(false);
+  const heroPhotos = HERO_PHOTO_FIELDS.map(({ key }) => hero[key]?.trim()).filter(Boolean);
+  const previewPhoto = heroPhotos[0] || hero.bg_image || DEFAULT_COVER.hero.bg_image;
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await updateHotelPageCover(hero);
+      const payload = normalizeHeroCover({
+        ...hero,
+        bg_image: hero.photo_1?.trim() || hero.bg_image || DEFAULT_COVER.hero.bg_image,
+      });
+      const response = await updateHotelPageCover(payload);
       notify(response.message || 'Apparence hotel mise a jour.');
-      onSaved({ hero });
+      onSaved({ hero: payload });
     } catch (error) {
       notify(error.message || 'Erreur de sauvegarde.', 'error');
     } finally {
@@ -306,7 +330,7 @@ const CoverModal = ({ covers, onClose, onSaved, notify }) => {
             }}
           >
             <img
-              src={hero.bg_image || DEFAULT_COVER.hero.bg_image}
+              src={previewPhoto}
               alt="Hotels hero preview"
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.42 }}
             />
@@ -326,9 +350,37 @@ const CoverModal = ({ covers, onClose, onSaved, notify }) => {
             </div>
           </div>
 
-          <div className="al-field">
-            <label className="al-label">Image hero</label>
-            <input className="al-input" value={hero.bg_image} onChange={(event) => setHero((current) => ({ ...current, bg_image: event.target.value }))} />
+          <div style={{ display: 'grid', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+              <label className="al-label" style={{ marginBottom: 0 }}>Photos hero</label>
+              <span style={{ fontSize: 12, color: 'var(--g400)' }}>Photo 1 a 4 suffisent pour la rotation publique.</span>
+            </div>
+
+            <div className="al-row-2">
+              {HERO_PHOTO_FIELDS.map((field) => (
+                <ModalField key={field.key} label={field.label}>
+                  <input
+                    className="al-input"
+                    value={hero[field.key] || ''}
+                    onChange={(event) => setHero((current) => ({ ...current, [field.key]: event.target.value }))}
+                    placeholder="https://..."
+                  />
+                </ModalField>
+              ))}
+            </div>
+
+            {heroPhotos.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
+                {HERO_PHOTO_FIELDS.filter((field) => hero[field.key]?.trim()).map((field) => (
+                  <div key={field.key} style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--g200)', background: '#fff' }}>
+                    <img src={hero[field.key]} alt={field.label} style={{ width: '100%', height: 90, objectFit: 'cover', display: 'block' }} />
+                    <div style={{ padding: '8px 10px', fontSize: 11, fontWeight: 700, color: 'var(--g500)' }}>
+                      {field.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="al-row-2">
@@ -736,7 +788,7 @@ const HotelCatalogAdmin = () => {
   const loadCovers = async () => {
     try {
       const response = await getHotelPageCover();
-      setCovers(response.data || DEFAULT_COVER);
+      setCovers({ ...DEFAULT_COVER, ...(response.data || {}), hero: normalizeHeroCover(response.data?.hero) });
     } catch {
       setCovers(DEFAULT_COVER);
     }
@@ -840,7 +892,7 @@ const HotelCatalogAdmin = () => {
           }}
         >
           <img
-            src={covers?.hero?.bg_image || DEFAULT_COVER.hero.bg_image}
+            src={covers?.hero?.photo_1 || covers?.hero?.bg_image || DEFAULT_COVER.hero.photo_1}
             alt="Hotels hero"
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.32 }}
           />
@@ -851,7 +903,7 @@ const HotelCatalogAdmin = () => {
               {covers?.hero?.title || DEFAULT_COVER.hero.title} <span style={{ color: '#1ECAD3' }}>{covers?.hero?.title_accent || DEFAULT_COVER.hero.title_accent}</span>
             </div>
             <div style={{ fontSize: 12, opacity: 0.85, marginTop: 6 }}>
-              Cliquer pour modifier le hero, les textes et l'image de la page Hotels.
+              Cliquer pour modifier le hero, les textes et les 4 photos de rotation de la page Hotels.
             </div>
           </div>
         </div>

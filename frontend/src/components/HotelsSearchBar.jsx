@@ -4,8 +4,8 @@ const DEFAULT_SEARCH = {
   city: '',
   checkin: '',
   checkout: '',
-  adults: '2',
-  rooms: '1',
+  budget: '',
+  persons: '2',
 };
 
 const DEFAULT_CITIES = [
@@ -129,7 +129,7 @@ const HotelsSearchBar = ({
         className="hotel-search-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: '1.7fr 1fr 1fr .8fr .8fr auto',
+          gridTemplateColumns: '1.7fr 1fr 1fr 1fr .9fr auto',
           gap: 14,
           alignItems: 'end',
         }}
@@ -188,32 +188,39 @@ const HotelsSearchBar = ({
 
         <div>
           <label style={fieldLabelStyle}>
-            <i className="fas fa-users" style={{ color: '#e8306a', marginRight: 6 }} />
-            Adultes
+            <i className="fas fa-wallet" style={{ color: '#e8306a', marginRight: 6 }} />
+            Budget max
           </label>
-          <input
-            type="number"
-            min="1"
-            max="10"
-            value={search.adults}
-            onChange={(event) => setSearch({ ...search, adults: event.target.value })}
-            style={fieldInputStyle}
-            onFocus={focusStyle}
-            onBlur={blurStyle}
-          />
+          <div style={{ position: 'relative' }}>
+            <select
+              value={search.budget}
+              onChange={(event) => setSearch({ ...search, budget: event.target.value })}
+              style={{ ...fieldInputStyle, paddingRight: 36 }}
+              onFocus={focusStyle}
+              onBlur={blurStyle}
+            >
+              <option value="">Tous les budgets</option>
+              <option value="150">Jusqu'a 150 TND</option>
+              <option value="250">Jusqu'a 250 TND</option>
+              <option value="400">Jusqu'a 400 TND</option>
+              <option value="600">Jusqu'a 600 TND</option>
+              <option value="1000">Jusqu'a 1000 TND</option>
+            </select>
+            {chevron}
+          </div>
         </div>
 
         <div>
           <label style={fieldLabelStyle}>
-            <i className="fas fa-bed" style={{ color: '#e8306a', marginRight: 6 }} />
-            Chambres
+            <i className="fas fa-users" style={{ color: '#e8306a', marginRight: 6 }} />
+            Personnes
           </label>
           <input
             type="number"
             min="1"
-            max="5"
-            value={search.rooms}
-            onChange={(event) => setSearch({ ...search, rooms: event.target.value })}
+            max="12"
+            value={search.persons}
+            onChange={(event) => setSearch({ ...search, persons: event.target.value })}
             style={fieldInputStyle}
             onFocus={focusStyle}
             onBlur={blurStyle}
