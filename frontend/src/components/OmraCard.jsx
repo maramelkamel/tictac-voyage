@@ -43,13 +43,13 @@ const OmraCard = ({
       onMouseLeave={() => setHovered(false)}
       style={{
         background: 'var(--white)',
-        borderRadius: '20px',
-        border: `1px solid ${hovered ? 'var(--secondary)' : 'var(--gray-100)'}`,
+        borderRadius: '18px',
+        border: `1.5px solid ${hovered ? '#e8306a' : 'var(--gray-100)'}`,
         overflow: 'hidden',
         transition: 'all 0.35s cubic-bezier(.4,0,.2,1)',
-        transform: hovered ? 'translateY(-8px)' : 'translateY(0)',
+        transform: hovered ? 'translateY(-6px)' : 'translateY(0)',
         boxShadow: hovered
-          ? '0 24px 56px rgba(15,76,92,0.18)'
+          ? '0 20px 44px rgba(232,48,106,0.16)'
           : '0 2px 12px rgba(0,0,0,0.04)',
         display: 'flex',
         flexDirection: 'column',
@@ -57,7 +57,7 @@ const OmraCard = ({
       }}
     >
       {/* ── Image ─────────────────────────────────────────────── */}
-      <div style={{ position: 'relative', height: '220px', overflow: 'hidden', flexShrink: 0 }}>
+      <div style={{ position: 'relative', height: '198px', overflow: 'hidden', flexShrink: 0 }}>
         <img
           src={pkg.image}
           alt={pkg.title}
@@ -148,7 +148,7 @@ const OmraCard = ({
       </div>
 
       {/* ── Body ──────────────────────────────────────────────── */}
-      <div style={{ padding: '22px 24px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+      <div style={{ padding: '18px 19px', display: 'flex', flexDirection: 'column', flex: 1 }}>
 
         {/* Rating */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
@@ -163,10 +163,10 @@ const OmraCard = ({
         </div>
 
         {/* Title & subtitle */}
-        <h3 style={{ fontSize: 19, fontWeight: 800, color: 'var(--gray-800)', marginBottom: 3, lineHeight: 1.2 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--gray-800)', marginBottom: 3, lineHeight: 1.2 }}>
           {pkg.title}
         </h3>
-        <p style={{ fontSize: 12, color: 'var(--secondary)', fontWeight: 600, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        <p style={{ fontSize: 11, color: '#e8306a', fontWeight: 700, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
           {pkg.subtitle}
         </p>
 
@@ -272,7 +272,7 @@ const OmraCard = ({
                 cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7,
                 transition: 'all 0.22s ease', whiteSpace: 'nowrap',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.background = 'rgba(15,76,92,0.05)'; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#e8306a'; e.currentTarget.style.background = 'rgba(232,48,106,0.06)'; e.currentTarget.style.color = '#b72754'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--gray-200)'; e.currentTarget.style.background = 'transparent'; }}
             >
               <i className="fas fa-info-circle" /> Détails
@@ -283,16 +283,16 @@ const OmraCard = ({
               disabled={isFull}
               style={{
                 padding: '11px 17px', fontSize: 13, fontWeight: 700,
-                background: isFull ? 'var(--gray-200)' : 'var(--secondary)',
+                background: isFull ? 'var(--gray-200)' : '#e8306a',
                 color: isFull ? 'var(--gray-400)' : 'var(--white)',
-                border: `2px solid ${isFull ? 'var(--gray-200)' : 'var(--secondary)'}`,
+                border: `2px solid ${isFull ? 'var(--gray-200)' : '#e8306a'}`,
                 borderRadius: 12,
                 cursor: isFull ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', gap: 7,
                 transition: 'all 0.22s ease', whiteSpace: 'nowrap',
               }}
-              onMouseEnter={e => { if (!isFull) { e.currentTarget.style.background = 'var(--primary)'; e.currentTarget.style.borderColor = 'var(--primary)'; } }}
-              onMouseLeave={e => { if (!isFull) { e.currentTarget.style.background = 'var(--secondary)'; e.currentTarget.style.borderColor = 'var(--secondary)'; } }}
+              onMouseEnter={e => { if (!isFull) { e.currentTarget.style.background = '#be185d'; e.currentTarget.style.borderColor = '#be185d'; } }}
+              onMouseLeave={e => { if (!isFull) { e.currentTarget.style.background = '#e8306a'; e.currentTarget.style.borderColor = '#e8306a'; } }}
             >
               <i className={isFull ? 'fas fa-ban' : 'fas fa-kaaba'} />
               {isFull ? 'Complet' : 'Réserver'}

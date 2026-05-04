@@ -110,6 +110,13 @@ const updateHotel = async (req, res) => {
 
 const deleteHotel = async (req, res) => {
   try {
+    if (req.adminRole !== 'main') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the main admin can delete hotels.',
+      });
+    }
+
     const deleted = await HotelModel.remove(req.params.id);
     if (!deleted) {
       return res.status(404).json({ success: false, message: 'Hotel not found.' });

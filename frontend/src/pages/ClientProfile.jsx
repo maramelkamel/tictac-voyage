@@ -222,8 +222,15 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
           <Row label="Adresse" value={r.hotel_location || null}/>
           <Row label="Check-in" value={fDate(r.check_in)}/>
           <Row label="Check-out" value={fDate(r.check_out)}/>
-          <Row label="Voyageurs" value={r.adults ? `${r.adults} adulte${r.adults > 1 ? 's' : ''}` : null}/>
+          <Row label="Voyageurs" value={r.adults ? `${r.adults} adulte${r.adults > 1 ? 's' : ''}${Number(r.children || 0) > 0 ? ` + ${r.children} enfant${Number(r.children) > 1 ? 's' : ''}` : ''}` : null}/>
           <Row label="Chambres" value={r.rooms ? `${r.rooms} chambre${r.rooms > 1 ? 's' : ''}` : null}/>
+          <Row label="Type de chambre" value={r.room_type || null}/>
+          <Row label="Formule repas" value={r.meal_plan || null}/>
+          <Row label="Vue chambre" value={r.room_view || null}/>
+          <Row label="Preference de lit" value={r.bed_preference || null}/>
+          <Row label="Heure d'arrivee" value={r.arrival_time || null}/>
+          <Row label="Transfert aeroport" value={r.airport_transfer ? 'Oui' : 'Non'} accent={r.airport_transfer ? '#059669' : undefined}/>
+          <Row label="Extras" value={Array.isArray(r.selected_extras) && r.selected_extras.length ? r.selected_extras.join(', ') : null}/>
         </Section>
         <Section title="Paiement">
           <Row label="Methode" value={r.payment_method === 'online' ? '💳 En ligne' : "🏪 A l'agence"}/>
@@ -326,6 +333,7 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
                 {type==='omra'    && (r.package_title  || `Forfait Omra #${r.id}`)}
                 {type==='voyage'  && (r.voyage_title   || `Voyage #${r.id}`)}
                 {type==='circuit' && (r.circuit_title  || `Circuit #${r.id}`)}
+                {type==='hotel'   && (r.hotel_name || `Hotel #${r.id}`)}
                 {type==='flight' && `${r.origin_iata || '—'} → ${r.destination_iata || '—'}`}
                 {type==='transport' && `${r.departure_location} → ${r.arrival_location || '...'}`}
                 {type==='custom'  && r.destination}
@@ -458,7 +466,6 @@ const ClientProfile = () => {
   const handleTabChange = (tab) => { setActiveTab(tab); setSearchParams({ tab }); };
   const handleFavoriteOpen = (favorite) => {
     const path = favorite.item_data?.detailPath || getFavoritePath(favorite.item_type, favorite.item_id);
-    if (path && path.startsWith('/hotels')) return;
     if (path) navigate(path);
   };
 
@@ -533,6 +540,7 @@ const ClientProfile = () => {
                 { label:'Omra',         value:omraRes.length },
                 { label:'Voyages',      value:voyageRes.length },
                 { label:'Circuits',     value:circuitRes.length },
+                { label:'Hotels',       value:hotelRes.length },
                 { label:'Vols',         value:flightRes.length },
                 { label:'Transport',    value:transRes.length },
                 { label:'Sur Mesure',   value:customRes.length },
@@ -655,6 +663,7 @@ const ClientProfile = () => {
                         <button onClick={() => navigate('/Omra/Omra')} style={{ padding:'10px 24px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Forfaits Omra</button>
                         <button onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')} style={{ padding:'10px 24px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#4338ca,#6366f1)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Voyages Organisés</button>
                         <button onClick={() => navigate('/circuits/circuit')} style={{ padding:'10px 24px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#059669,#10b981)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Circuits Tunisie</button>
+                        <button onClick={() => navigate('/hotels')} style={{ padding:'10px 24px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#8a1538,#e8306a)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Hotels</button>
                       </div>
                     </div>
                   ) : (
@@ -717,6 +726,23 @@ const ClientProfile = () => {
                       )}
 
                       {/* ── Transport ── */}
+                      {hotelRes.length > 0 && (
+                        <div>
+                          <SectionHead emoji="ðŸ¨" label="Hotels" count={hotelRes.length} color="#be185d" bg="#fff1f5"/>
+                          {hotelRes.map(r => (
+                            <ResCard key={r.id} onClick={() => setDetailModal({ reservation:r, type:'hotel' })}
+                              right={<>
+                                {r.total_price && <span style={{ fontWeight:800, fontSize:16, color:'#0F4C5C' }}>{Number(r.total_price).toLocaleString('fr-FR')} {r.currency || 'TND'}</span>}
+                                <StatusBadge status={r.status}/>
+                              </>}>
+                              <p style={{ fontWeight:700, fontSize:14, color:'#0f172a', marginBottom:4 }}>{r.hotel_name || `Hotel #${r.hotel_id||r.id}`}</p>
+                              <p style={{ fontSize:12, color:'#64748b' }}>{r.hotel_city || 'Tunisie'} Â· {fDate(r.check_in)} â†’ {fDate(r.check_out)} Â· {r.rooms} chambre(s)</p>
+                              <p style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>{r.room_type || 'Chambre'} Â· {r.meal_plan || 'Formule non precisee'} Â· {r.payment_method==='online'?'ðŸ’³ En ligne':"ðŸª Agence"}</p>
+                            </ResCard>
+                          ))}
+                        </div>
+                      )}
+
                       {flightRes.length > 0 && (
                         <div>
                           <SectionHead emoji="✈️" label="Vols" count={flightRes.length} color="#0F4C5C" bg="#e0fbfc"/>

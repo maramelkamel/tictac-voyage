@@ -55,7 +55,7 @@ const EMPTY_FORM = {
   is_active: true,
 };
 
-const CITIES = ['Tunis', 'Sousse', 'Hammamet', 'Djerba'];
+const CITIES = ['Tunis', 'Sousse', 'Hammamet', 'Djerba', 'Monastir', 'Mahdia', 'Tozeur', 'Tabarka', 'Bizerte', 'Nabeul'];
 
 const normalizeTextList = (value) => {
   if (!value) return [];
@@ -453,9 +453,12 @@ const HotelModal = ({ hotel, onClose, onSaved, notify }) => {
 
           <div className="al-row-3">
             <ModalField label="Ville">
-              <select className="al-select" value={form.city} onChange={(event) => setField('city', event.target.value)}>
-                {CITIES.map((city) => <option key={city} value={city}>{city}</option>)}
-              </select>
+              <>
+                <input className="al-input" list="hotel-city-options" value={form.city} onChange={(event) => setField('city', event.target.value)} />
+                <datalist id="hotel-city-options">
+                  {CITIES.map((city) => <option key={city} value={city} />)}
+                </datalist>
+              </>
             </ModalField>
             <ModalField label="Type de propriete">
               <input className="al-input" value={form.property_type} onChange={(event) => setField('property_type', event.target.value)} />
@@ -576,7 +579,7 @@ const HotelModal = ({ hotel, onClose, onSaved, notify }) => {
   );
 };
 
-const HotelDetailsPanel = ({ hotel, onClose, onEdit, onDelete }) => {
+const HotelDetailsPanel = ({ hotel, onClose, onEdit, onDelete, isMain }) => {
   if (!hotel) return null;
 
   return (
@@ -667,7 +670,12 @@ const HotelDetailsPanel = ({ hotel, onClose, onEdit, onDelete }) => {
         <button className="al-btn al-btn--primary" style={{ flex: 1 }} onClick={() => onEdit(hotel)}>
           Modifier
         </button>
-        <button className="al-btn al-btn--danger" onClick={() => onDelete(hotel)}>
+        <button
+          className="al-btn al-btn--danger"
+          onClick={() => onDelete(hotel)}
+          title={isMain ? 'Supprimer cet hotel' : 'Reserve a l administrateur principal'}
+          style={{ opacity: isMain ? 1 : 0.45, cursor: isMain ? 'pointer' : 'not-allowed' }}
+        >
           Supprimer
         </button>
       </div>
@@ -688,6 +696,14 @@ const HotelCatalogAdmin = () => {
   const [editingHotel, setEditingHotel] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showCoverModal, setShowCoverModal] = useState(false);
+
+  const isMain = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('admin') || '{}')?.role === 'main';
+    } catch {
+      return false;
+    }
+  })();
 
   const notify = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -753,6 +769,11 @@ const HotelCatalogAdmin = () => {
   };
 
   const handleDelete = async (hotel) => {
+    if (!isMain) {
+      notify("Seul l'administrateur principal peut supprimer un hotel.", 'error');
+      return;
+    }
+
     const confirmed = window.confirm(`Supprimer "${hotel.name}" du catalogue hotels ?`);
     if (!confirmed) return;
 
@@ -938,7 +959,12 @@ const HotelCatalogAdmin = () => {
                               <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                             </svg>
                           </button>
-                          <button className="al-action-btn al-action-btn--delete" onClick={() => handleDelete(hotel)}>
+                          <button
+                            className="al-action-btn al-action-btn--delete"
+                            onClick={() => handleDelete(hotel)}
+                            title={isMain ? 'Supprimer' : 'Reserve a l administrateur principal'}
+                            style={{ opacity: isMain ? 1 : 0.45, cursor: isMain ? 'pointer' : 'not-allowed' }}
+                          >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M3 6h18" />
                               <path d="M8 6V4h8v2" />
@@ -968,6 +994,7 @@ const HotelCatalogAdmin = () => {
               setShowModal(true);
             }}
             onDelete={handleDelete}
+            isMain={isMain}
           />
         )}
       </div>

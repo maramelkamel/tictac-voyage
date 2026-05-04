@@ -4,34 +4,57 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import '../../styles/omrastyle.css';
 
-// ─── Meal plan multipliers (must match HotelCard.jsx) ─────────
 const PLAN_MULTIPLIERS = {
-  'Room Only':       1.00,
-  'Bed & Breakfast': 1.12,
-  'Half Board':      1.25,
-  'Full Board':      1.38,
-  'All Inclusive':   1.55,
+  'room only': 1,
+  'chambre seule': 1,
+  'bed & breakfast': 1.12,
+  'bed and breakfast': 1.12,
+  'petit-dejeuner': 1.12,
+  'petit dejeuner': 1.12,
+  'half board': 1.25,
+  'demi-pension': 1.25,
+  'full board': 1.38,
+  'pension complete': 1.38,
+  'all inclusive': 1.55,
+  'all-inclusive': 1.55,
+  'tout compris': 1.55,
 };
 
-const BED_OPTIONS = ['King Bed', 'Twin Beds', 'Double Bed', 'Family Setup'];
+const BED_OPTIONS = ['Grand lit', 'Lits jumeaux', 'Lit double', 'Configuration familiale'];
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80';
 
-const toDateValue = (v, fallback) => v || fallback;
+const normalizePlanKey = (value = '') =>
+  String(value)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+const getPlanMultiplier = (value) => PLAN_MULTIPLIERS[normalizePlanKey(value)] || 1;
+
+const toDateValue = (value, fallback) => value || fallback;
 
 const getNights = (checkIn, checkOut) => {
   const diff = Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000);
   return Number.isFinite(diff) && diff > 0 ? diff : 1;
 };
 
-// ─── Section header component ────────────────────────────────
 const FormSection = ({ icon, title, description, children }) => (
   <div style={{ marginBottom: 32 }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6, paddingBottom: 14, borderBottom: '2px solid var(--gray-100)' }}>
-      <div style={{
-        width: 36, height: 36, borderRadius: 10,
-        background: 'linear-gradient(135deg, var(--secondary), var(--primary))',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#fff', fontSize: 15, flexShrink: 0,
-      }}>
+      <div
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          background: 'linear-gradient(135deg,#e8306a,#be185d)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#fff',
+          fontSize: 15,
+          flexShrink: 0,
+        }}
+      >
         <i className={icon} />
       </div>
       <div>
@@ -45,43 +68,43 @@ const FormSection = ({ icon, title, description, children }) => (
 
 const HotelReservationPage = () => {
   const { state } = useLocation();
-  const navigate  = useNavigate();
-  const hotel     = state?.hotel;
-  const inSearch  = state?.search || {};
+  const navigate = useNavigate();
+  const hotel = state?.hotel;
+  const initialSearch = state?.search || {};
 
   const clientData = (() => {
-    try { return JSON.parse(localStorage.getItem('client') || '{}'); } catch { return {}; }
+    try {
+      return JSON.parse(localStorage.getItem('client') || '{}');
+    } catch {
+      return {};
+    }
   })();
 
-  const today       = new Date().toISOString().split('T')[0];
-  const tomorrow    = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0];
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
-  const roomTypeOpts  = hotel?.room_types?.length  ? hotel.room_types  : ['Standard Room', 'Superior Room', 'Deluxe Room'];
-  const mealPlanOpts  = hotel?.meal_plans?.length   ? hotel.meal_plans  : Object.keys(PLAN_MULTIPLIERS);
-  const roomViewOpts  = hotel?.room_views?.length   ? hotel.room_views  : ['Standard View'];
-  const extrasOpts    = hotel?.reservation_extras?.length ? hotel.reservation_extras : [];
+  const roomTypeOpts = hotel?.room_types?.length ? hotel.room_types : ['Chambre standard', 'Chambre superieure', 'Suite'];
+  const mealPlanOpts = hotel?.meal_plans?.length ? hotel.meal_plans : ['Chambre seule', 'Petit-dejeuner', 'Demi-pension', 'Pension complete', 'All inclusive'];
+  const roomViewOpts = hotel?.room_views?.length ? hotel.room_views : ['Vue standard'];
+  const extrasOpts = hotel?.reservation_extras?.length ? hotel.reservation_extras : [];
 
   const [form, setForm] = useState({
-    // Guest
     holder_first_name: clientData?.firstName || clientData?.first_name || '',
-    holder_last_name:  clientData?.lastName  || clientData?.last_name  || '',
-    holder_email:      clientData?.email || '',
-    holder_phone:      clientData?.phone || '',
-    // Stay
-    check_in:  toDateValue(inSearch.checkin,  today),
-    check_out: toDateValue(inSearch.checkout, tomorrow),
-    adults:    inSearch.adults || '2',
-    children:  '0',
-    rooms:     inSearch.rooms  || '1',
-    // Room
-    room_type:      roomTypeOpts[0]  || '',
-    meal_plan:      mealPlanOpts[0]  || '',
-    room_view:      roomViewOpts[0]  || '',
+    holder_last_name: clientData?.lastName || clientData?.last_name || '',
+    holder_email: clientData?.email || '',
+    holder_phone: clientData?.phone || '',
+    check_in: toDateValue(initialSearch.checkin, today),
+    check_out: toDateValue(initialSearch.checkout, tomorrow),
+    adults: initialSearch.adults || '2',
+    children: '0',
+    rooms: initialSearch.rooms || '1',
+    room_type: roomTypeOpts[0] || '',
+    meal_plan: mealPlanOpts[0] || '',
+    room_view: roomViewOpts[0] || '',
     bed_preference: BED_OPTIONS[0],
-    arrival_time:   hotel?.checkin_time || '14:00',
-    // Extras
+    arrival_time: hotel?.checkin_time || '14:00',
     airport_transfer: false,
-    selected_extras:  [],
+    selected_extras: [],
     special_requests: '',
   });
 
@@ -90,10 +113,11 @@ const HotelReservationPage = () => {
   const clientEmail = clientData?.email || '';
   const lockedStyle = { background: '#f8fafc', cursor: 'not-allowed', color: '#64748b', borderColor: '#e2e8f0' };
 
-  const nights      = useMemo(() => getNights(form.check_in, form.check_out), [form.check_in, form.check_out]);
-  const multiplier  = PLAN_MULTIPLIERS[form.meal_plan] || 1;
-  const nightPrice  = Math.round(Number(hotel?.base_price || 0) * multiplier);
-  const totalPrix   = nightPrice * Number(form.rooms || 1) * nights;
+  const nights = useMemo(() => getNights(form.check_in, form.check_out), [form.check_in, form.check_out]);
+  const multiplier = getPlanMultiplier(form.meal_plan);
+  const nightPrice = Math.round(Number(hotel?.base_price || 0) * multiplier);
+  const totalPrix = nightPrice * Number(form.rooms || 1) * nights;
+  const image = hotel?.image_url || hotel?.gallery?.find(Boolean) || DEFAULT_IMAGE;
 
   if (!hotel) {
     return (
@@ -101,9 +125,9 @@ const HotelReservationPage = () => {
         <Navbar />
         <div style={{ textAlign: 'center', padding: '160px 24px', color: 'var(--gray-400)' }}>
           <div style={{ fontSize: '3rem', marginBottom: 16 }}>:-/</div>
-          <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--gray-800)', marginBottom: 16 }}>Hotel not found.</p>
+          <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--gray-800)', marginBottom: 16 }}>Hotel introuvable.</p>
           <button className="omra-reserve__submit" style={{ width: 'auto', padding: '14px 28px' }} onClick={() => navigate('/hotels')}>
-            Back to Hotels
+            Retour aux hotels
           </button>
         </div>
         <Footer />
@@ -111,26 +135,27 @@ const HotelReservationPage = () => {
     );
   }
 
-  const handleChange = e => {
-    const { name, value, type, checked } = e.target;
-    setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
+  const handleChange = (event) => {
+    const { name, value, type, checked } = event.target;
+    setForm((current) => ({ ...current, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleExtraToggle = extra =>
-    setForm(f => ({
-      ...f,
-      selected_extras: f.selected_extras.includes(extra)
-        ? f.selected_extras.filter(x => x !== extra)
-        : [...f.selected_extras, extra],
+  const handleExtraToggle = (extra) => {
+    setForm((current) => ({
+      ...current,
+      selected_extras: current.selected_extras.includes(extra)
+        ? current.selected_extras.filter((item) => item !== extra)
+        : [...current.selected_extras, extra],
     }));
+  };
 
-  const handleSubmit = e => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault();
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
       navigate('/hotels/payment', { state: { hotel, reservation: form, totalPrix } });
-    }, 450);
+    }, 350);
   };
 
   return (
@@ -139,7 +164,6 @@ const HotelReservationPage = () => {
 
       <div className="omra-reserve">
         <div className="container">
-          {/* Breadcrumb */}
           <div className="omra-page-breadcrumb omra-page-breadcrumb--light" style={{ paddingTop: 8 }}>
             <button onClick={() => navigate('/hotels')}>Hotels</button>
             <span>/</span>
@@ -149,231 +173,211 @@ const HotelReservationPage = () => {
           </div>
 
           {clientEmail && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px', background: '#e0fbfc', border: '1px solid #a5f3fc', borderRadius: 12, marginBottom: 20 }}>
-              <i className="fas fa-user-check" style={{ color: '#0e7490', fontSize: 14 }} />
-              <p style={{ fontSize: 13, color: '#0e7490', fontWeight: 600, margin: 0 }}>
-                Signed in as <strong>{clientEmail}</strong> — your details have been pre-filled.
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px', background: '#fff1f5', border: '1px solid #fbcfe8', borderRadius: 12, marginBottom: 20 }}>
+              <i className="fas fa-user-check" style={{ color: '#be185d', fontSize: 14 }} />
+              <p style={{ fontSize: 13, color: '#9f1239', fontWeight: 600, margin: 0 }}>
+                Connecte en tant que <strong>{clientEmail}</strong> : vos informations sont deja pre-remplies.
               </p>
             </div>
           )}
 
           <div className="omra-reserve__layout">
-            {/* ── Left: form ──────────────────────────────── */}
             <div>
               <div className="omra-reserve__form-card">
-                <div className="omra-reserve__form-header">
-                  <div className="omra-reserve__form-header-title">Hotel Reservation Form</div>
+                <div className="omra-reserve__form-header" style={{ background: 'linear-gradient(135deg,#8a1538,#e8306a)' }}>
+                  <div className="omra-reserve__form-header-title">Formulaire de reservation hotel</div>
                   <div className="omra-reserve__form-header-desc">
-                    Complete all sections below, then proceed to payment.
+                    Tous les champs enregistres ici correspondent a votre table `hotel_reservations`.
                   </div>
-                  {/* Progress hint */}
-                  <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-                    {['Guest Info', 'Stay Details', 'Room Preferences', 'Extras'].map((step, i) => (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
+                    {['Titulaire', 'Sejour', 'Chambre', 'Options'].map((step, index) => (
                       <div key={step} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <div style={{
-                          width: 22, height: 22, borderRadius: '50%',
-                          background: 'rgba(255,255,255,0.25)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 10, fontWeight: 800, color: '#fff',
-                        }}>{i + 1}</div>
-                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>{step}</span>
-                        {i < 3 && <i className="fas fa-chevron-right" style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)' }} />}
+                        <div
+                          style={{
+                            width: 22,
+                            height: 22,
+                            borderRadius: '50%',
+                            background: 'rgba(255,255,255,0.25)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 10,
+                            fontWeight: 800,
+                            color: '#fff',
+                          }}
+                        >
+                          {index + 1}
+                        </div>
+                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.78)', fontWeight: 600 }}>{step}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <form className="omra-reserve__form-body" onSubmit={handleSubmit}>
-
-                  {/* ── 1. Guest Information ──────────────── */}
-                  <FormSection icon="fas fa-user" title="Guest Information" description="Lead guest details for the reservation">
+                  <FormSection icon="fas fa-user" title="Titulaire de la reservation" description="Informations du voyageur principal">
                     <div className="omra-reserve__form-row">
                       <div className="omra-reserve__field">
-                        <label htmlFor="holder_first_name">First Name *</label>
-                        <input id="holder_first_name" name="holder_first_name" type="text" required
-                          value={form.holder_first_name} onChange={handleChange} placeholder="e.g. Miniar" />
+                        <label htmlFor="holder_first_name">Prenom *</label>
+                        <input id="holder_first_name" name="holder_first_name" type="text" required value={form.holder_first_name} onChange={handleChange} placeholder="Ex: Miniar" />
                       </div>
                       <div className="omra-reserve__field">
-                        <label htmlFor="holder_last_name">Last Name *</label>
-                        <input id="holder_last_name" name="holder_last_name" type="text" required
-                          value={form.holder_last_name} onChange={handleChange} placeholder="e.g. Nmiri" />
+                        <label htmlFor="holder_last_name">Nom *</label>
+                        <input id="holder_last_name" name="holder_last_name" type="text" required value={form.holder_last_name} onChange={handleChange} placeholder="Ex: Nmiri" />
                       </div>
                     </div>
                     <div className="omra-reserve__form-row">
                       <div className="omra-reserve__field">
-                        <label htmlFor="holder_email">Email Address *</label>
-                        <input id="holder_email" name="holder_email" type="email" required
+                        <label htmlFor="holder_email">Email *</label>
+                        <input
+                          id="holder_email"
+                          name="holder_email"
+                          type="email"
+                          required
                           value={form.holder_email}
-                          onChange={e => !clientEmail && handleChange(e)}
+                          onChange={(event) => !clientEmail && handleChange(event)}
                           readOnly={!!clientEmail}
                           style={clientEmail ? lockedStyle : {}}
-                          placeholder="your@email.com"
+                          placeholder="vous@email.com"
                         />
                       </div>
                       <div className="omra-reserve__field">
-                        <label htmlFor="holder_phone">Phone Number *</label>
-                        <input id="holder_phone" name="holder_phone" type="tel" required
-                          value={form.holder_phone} onChange={handleChange} placeholder="+216 XX XXX XXX" />
+                        <label htmlFor="holder_phone">Telephone *</label>
+                        <input id="holder_phone" name="holder_phone" type="tel" required value={form.holder_phone} onChange={handleChange} placeholder="+216 XX XXX XXX" />
                       </div>
                     </div>
                   </FormSection>
 
-                  {/* ── 2. Stay Details ────────────────────── */}
-                  <FormSection icon="fas fa-calendar-alt" title="Stay Details" description="Check-in / check-out dates and number of guests">
+                  <FormSection icon="fas fa-calendar-alt" title="Details du sejour" description="Dates, voyageurs et nombre de chambres">
                     <div className="omra-reserve__form-row">
                       <div className="omra-reserve__field">
-                        <label htmlFor="check_in">Check-in Date</label>
-                        <input id="check_in" name="check_in" type="date"
-                          value={form.check_in} min={today} onChange={handleChange} />
+                        <label htmlFor="check_in">Check-in</label>
+                        <input id="check_in" name="check_in" type="date" value={form.check_in} min={today} onChange={handleChange} />
                       </div>
                       <div className="omra-reserve__field">
-                        <label htmlFor="check_out">Check-out Date</label>
-                        <input id="check_out" name="check_out" type="date"
-                          value={form.check_out} min={form.check_in || today} onChange={handleChange} />
+                        <label htmlFor="check_out">Check-out</label>
+                        <input id="check_out" name="check_out" type="date" value={form.check_out} min={form.check_in || today} onChange={handleChange} />
                       </div>
                     </div>
-                    {/* Night counter badge */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'rgba(30,202,211,0.08)', borderRadius: 10, marginBottom: 16, border: '1px solid rgba(30,202,211,0.2)' }}>
-                      <i className="fas fa-moon" style={{ color: 'var(--secondary)', fontSize: 13 }} />
-                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--primary)' }}>
-                        {nights} night{nights !== 1 ? 's' : ''} selected
-                      </span>
-                      <span style={{ fontSize: 12, color: 'var(--gray-400)', marginLeft: 4 }}>
-                        · {new Date(form.check_in).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                        {' → '}
-                        {new Date(form.check_out).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'rgba(232,48,106,0.08)', borderRadius: 10, marginBottom: 16, border: '1px solid rgba(232,48,106,0.14)' }}>
+                      <i className="fas fa-moon" style={{ color: '#e8306a', fontSize: 13 }} />
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#9f1239' }}>
+                        {nights} nuit{nights !== 1 ? 's' : ''} selectionnee{nights !== 1 ? 's' : ''}
                       </span>
                     </div>
+
                     <div className="omra-reserve__form-row">
                       <div className="omra-reserve__field">
-                        <label htmlFor="adults">Adults</label>
-                        <input id="adults" name="adults" type="number" min="1" max="10"
-                          value={form.adults} onChange={handleChange} />
+                        <label htmlFor="adults">Adultes</label>
+                        <input id="adults" name="adults" type="number" min="1" max="10" value={form.adults} onChange={handleChange} />
                       </div>
                       <div className="omra-reserve__field">
-                        <label htmlFor="children">Children (under 12)</label>
-                        <input id="children" name="children" type="number" min="0" max="6"
-                          value={form.children} onChange={handleChange} />
+                        <label htmlFor="children">Enfants</label>
+                        <input id="children" name="children" type="number" min="0" max="6" value={form.children} onChange={handleChange} />
                       </div>
                     </div>
+
                     <div className="omra-reserve__form-row">
                       <div className="omra-reserve__field">
-                        <label htmlFor="rooms">Number of Rooms</label>
-                        <input id="rooms" name="rooms" type="number" min="1" max="5"
-                          value={form.rooms} onChange={handleChange} />
+                        <label htmlFor="rooms">Nombre de chambres</label>
+                        <input id="rooms" name="rooms" type="number" min="1" max="5" value={form.rooms} onChange={handleChange} />
                       </div>
                       <div className="omra-reserve__field">
-                        <label htmlFor="arrival_time">Expected Arrival Time</label>
-                        <input id="arrival_time" name="arrival_time" type="time"
-                          value={form.arrival_time} onChange={handleChange} />
+                        <label htmlFor="arrival_time">Heure d'arrivee prevue</label>
+                        <input id="arrival_time" name="arrival_time" type="time" value={form.arrival_time} onChange={handleChange} />
                       </div>
                     </div>
                   </FormSection>
 
-                  {/* ── 3. Room Preferences ────────────────── */}
-                  <FormSection icon="fas fa-bed" title="Room Preferences" description="Customise your room setup and meal plan">
+                  <FormSection icon="fas fa-bed" title="Preferences de chambre" description="Les valeurs enregistrees correspondent a `room_type`, `meal_plan`, `room_view` et `bed_preference`">
                     <div className="omra-reserve__form-row">
                       <div className="omra-reserve__field">
-                        <label htmlFor="room_type">Room Type</label>
+                        <label htmlFor="room_type">Type de chambre</label>
                         <select id="room_type" name="room_type" value={form.room_type} onChange={handleChange}>
-                          {roomTypeOpts.map(o => <option key={o} value={o}>{o}</option>)}
+                          {roomTypeOpts.map((option) => <option key={option} value={option}>{option}</option>)}
                         </select>
                       </div>
                       <div className="omra-reserve__field">
-                        <label htmlFor="bed_preference">Bed Preference</label>
+                        <label htmlFor="bed_preference">Preference de lit</label>
                         <select id="bed_preference" name="bed_preference" value={form.bed_preference} onChange={handleChange}>
-                          {BED_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                          {BED_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
                         </select>
                       </div>
                     </div>
+
                     <div className="omra-reserve__form-row">
                       <div className="omra-reserve__field">
-                        <label htmlFor="room_view">Room View</label>
+                        <label htmlFor="room_view">Vue de la chambre</label>
                         <select id="room_view" name="room_view" value={form.room_view} onChange={handleChange}>
-                          {roomViewOpts.map(o => <option key={o} value={o}>{o}</option>)}
+                          {roomViewOpts.map((option) => <option key={option} value={option}>{option}</option>)}
                         </select>
                       </div>
                       <div className="omra-reserve__field">
                         <label htmlFor="meal_plan">
-                          Meal Plan
-                          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--secondary)', marginLeft: 6 }}>
-                            (affects price)
-                          </span>
+                          Formule repas
+                          <span style={{ fontSize: 10, fontWeight: 700, color: '#e8306a', marginLeft: 6 }}>(impacte le prix)</span>
                         </label>
                         <select id="meal_plan" name="meal_plan" value={form.meal_plan} onChange={handleChange}>
-                          {mealPlanOpts.map(o => (
-                            <option key={o} value={o}>
-                              {o} {PLAN_MULTIPLIERS[o] > 1 ? `(+${Math.round((PLAN_MULTIPLIERS[o] - 1) * 100)}%)` : ''}
+                          {mealPlanOpts.map((option) => (
+                            <option key={option} value={option}>
+                              {option}{getPlanMultiplier(option) > 1 ? ` (+${Math.round((getPlanMultiplier(option) - 1) * 100)}%)` : ''}
                             </option>
                           ))}
                         </select>
                       </div>
                     </div>
-
-                    {/* Meal plan info banner */}
-                    {form.meal_plan && (
-                      <div style={{
-                        display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
-                        background: 'rgba(30,202,211,0.06)', borderRadius: 10, border: '1px solid rgba(30,202,211,0.15)',
-                      }}>
-                        <i className="fas fa-utensils" style={{ color: 'var(--secondary)', fontSize: 13 }} />
-                        <div>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--primary)' }}>{form.meal_plan}</span>
-                          <span style={{ fontSize: 12, color: 'var(--gray-400)', marginLeft: 8 }}>
-                            {form.meal_plan === 'Room Only'       && 'No meals included.'}
-                            {form.meal_plan === 'Bed & Breakfast' && 'Breakfast included.'}
-                            {form.meal_plan === 'Half Board'      && 'Breakfast & dinner included.'}
-                            {form.meal_plan === 'Full Board'      && 'All 3 meals included.'}
-                            {form.meal_plan === 'All Inclusive'   && 'All meals, snacks & drinks included.'}
-                          </span>
-                        </div>
-                      </div>
-                    )}
                   </FormSection>
 
-                  {/* ── 4. Extras & Special Requests ──────── */}
-                  <FormSection icon="fas fa-concierge-bell" title="Extras & Special Requests" description="Optional add-ons and any notes for the hotel">
-                    {/* Airport transfer toggle */}
-                    <label style={{
-                      display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
-                      background: form.airport_transfer ? 'rgba(30,202,211,0.08)' : 'var(--gray-50)',
-                      border: `1.5px solid ${form.airport_transfer ? 'var(--secondary)' : 'var(--gray-200)'}`,
-                      borderRadius: 12, cursor: 'pointer', marginBottom: 14, transition: 'all 0.2s ease',
-                    }}>
-                      <input type="checkbox" id="airport_transfer" name="airport_transfer"
-                        checked={form.airport_transfer} onChange={handleChange}
-                        style={{ width: 16, height: 16, cursor: 'pointer' }} />
+                  <FormSection icon="fas fa-concierge-bell" title="Options et demandes speciales" description="Ajouts facultatifs et commentaires enregistres dans la reservation">
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '14px 16px',
+                        background: form.airport_transfer ? 'rgba(232,48,106,0.08)' : 'var(--gray-50)',
+                        border: `1.5px solid ${form.airport_transfer ? '#e8306a' : 'var(--gray-200)'}`,
+                        borderRadius: 12,
+                        cursor: 'pointer',
+                        marginBottom: 14,
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <input type="checkbox" id="airport_transfer" name="airport_transfer" checked={form.airport_transfer} onChange={handleChange} style={{ width: 16, height: 16, cursor: 'pointer' }} />
                       <div>
                         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--gray-800)', display: 'block' }}>
-                          <i className="fas fa-shuttle-van" style={{ color: 'var(--secondary)', marginRight: 8 }} />
-                          Add Airport Transfer
+                          <i className="fas fa-shuttle-van" style={{ color: '#e8306a', marginRight: 8 }} />
+                          Ajouter un transfert aeroport
                         </span>
                         <span style={{ fontSize: 12, color: 'var(--gray-400)' }}>
-                          Private transfer between the airport and the hotel
+                          Cette information sera enregistree dans `airport_transfer`.
                         </span>
                       </div>
                     </label>
 
-                    {/* Extras grid */}
                     {extrasOpts.length > 0 && (
                       <div style={{ marginBottom: 16 }}>
                         <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray-600)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-                          Available Add-ons
+                          Extras disponibles
                         </p>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
-                          {extrasOpts.map(extra => (
-                            <label key={extra} style={{
-                              display: 'flex', alignItems: 'flex-start', gap: 10,
-                              padding: '12px 14px', borderRadius: 12, cursor: 'pointer',
-                              border: `1.5px solid ${form.selected_extras.includes(extra) ? 'var(--secondary)' : 'var(--gray-200)'}`,
-                              background: form.selected_extras.includes(extra) ? 'rgba(30,202,211,0.06)' : '#fff',
-                              transition: 'all 0.18s ease',
-                            }}>
-                              <input type="checkbox"
-                                checked={form.selected_extras.includes(extra)}
-                                onChange={() => handleExtraToggle(extra)}
-                                style={{ marginTop: 1, cursor: 'pointer' }}
-                              />
+                          {extrasOpts.map((extra) => (
+                            <label
+                              key={extra}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 10,
+                                padding: '12px 14px',
+                                borderRadius: 12,
+                                cursor: 'pointer',
+                                border: `1.5px solid ${form.selected_extras.includes(extra) ? '#e8306a' : 'var(--gray-200)'}`,
+                                background: form.selected_extras.includes(extra) ? 'rgba(232,48,106,0.06)' : '#fff',
+                                transition: 'all 0.18s ease',
+                              }}
+                            >
+                              <input type="checkbox" checked={form.selected_extras.includes(extra)} onChange={() => handleExtraToggle(extra)} style={{ marginTop: 1, cursor: 'pointer' }} />
                               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-800)' }}>{extra}</span>
                             </label>
                           ))}
@@ -382,36 +386,38 @@ const HotelReservationPage = () => {
                     )}
 
                     <div className="omra-reserve__field">
-                      <label htmlFor="special_requests">Special Requests</label>
-                      <textarea id="special_requests" name="special_requests" rows={4}
-                        value={form.special_requests} onChange={handleChange}
-                        placeholder="Baby cot, quiet room, high floor, dietary requirements, anniversary decoration…"
+                      <label htmlFor="special_requests">Demandes speciales</label>
+                      <textarea
+                        id="special_requests"
+                        name="special_requests"
+                        rows={4}
+                        value={form.special_requests}
+                        onChange={handleChange}
+                        placeholder="Lit bebe, chambre calme, etage eleve, regime alimentaire, decoration anniversaire..."
                       />
                       <p style={{ fontSize: 11, color: 'var(--gray-400)', marginTop: 4 }}>
-                        Requests are not guaranteed but the hotel will do its best to accommodate.
+                        Cette note sera enregistree dans `special_requests`.
                       </p>
                     </div>
                   </FormSection>
 
-                  <button type="submit" className="omra-reserve__submit" disabled={loading}>
+                  <button type="submit" className="omra-reserve__submit" disabled={loading} style={{ background: 'linear-gradient(135deg,#e8306a,#be185d)' }}>
                     {loading
-                      ? <><i className="fas fa-spinner fa-spin" /> Processing...</>
-                      : <><i className="fas fa-arrow-right" /> Continue to Payment</>
+                      ? <><i className="fas fa-spinner fa-spin" /> Redirection...</>
+                      : <><i className="fas fa-arrow-right" /> Continuer vers le paiement</>
                     }
                   </button>
 
                   <p style={{ fontSize: 12, color: 'var(--gray-400)', textAlign: 'center', marginTop: 8 }}>
-                    Next step: review then complete payment. No charges until confirmed.
+                    Etape suivante : verification puis paiement.
                   </p>
                 </form>
               </div>
             </div>
 
-            {/* ── Right: sticky summary ───────────────────── */}
             <aside style={{ position: 'sticky', top: 110 }}>
-              {/* Hotel card */}
               <div className="omra-reserve__pkg-card">
-                <img src={hotel.image_url} alt={hotel.name} className="omra-reserve__pkg-img" />
+                <img src={image} alt={hotel.name} className="omra-reserve__pkg-img" />
                 <div className="omra-reserve__pkg-info">
                   <div className="omra-reserve__pkg-subtitle">{hotel.city} · {hotel.property_type || 'Hotel'}</div>
                   <div className="omra-reserve__pkg-title">{hotel.name}</div>
@@ -423,91 +429,102 @@ const HotelReservationPage = () => {
                       <i className="fas fa-star" style={{ color: '#fbbf24' }} /> {hotel.rating} · {'★'.repeat(hotel.stars || 3)}
                     </div>
                     <div className="omra-reserve__pkg-meta-item">
-                      <i className="fas fa-door-open" /> {hotel.available_rooms} rooms available
+                      <i className="fas fa-door-open" /> {hotel.available_rooms} chambre(s) disponible(s)
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Price summary */}
-              <div className="omra-reserve__summary">
-                <div className="omra-reserve__summary-title">Booking Summary</div>
+              <div className="omra-reserve__summary" style={{ background: 'linear-gradient(135deg,#8a1538,#e8306a)' }}>
+                <div className="omra-reserve__summary-title">Resume de reservation</div>
 
                 <div className="omra-reserve__summary-row">
-                  <span>Meal plan</span>
-                  <span style={{ fontWeight: 700, color: '#1ECAD3' }}>{form.meal_plan || '—'}</span>
+                  <span>Formule</span>
+                  <span style={{ fontWeight: 700, color: '#fbcfe8' }}>{form.meal_plan || '—'}</span>
                 </div>
                 <div className="omra-reserve__summary-row">
-                  <span>Price / night / room</span>
+                  <span>Prix / nuit / chambre</span>
                   <span>{nightPrice.toLocaleString('fr-FR')} {hotel.currency || 'TND'}</span>
                 </div>
                 <div className="omra-reserve__summary-row">
-                  <span>Nights</span>
+                  <span>Nuits</span>
                   <span>{nights}</span>
                 </div>
                 <div className="omra-reserve__summary-row">
-                  <span>Rooms</span>
+                  <span>Chambres</span>
                   <span>× {form.rooms}</span>
                 </div>
                 <div className="omra-reserve__summary-row">
-                  <span>Guests</span>
+                  <span>Voyageurs</span>
                   <span>
-                    {form.adults} adult{Number(form.adults) !== 1 ? 's' : ''}
-                    {Number(form.children) > 0 ? ` + ${form.children} child${Number(form.children) !== 1 ? 'ren' : ''}` : ''}
+                    {form.adults} adulte{Number(form.adults) !== 1 ? 's' : ''}
+                    {Number(form.children) > 0 ? ` + ${form.children} enfant${Number(form.children) !== 1 ? 's' : ''}` : ''}
                   </span>
                 </div>
                 <div className="omra-reserve__summary-row">
-                  <span>Room type</span>
+                  <span>Type de chambre</span>
                   <span>{form.room_type}</span>
                 </div>
                 <div className="omra-reserve__summary-row">
-                  <span>View</span>
+                  <span>Vue</span>
                   <span>{form.room_view}</span>
+                </div>
+                <div className="omra-reserve__summary-row">
+                  <span>Preference de lit</span>
+                  <span>{form.bed_preference}</span>
+                </div>
+                <div className="omra-reserve__summary-row">
+                  <span>Heure d'arrivee</span>
+                  <span>{form.arrival_time || '—'}</span>
                 </div>
                 {form.airport_transfer && (
                   <div className="omra-reserve__summary-row">
-                    <span>Airport transfer</span>
-                    <span style={{ color: '#1ECAD3' }}>✓ Included</span>
+                    <span>Transfert aeroport</span>
+                    <span style={{ color: '#fbcfe8' }}>Oui</span>
                   </div>
                 )}
                 {form.selected_extras.length > 0 && (
                   <div className="omra-reserve__summary-row">
                     <span>Extras</span>
-                    <span style={{ textAlign: 'right', fontSize: 12 }}>
-                      {form.selected_extras.join(', ')}
-                    </span>
+                    <span style={{ textAlign: 'right', fontSize: 12 }}>{form.selected_extras.join(', ')}</span>
                   </div>
                 )}
 
                 <div className="omra-reserve__summary-total">
-                  <span className="omra-reserve__summary-total-label">Estimated Total</span>
+                  <span className="omra-reserve__summary-total-label">Total estime</span>
                   <span className="omra-reserve__summary-total-amount">
                     {totalPrix.toLocaleString('fr-FR')} {hotel.currency || 'TND'}
                   </span>
                 </div>
 
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', textAlign: 'center', marginTop: 12, lineHeight: 1.6 }}>
-                  Price updates automatically when you change the meal plan. Final price confirmed at checkout.
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.62)', textAlign: 'center', marginTop: 12, lineHeight: 1.6 }}>
+                  Le total varie selon la formule, le nombre de nuits et le nombre de chambres.
                 </p>
               </div>
 
-              {/* Check-in info */}
-              <div style={{
-                background: '#fff', borderRadius: 16, padding: '18px 20px', marginTop: 16,
-                border: '1px solid var(--gray-100)', boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
-              }}>
+              <div
+                style={{
+                  background: '#fff',
+                  borderRadius: 16,
+                  padding: '18px 20px',
+                  marginTop: 16,
+                  border: '1px solid var(--gray-100)',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+                }}
+              >
                 <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray-600)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
-                  Hotel Policies
+                  Infos hotel
                 </p>
                 {[
-                  { icon: 'fas fa-sign-in-alt',  label: 'Check-in',  value: hotel.checkin_time  || '14:00' },
+                  { icon: 'fas fa-sign-in-alt', label: 'Check-in', value: hotel.checkin_time || '14:00' },
                   { icon: 'fas fa-sign-out-alt', label: 'Check-out', value: hotel.checkout_time || '12:00' },
-                  { icon: 'fas fa-ban',          label: 'Cancellation', value: 'Contact agency' },
-                ].map(item => (
+                  { icon: 'fas fa-utensils', label: 'Repas', value: hotel.meals || 'Selon la formule choisie' },
+                  { icon: 'fas fa-ban', label: 'Politique', value: hotel.policies?.[0] || 'Selon les conditions de l hotel' },
+                ].map((item) => (
                   <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                    <i className={item.icon} style={{ color: 'var(--secondary)', width: 16, fontSize: 13 }} />
+                    <i className={item.icon} style={{ color: '#e8306a', width: 16, fontSize: 13 }} />
                     <span style={{ fontSize: 13, color: 'var(--gray-500)', flex: 1 }}>{item.label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--gray-800)' }}>{item.value}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--gray-800)', textAlign: 'right' }}>{item.value}</span>
                   </div>
                 ))}
               </div>

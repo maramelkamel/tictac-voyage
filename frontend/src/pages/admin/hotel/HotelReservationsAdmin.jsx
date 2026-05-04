@@ -124,7 +124,7 @@ const HotelReservationsAdmin = () => {
           { label: 'Reservations', value: stats.total, color: 'blue' },
           { label: 'En attente', value: stats.pending, color: 'orange' },
           { label: 'Confirmees', value: stats.confirmed, color: 'green' },
-          { label: 'CA encaisse', value: `${Math.round(stats.revenue).toLocaleString('fr-FR')} USD`, color: 'violet' },
+          { label: 'CA encaisse', value: `${Math.round(stats.revenue).toLocaleString('fr-FR')} TND`, color: 'violet' },
         ].map((stat) => (
           <div key={stat.label} className={`al-stat al-stat--${stat.color}`}>
             <div>
@@ -218,7 +218,7 @@ const HotelReservationsAdmin = () => {
                           <option value="pending">En attente</option>
                           <option value="confirmed">Confirmee</option>
                           <option value="completed">Terminee</option>
-                          <option value="cancelled" disabled={!isMain}>Annulee</option>
+                          <option value="cancelled" disabled={!isMain}>{isMain ? 'Annulee' : 'Annulee 🔒'}</option>
                         </select>
                       </td>
                     </tr>
@@ -277,7 +277,7 @@ const HotelReservationsAdmin = () => {
                 <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--g400)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 10 }}>Paiement</p>
                 <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>Mode: {selectedReservation.payment_method === 'online' ? 'En ligne' : 'Agence'}</p>
                 <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>Statut paiement: {selectedReservation.payment_status}</p>
-                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>Total: {Number(selectedReservation.total_price || 0).toLocaleString('fr-FR')} {selectedReservation.currency || 'USD'}</p>
+                <p style={{ fontSize: 13, color: 'var(--g700)', lineHeight: 1.8 }}>Total: {Number(selectedReservation.total_price || 0).toLocaleString('fr-FR')} {selectedReservation.currency || 'TND'}</p>
               </div>
 
               {selectedReservation.special_requests && (
