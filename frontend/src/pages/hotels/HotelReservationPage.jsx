@@ -95,7 +95,7 @@ const HotelReservationPage = () => {
     holder_phone: clientData?.phone || '',
     check_in: toDateValue(initialSearch.checkin, today),
     check_out: toDateValue(initialSearch.checkout, tomorrow),
-    adults: initialSearch.adults || '2',
+    adults: initialSearch.adults || initialSearch.persons || '2',
     children: '0',
     rooms: initialSearch.rooms || '1',
     room_type: roomTypeOpts[0] || '',

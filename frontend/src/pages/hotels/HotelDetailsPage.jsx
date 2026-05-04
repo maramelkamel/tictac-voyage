@@ -167,8 +167,8 @@ const HotelDetailsPage = () => {
         hotel,
         search: state?.search || {
           city: hotel.city,
-          adults: 2,
-          rooms: 1,
+          budget: '',
+          persons: '2',
         },
       },
     });

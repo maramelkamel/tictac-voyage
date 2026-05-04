@@ -514,9 +514,12 @@ const HotelsPage = () => {
                   }}
                 >
                   <img
-                    src={hotel.image_url || hotel.gallery?.find(Boolean)}
+                    src={hotel.image_url || hotel.gallery?.find(Boolean) || DEFAULT_HERO.photo_1}
                     alt={hotel.name}
                     style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
+                    onError={(event) => {
+                      event.currentTarget.src = DEFAULT_HERO.photo_1;
+                    }}
                   />
                   <div style={{ padding: '16px 18px' }}>
                     <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#0f172a' }}>
