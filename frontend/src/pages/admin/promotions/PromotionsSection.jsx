@@ -1,47 +1,82 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PromotionCard from './PromotionCard';
 import PromotionBanner from './PromotionBanner';
 import '../../../styles/PromotionCard.css';
 
 export default function PromotionsSection({
   promos,
-  titre = 'Offres speciales en cours',
-  showCards = true,
+  titre = 'Offres spéciales en cours',
+  // showCards kept for backwards-compat but no longer controls visibility
+  // eslint-disable-next-line no-unused-vars
+  showCards,
 }) {
+  const [open, setOpen] = useState(false);
+
   if (!promos || promos.length === 0) return null;
 
-  const banners = promos.filter((promo) => promo.display_mode === 'banner');
-  const cards = showCards
-    ? promos.filter((promo) => promo.display_mode !== 'banner')
-    : [];
-
-  if (banners.length === 0 && cards.length === 0) return null;
+  const banners = promos.filter((p) => p.display_mode === 'banner');
+  const cards   = promos.filter((p) => p.display_mode !== 'banner');
+  const count   = promos.length;
 
   return (
     <section className="promotions-section">
-      <div className="promotions-section__header">
-        <span className="promotions-section__icon">🏷️</span>
-        <div>
-          <h2 className="promotions-section__title">{titre}</h2>
-          <p className="promotions-section__subtitle">
-            Les offres actives configurees pour cette page apparaissent ici automatiquement.
+
+      {/* ── TEASER TRIGGER ──────────────────────────────────── */}
+      <button
+        type="button"
+        className={`promos-trigger ${open ? 'promos-trigger--open' : ''}`}
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+      >
+        {/* left */}
+        <div className="promos-trigger__left">
+          <div className="promos-trigger__gift">🎁</div>
+          <div className="promos-trigger__text">
+            <span className="promos-trigger__title">{titre}</span>
+            <span className="promos-trigger__sub">
+              {open
+                ? 'Cliquez pour masquer les offres'
+                : 'Les offres actives configurées pour cette page apparaissent quand tu cliques'}
+            </span>
+          </div>
+        </div>
+
+        {/* right */}
+        <div className="promos-trigger__right">
+          <span className="promos-trigger__badge">{count} offre{count > 1 ? 's' : ''}</span>
+          <svg
+            className={`promos-trigger__chevron ${open ? 'promos-trigger__chevron--up' : ''}`}
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+      </button>
+
+      {/* ── EXPANDED CONTENT ────────────────────────────────── */}
+      {open && (
+        <div className="promos-drawer">
+          <div className="promos-drawer__rule" />
+
+          {banners.length > 0 && (
+            <div className="promotions-section__stack">
+              {banners.map((promo) => (
+                <PromotionBanner key={promo.id} promo={promo} />
+              ))}
+            </div>
+          )}
+
+          {cards.length > 0 && (
+            <div className="promotions-section__grid">
+              {cards.map((promo) => (
+                <PromotionCard key={promo.id} promo={promo} />
+              ))}
+            </div>
+          )}
+
+          <p className="promos-drawer__note">
+            Ces offres sont mises à jour automatiquement par votre équipe
           </p>
-        </div>
-      </div>
-
-      {banners.length > 0 && (
-        <div className="promotions-section__stack">
-          {banners.map((promo) => (
-            <PromotionBanner key={promo.id} promo={promo} />
-          ))}
-        </div>
-      )}
-
-      {cards.length > 0 && (
-        <div className="promotions-section__grid">
-          {cards.map((promo) => (
-            <PromotionCard key={promo.id} promo={promo} />
-          ))}
         </div>
       )}
     </section>
