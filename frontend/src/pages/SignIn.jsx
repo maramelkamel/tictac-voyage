@@ -90,7 +90,7 @@ const SignIn = () => {
           {/* ── Left Panel ── */}
           <div className="auth-panel auth-panel--left">
             <div className="auth-panel-content">
-              <button type="button" className="auth-logo" onClick={() => navigate('/')}>
+              <button type="button" className="auth-logo" onClick={() => navigate('/hotels')}>
                 <span className="auth-logo-name">TICTAC VOYAGES</span>
                 <span className="auth-logo-sub">Agence de Voyage</span>
               </button>
