@@ -64,7 +64,7 @@ const Navbar = () => {
     localStorage.removeItem('client');
     setClient(null);
     setIsAccountMenuOpen(false);
-    navigate('/');
+    navigate('/hotels');
   }, [navigate]);
 
   // ── Scroll ────────────────────────────────────────────────────
