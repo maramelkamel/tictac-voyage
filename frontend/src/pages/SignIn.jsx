@@ -64,7 +64,7 @@ const SignIn = () => {
         // Save token and client info
         localStorage.setItem('token',  json.token);
         localStorage.setItem('client', JSON.stringify(json.client));
-        navigate('/');   // redirect home after login
+        navigate('/hotels');   // redirect home after login
       } else {
         setServerError(json.message || 'Email ou mot de passe incorrect');
       }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
+<Route path="/" element={<HotelsPage />} />
 import Omra from './pages/Omra/Omra';
 import Reserve from './pages/Omra/Reserve';
 import Details from './pages/Omra/Details';
@@ -45,6 +45,7 @@ import FlightListPage from './pages/flight/FlightsListPage';
 import FlightDetails from './pages/flight/FlightDetailPage';
 import FlightReservations from './pages/admin/flight/FlightReservations';
 import FlightPricingAdmin from './pages/admin/flight/FlightPricingAdmin';
+
 import HotelsPage from './pages/hotels/HotelsPage';
 import HotelReservationPage from './pages/hotels/HotelReservationPage';
 import HotelPaymentPage from './pages/hotels/HotelPaymentPage';
@@ -108,6 +109,8 @@ function App() {
       <Route path="/flights/details"     element={<FlightDetails />} />
       <Route path="/admin/flights/reservations"       element={<FlightReservations />} />
       <Route path="/admin/flights/pricing"      element={<FlightPricingAdmin />} />
+
+
       <Route path="/hotels" element={<HotelsPage />} />
       <Route path="/hotels/results" element={<HotelsPage />} />
       <Route path="/hotels/details/:id" element={<HotelDetailsPage />} />

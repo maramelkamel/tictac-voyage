@@ -345,7 +345,7 @@ const Navbar = () => {
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '24px' }}>
 
             {/* Logo */}
-            <button type="button" onClick={() => navigate('/')}
+            <button type="button" onClick={() => navigate('/hotels')}
               style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <img src={logo} alt="TicTac Travel Logo" style={{ height: 58, width: 'auto', objectFit: 'contain' }} />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
