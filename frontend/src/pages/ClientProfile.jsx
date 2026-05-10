@@ -21,6 +21,19 @@ const getNextDiscount = (total) => {
   return { at:next, pct:5, remaining:next - total };
 };
 
+const getClientLevelInfo = (total) => {
+  if (total < 3) {
+    return { level:0, label:'Niveau 0', color:'#64748b', bg:'#f1f5f9', icon:'🌱', min:0, next:3, nextLabel:`${3 - total} réservation(s) pour Niveau 1` };
+  }
+  if (total < 6) {
+    return { level:1, label:'Niveau 1 ⭐', color:'#0e7490', bg:'#e0fbfc', icon:'⭐', min:3, next:6, nextLabel:`${6 - total} réservation(s) pour Niveau 2` };
+  }
+  if (total < 10) {
+    return { level:2, label:'Niveau 2 ⭐⭐', color:'#c2410c', bg:'#fff7ed', icon:'⭐⭐', min:6, next:10, nextLabel:`${10 - total} réservation(s) pour Niveau 3` };
+  }
+  return { level:3, label:'Niveau 3 ⭐⭐⭐', color:'#7c3aed', bg:'#f5f3ff', icon:'⭐⭐⭐', min:10, next:null, nextLabel:'Niveau maximum atteint ! 🎉' };
+};
+
 const isPromotionActive = (promotion) => {
   if (!promotion?.is_active) return false;
   const today = new Date();
@@ -520,9 +533,11 @@ const ClientProfile = () => {
 
   const allReservations = [...omraRes, ...voyageRes, ...circuitRes, ...flightRes, ...hotelRes, ...transRes, ...customRes];
   const totalRes        = allReservations.length;
-  const loyalty         = getLoyaltyInfo(totalRes);
+  const loyalty         = getClientLevelInfo(totalRes);
   const nextDiscount    = getNextDiscount(totalRes);
-  const progressPct     = loyalty.next ? Math.min(100, Math.round((totalRes / loyalty.next) * 100)) : 100;
+  const progressPct     = loyalty.next
+    ? Math.min(100, Math.round(((totalRes - loyalty.min) / (loyalty.next - loyalty.min)) * 100))
+    : 100;
 
   if (!client) return null;
   const firstName = client.firstName || client.first_name || '';
@@ -1065,12 +1080,12 @@ const ClientProfile = () => {
                     </div>
                     <div style={{ padding:'20px 24px', display:'flex', flexDirection:'column', gap:14 }}>
                       {[
-                        { icon:'🌱',    level:'Nouveau client', rule:'0 réservation — Bienvenue chez Tictac Voyages !' },
-                        { icon:'⭐',    level:'Niveau 1',       rule:'1 réservation confirmée' },
-                        { icon:'⭐⭐',  level:'Niveau 2',       rule:'2 à 3 réservations confirmées' },
-                        { icon:'⭐⭐⭐', level:'Niveau 3',      rule:'4 réservations confirmées et plus' },
+                        { icon:'🌱',   level:'Niveau 0', rule:'Nouveau client jusqu à 2 réservations' },
+                        { icon:'⭐',   level:'Niveau 1', rule:'À partir de 3 réservations' },
+                        { icon:'⭐⭐', level:'Niveau 2', rule:'Après 5 réservations, dès la 6ème réservation' },
+                        { icon:'⭐⭐⭐', level:'Niveau 3', rule:'À partir de 10 réservations' },
                       ].map(item => (
-                        <div key={item.level} style={{ display:'flex', alignItems:'center', gap:14, padding:'12px 16px', borderRadius:10, background:loyalty.label.includes(item.level)||(item.level==='Nouveau client'&&loyalty.level===0)?'#f0fdf4':'#f8fafc', border:`1px solid ${loyalty.label.includes(item.level)||(item.level==='Nouveau client'&&loyalty.level===0)?'#bbf7d0':'#f1f5f9'}` }}>
+                        <div key={item.level} style={{ display:'flex', alignItems:'center', gap:14, padding:'12px 16px', borderRadius:10, background:loyalty.label.includes(item.level)?'#f0fdf4':'#f8fafc', border:`1px solid ${loyalty.label.includes(item.level)?'#bbf7d0':'#f1f5f9'}` }}>
                           <span style={{ fontSize:20, flexShrink:0 }}>{item.icon}</span>
                           <div>
                             <p style={{ fontWeight:700, fontSize:13, color:'#0f172a' }}>{item.level}</p>

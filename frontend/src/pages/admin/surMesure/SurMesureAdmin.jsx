@@ -30,16 +30,18 @@ const Badge = ({ s }) => {
 /* ══════════════════════════════════════════════════════════════
    DETAIL PANEL
    ══════════════════════════════════════════════════════════════ */
-const DetailPanel = ({ req, onClose, onStatusChange, onSendQuote, isMain }) => {
-  const [quotePrice, setQuotePrice] = useState(req?.quoted_price ? String(req.quoted_price) : '');
-  const [quoteMsg,   setQuoteMsg]   = useState(req?.admin_message || '');
-  const [sending,    setSending]    = useState(false);
-
-  useEffect(() => {
-    setQuotePrice(req?.quoted_price ? String(req.quoted_price) : '');
-    setQuoteMsg(req?.admin_message || '');
-  }, [req?.id, req?.quoted_price, req?.admin_message]);
-
+const DetailPanel = ({
+  req,
+  onClose,
+  onStatusChange,
+  onSendQuote,
+  isMain,
+  quotePrice,
+  quoteMsg,
+  onQuotePriceChange,
+  onQuoteMsgChange,
+  sending,
+}) => {
   if (!req) return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:16, height:'100%', padding:32, textAlign:'center' }}>
       <svg viewBox="0 0 24 24" fill="none" stroke="var(--g300)" strokeWidth="1" style={{ width:56, height:56 }}>
@@ -74,9 +76,7 @@ const DetailPanel = ({ req, onClose, onStatusChange, onSendQuote, isMain }) => {
 
   const handleSend = async () => {
     if (!quotePrice && !quoteMsg) return;
-    setSending(true);
     await onSendQuote(req.id, quotePrice, quoteMsg);
-    setSending(false);
   };
 
   return (
@@ -193,7 +193,7 @@ const DetailPanel = ({ req, onClose, onStatusChange, onSendQuote, isMain }) => {
             </label>
             <input
               type="number" min="0" step="0.01" placeholder="Ex: 1500"
-              value={quotePrice} onChange={e => setQuotePrice(e.target.value)}
+              value={quotePrice} onChange={e => onQuotePriceChange(e.target.value)}
               style={{ width:'100%', padding:'10px 14px', borderRadius:9, border:'1.5px solid var(--g200)', fontSize:14, fontWeight:700, color:'#0F4C5C', outline:'none', fontFamily:'inherit', boxSizing:'border-box' }}
               onFocus={e=>e.target.style.borderColor='var(--primary)'}
               onBlur={e=>e.target.style.borderColor='var(--g200)'}
@@ -205,7 +205,7 @@ const DetailPanel = ({ req, onClose, onStatusChange, onSendQuote, isMain }) => {
             </label>
             <textarea
               rows={3} placeholder="Ex: Nous avons préparé un programme sur mesure pour vous..."
-              value={quoteMsg} onChange={e => setQuoteMsg(e.target.value)}
+              value={quoteMsg} onChange={e => onQuoteMsgChange(e.target.value)}
               style={{ width:'100%', padding:'10px 14px', borderRadius:9, border:'1.5px solid var(--g200)', fontSize:13, color:'var(--g700)', outline:'none', fontFamily:'inherit', resize:'vertical', boxSizing:'border-box', lineHeight:1.5 }}
               onFocus={e=>e.target.style.borderColor='var(--primary)'}
               onBlur={e=>e.target.style.borderColor='var(--g200)'}
@@ -256,6 +256,9 @@ const SurMesureAdmin = () => {
   const [loading,      setLoading]      = useState(true);
   const [toast,        setToast]        = useState(null);
   const [selected,     setSelected]     = useState(null);
+  const [quotePrice,   setQuotePrice]   = useState('');
+  const [quoteMsg,     setQuoteMsg]     = useState('');
+  const [sendingQuote, setSendingQuote] = useState(false);
   const [filterStatus, setFilter]       = useState('all');
   const [search,       setSearch]       = useState('');
 
@@ -277,6 +280,11 @@ const SurMesureAdmin = () => {
   };
 
   useEffect(() => { fetchTrips(); }, []);
+
+  useEffect(() => {
+    setQuotePrice(selected?.quoted_price ? String(selected.quoted_price) : '');
+    setQuoteMsg(selected?.admin_message || '');
+  }, [selected?.id]);
 
   const handleStatusChange = async (id, status) => {
     if (status==='cancelled' && !isMain) {
@@ -305,6 +313,7 @@ const SurMesureAdmin = () => {
 
   const handleSendQuote = async (id, quoted_price, admin_message) => {
     try {
+      setSendingQuote(true);
       const r = await fetch(`${API}/${id}/quote`, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -317,6 +326,7 @@ const SurMesureAdmin = () => {
         if (selected?.id===id) setSelected(p => ({ ...p, quoted_price, admin_message }));
       } else notify(j.message || 'Erreur envoi', 'error');
     } catch { notify('Erreur réseau', 'error'); }
+    finally { setSendingQuote(false); }
   };
 
   const filtered = trips.filter(r => {
@@ -460,8 +470,18 @@ const SurMesureAdmin = () => {
 
         {selected && (
           <div style={{ margin:'0 32px 0 16px', background:'#fff', borderRadius:16, border:'1px solid var(--g200)', boxShadow:'var(--shadow-md)', overflow:'hidden', display:'flex', flexDirection:'column' }}>
-            <DetailPanel req={selected} onClose={() => setSelected(null)}
-              onStatusChange={handleStatusChange} onSendQuote={handleSendQuote} isMain={isMain}/>
+            <DetailPanel
+              req={selected}
+              onClose={() => setSelected(null)}
+              onStatusChange={handleStatusChange}
+              onSendQuote={handleSendQuote}
+              isMain={isMain}
+              quotePrice={quotePrice}
+              quoteMsg={quoteMsg}
+              onQuotePriceChange={setQuotePrice}
+              onQuoteMsgChange={setQuoteMsg}
+              sending={sendingQuote}
+            />
           </div>
         )}
       </div>
