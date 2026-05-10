@@ -21,6 +21,27 @@ const getNextDiscount = (total) => {
   return { at:next, pct:5, remaining:next - total };
 };
 
+const isPromotionActive = (promotion) => {
+  if (!promotion?.is_active) return false;
+  const today = new Date();
+  const start = promotion.date_debut ? new Date(promotion.date_debut) : null;
+  const end = promotion.date_fin ? new Date(promotion.date_fin) : null;
+
+  if (start && start > today) return false;
+  if (end && end < today) return false;
+  return true;
+};
+
+const formatPromotionCategory = (category) => ({
+  omra: 'Omra',
+  hotels: 'Hotels',
+  vols: 'Vols',
+  circuits: 'Circuits',
+  voyages_internationaux: 'Voyages internationaux',
+  voyages_sur_mesure: 'Voyages sur mesure',
+  transfert_mise_a_disposition: 'Transport',
+}[category] || category || 'Promotion');
+
 const fDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
 const fDT   = (d) => d ? new Date(d).toLocaleString('fr-FR')     : '—';
 
@@ -407,6 +428,7 @@ const ClientProfile = () => {
   const [customRes,  setCustomRes]  = useState([]);
   const [messages,   setMessages]   = useState([]);
   const [favorites,  setFavorites]  = useState([]);
+  const [promotions, setPromotions] = useState([]);
 
   const [editMode,   setEditMode]   = useState(false);
   const [editForm,   setEditForm]   = useState({});
@@ -439,7 +461,7 @@ const ClientProfile = () => {
     try {
       const headers = { Authorization: `Bearer ${token}` };
       const e = email?.toLowerCase();
-      const [omra, voyage, circuit, flights, hotels, trans, custom, msgs, favs] = await Promise.all([
+      const [omra, voyage, circuit, flights, hotels, trans, custom, msgs, favs, promos] = await Promise.all([
         fetch(`${API}/omra/reservations`,    { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/voyage-reservations`,  { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/circuit-reservations`, { headers }).then(r=>r.json()).catch(()=>({})),
@@ -449,6 +471,7 @@ const ClientProfile = () => {
         fetch(`${API}/custom-trips`,         { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/contact`,              { headers }).then(r=>r.json()).catch(()=>({})),
         fetch(`${API}/favorites`,            { headers }).then(r=>r.json()).catch(()=>({})),
+        fetch(`${API}/promotions`).then(r=>r.json()).catch(()=>({})),
       ]);
       setOmraRes(   (omra.data    || []).filter(r => r.email?.toLowerCase() === e));
       setVoyageRes( (voyage.data  || []).filter(r => r.email?.toLowerCase() === e));
@@ -459,6 +482,7 @@ const ClientProfile = () => {
       setCustomRes( (custom.data  || []).filter(r => r.email?.toLowerCase() === e));
       setMessages(  (msgs.data    || []).filter(r => r.email?.toLowerCase() === e));
       setFavorites( favs.data || []);
+      setPromotions((promos.data || []).filter(isPromotionActive));
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -467,6 +491,15 @@ const ClientProfile = () => {
   const handleFavoriteOpen = (favorite) => {
     const path = favorite.item_data?.detailPath || getFavoritePath(favorite.item_type, favorite.item_id);
     if (path) navigate(path);
+  };
+  const handleCopyPromo = async (code) => {
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      notify(`Code ${code} copié`);
+    } catch {
+      notify('Impossible de copier le code', 'error');
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -560,6 +593,7 @@ const ClientProfile = () => {
             <Tab id="messages"     label="Messages"     icon="fas fa-envelope"    active={activeTab==='messages'}     onClick={handleTabChange} count={messages.length} />
             <Tab id="favoris"      label="Favoris"      icon="fas fa-heart"       active={activeTab==='favoris'}      onClick={handleTabChange} count={favorites.length} />
             <Tab id="fidelite"     label="Fidélité"     icon="fas fa-crown"       active={activeTab==='fidelite'}     onClick={handleTabChange} />
+            <Tab id="promotions"   label="Nos promotions" icon="fas fa-percent"   active={activeTab==='promotions'}   onClick={handleTabChange} count={promotions.length} />
           </div>
 
           {loading ? (
@@ -899,6 +933,87 @@ const ClientProfile = () => {
                 </div>
               )}
 
+              {activeTab === 'promotions' && (
+                <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
+                  <div style={{ background:'linear-gradient(135deg,#0F4C5C,#1ECAD3)', borderRadius:16, padding:'26px 28px', color:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', gap:18, flexWrap:'wrap' }}>
+                    <div>
+                      <p style={{ fontSize:13, opacity:.8, marginBottom:6, fontWeight:600 }}>Promotions actives</p>
+                      <p style={{ fontSize:28, fontWeight:800, marginBottom:8 }}>Nos promotions</p>
+                      <p style={{ fontSize:13, opacity:.88 }}>{promotions.length} promotion{promotions.length!==1?'s':''} disponible{promotions.length!==1?'s':''} pour votre compte</p>
+                    </div>
+                    <div style={{ display:'flex', alignItems:'center', gap:10, background:'rgba(255,255,255,.14)', padding:'14px 18px', borderRadius:12 }}>
+                      <i className="fas fa-ticket-alt" style={{ fontSize:18 }} />
+                      <span style={{ fontSize:13, fontWeight:700 }}>Codes promo visibles ici</span>
+                    </div>
+                  </div>
+
+                  {promotions.length === 0 ? (
+                    <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e2e8f0', padding:'52px 24px', textAlign:'center' }}>
+                      <i className="fas fa-percent" style={{ fontSize:42, color:'#cbd5e1', marginBottom:14, display:'block' }} />
+                      <p style={{ fontSize:16, fontWeight:700, color:'#475569', marginBottom:8 }}>Aucune promotion active pour le moment</p>
+                      <p style={{ fontSize:13, color:'#94a3b8' }}>Les nouvelles offres et leurs codes promo apparaîtront ici automatiquement.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))', gap:16 }}>
+                      {promotions.map((promotion) => {
+                        const isPercent = promotion.type_reduction === 'pourcentage';
+                        const discountLabel = isPercent
+                          ? `${promotion.valeur_reduction}%`
+                          : `${Number(promotion.valeur_reduction || 0).toLocaleString('fr-FR')} TND`;
+
+                        return (
+                          <div key={promotion.id} style={{ background:'#fff', borderRadius:16, border:'1px solid #e2e8f0', overflow:'hidden', boxShadow:'0 8px 24px rgba(15,76,92,.06)' }}>
+                            <div style={{ padding:'18px 20px', background:'linear-gradient(135deg,#0F4C5C,#1a6b80)', color:'#fff' }}>
+                              <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12 }}>
+                                <div>
+                                  <p style={{ fontSize:11, fontWeight:700, opacity:.72, textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>
+                                    {formatPromotionCategory(promotion.categorie)}
+                                  </p>
+                                  <p style={{ fontSize:18, fontWeight:800, lineHeight:1.3 }}>{promotion.titre}</p>
+                                </div>
+                                <span style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', minWidth:72, padding:'8px 12px', borderRadius:999, background:'rgba(255,255,255,.16)', fontSize:14, fontWeight:800 }}>
+                                  -{discountLabel}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div style={{ padding:'18px 20px' }}>
+                              {promotion.description && (
+                                <p style={{ fontSize:13, color:'#475569', lineHeight:1.7, marginBottom:16 }}>{promotion.description}</p>
+                              )}
+
+                              <div style={{ padding:'14px 16px', borderRadius:12, background:'#f8fafc', border:'1px dashed #94a3b8', marginBottom:16 }}>
+                                <p style={{ fontSize:11, fontWeight:700, color:'#64748b', marginBottom:6, textTransform:'uppercase', letterSpacing:'.08em' }}>
+                                  Code promo
+                                </p>
+                                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
+                                  <span style={{ fontSize:22, fontWeight:900, color:'#0F4C5C', letterSpacing:'0.08em' }}>
+                                    {promotion.code_promo || 'Aucun code requis'}
+                                  </span>
+                                  {promotion.code_promo && (
+                                    <button
+                                      onClick={() => handleCopyPromo(promotion.code_promo)}
+                                      style={{ padding:'8px 12px', borderRadius:9, border:'1px solid #cbd5e1', background:'#fff', color:'#0F4C5C', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}
+                                    >
+                                      Copier
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap', fontSize:12, color:'#64748b' }}>
+                                <span>Du {fDate(promotion.date_debut)}</span>
+                                <span>Au {fDate(promotion.date_fin)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* ═══ FIDÉLITÉ ═══ */}
               {activeTab === 'fidelite' && (
                 <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
@@ -927,6 +1042,21 @@ const ClientProfile = () => {
                       <p style={{ fontWeight:700, fontSize:15, color:'#0f172a', marginBottom:4 }}>Prochaine réduction : <span style={{ color:'#D4A017' }}>{nextDiscount.pct}%</span></p>
                       <p style={{ fontSize:13, color:'#64748b' }}>Plus que <strong>{nextDiscount.remaining}</strong> réservation{nextDiscount.remaining>1?'s':''} pour débloquer votre réduction à la réservation n°{nextDiscount.at}</p>
                     </div>
+                  </div>
+
+                  <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e2e8f0', padding:'20px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
+                    <div>
+                      <p style={{ fontWeight:700, fontSize:15, color:'#0f172a', marginBottom:4 }}>Nos promotions</p>
+                      <p style={{ fontSize:13, color:'#64748b' }}>
+                        Retrouvez toutes les promotions actives et leurs codes promo dans votre espace client.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleTabChange('promotions')}
+                      style={{ padding:'11px 20px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#0F4C5C,#1ECAD3)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}
+                    >
+                      Nos promotions
+                    </button>
                   </div>
 
                   <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e2e8f0', overflow:'hidden' }}>
