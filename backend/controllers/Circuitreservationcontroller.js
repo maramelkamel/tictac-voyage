@@ -1,8 +1,6 @@
-// backend/controllers/circuitReservationController.js
-const model                          = require('../models/circuitReservationModel');
+const model = require('../models/circuitReservationModel');
 const { sendReservationStatusEmail, sendAgencyReservationEmail } = require('../utils/mailer');
 
-/* GET /api/circuit-reservations */
 const getAll = async (req, res) => {
   try {
     const { status, payment_method, email } = req.query;
@@ -14,7 +12,6 @@ const getAll = async (req, res) => {
   }
 };
 
-/* GET /api/circuit-reservations/stats */
 const getStats = async (req, res) => {
   try {
     const stats = await model.getStats();
@@ -25,102 +22,138 @@ const getStats = async (req, res) => {
   }
 };
 
-/* GET /api/circuit-reservations/:id */
 const getOne = async (req, res) => {
   try {
-    const r = await model.getReservationById(req.params.id);
-    if (!r) return res.status(404).json({ success: false, message: 'Réservation introuvable' });
-    res.json({ success: true, data: r });
+    const reservation = await model.getReservationById(req.params.id);
+    if (!reservation) {
+      return res.status(404).json({ success: false, message: 'Réservation introuvable' });
+    }
+    res.json({ success: true, data: reservation });
   } catch (err) {
     console.error('circuitReservationController.getOne:', err);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
 
-/* POST /api/circuit-reservations */
 const create = async (req, res) => {
   try {
     const {
-      first_name, last_name, email, total_price, payment_method,
-      chambre_type, number_of_persons, applied_promotion, reservation_title,
+      first_name,
+      last_name,
+      email,
+      total_price,
+      payment_method,
+      chambre_type,
+      number_of_persons,
+      applied_promotion,
+      reservation_title,
     } = req.body;
-    if (!first_name || !last_name || !email || !total_price || !payment_method)
-      return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
-    if (!['online', 'agency'].includes(payment_method))
-      return res.status(400).json({ success: false, message: 'Mode de paiement invalide' });
 
-    const r = await model.createReservation(req.body);
-    if (payment_method === 'agency') {
+    if (!first_name || !last_name || !email || !total_price || !payment_method) {
+      return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
+    }
+    if (!['online', 'agency'].includes(payment_method)) {
+      return res.status(400).json({ success: false, message: 'Mode de paiement invalide' });
+    }
+
+    const isOnline = payment_method === 'online';
+    const reservation = await model.createReservation({
+      ...req.body,
+      status: isOnline ? 'confirmed' : 'pending',
+      payment_status: isOnline ? 'paid' : 'pending',
+    });
+
+    if (isOnline) {
+      sendReservationStatusEmail({
+        email,
+        firstName: first_name,
+        type: 'circuit',
+        title: reservation_title || `Circuit #${reservation.circuit_id || ''}`,
+        status: 'confirmed',
+        customMessage: 'Le payement en ligne a ete effectuer avec succes.',
+        details: {
+          Chambre: chambre_type || reservation.chambre_type || 'double',
+          Personnes: `${number_of_persons || reservation.number_of_persons || 1} personne(s)`,
+          Paiement: '💳 En ligne',
+          Total: total_price ? `${Number(total_price).toLocaleString('fr-TN')} DT` : null,
+        },
+      }).catch((error) => console.error('Circuit create email failed:', error.message));
+    } else {
       sendAgencyReservationEmail({
         email,
         firstName: first_name,
         type: 'circuit',
-        title: reservation_title || `Circuit #${r.circuit_id || ''}`,
+        title: reservation_title || `Circuit #${reservation.circuit_id || ''}`,
         details: {
-          'Chambre': chambre_type || r.chambre_type || 'double',
-          'Personnes': `${number_of_persons || r.number_of_persons || 1} personne(s)`,
-          'Paiement': "A l'agence",
-          'Total': total_price ? `${Number(total_price).toLocaleString('fr-TN')} DT` : null,
+          Chambre: chambre_type || reservation.chambre_type || 'double',
+          Personnes: `${number_of_persons || reservation.number_of_persons || 1} personne(s)`,
+          Paiement: "A l'agence",
+          Total: total_price ? `${Number(total_price).toLocaleString('fr-TN')} DT` : null,
           'Code promo': applied_promotion?.code_promo || null,
         },
         promotionReminder: applied_promotion?.date_fin ? {
           code: applied_promotion.code_promo,
           date_fin: applied_promotion.date_fin,
         } : null,
-      }).catch(err => console.error('Circuit agency email failed:', err.message));
+      }).catch((error) => console.error('Circuit agency email failed:', error.message));
     }
-    res.status(201).json({ success: true, data: r, message: 'Réservation enregistrée' });
+
+    res.status(201).json({ success: true, data: reservation, message: 'Réservation enregistrée' });
   } catch (err) {
     console.error('circuitReservationController.create:', err);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
 
-/* PATCH /api/circuit-reservations/:id/status */
 const updateStatus = async (req, res) => {
   try {
-    const { id }     = req.params;
+    const { id } = req.params;
     const { status } = req.body;
 
-    if (!['pending', 'confirmed', 'cancelled', 'completed'].includes(status))
+    if (!['pending', 'confirmed', 'cancelled', 'completed'].includes(status)) {
       return res.status(400).json({ success: false, message: 'Statut invalide' });
-
-    // Use the model — it returns the row with circuit_title joined
-    const r = await model.updateStatus(id, status);
-    if (!r)
-      return res.status(404).json({ success: false, message: 'Réservation introuvable' });
-
-    // 🔔 Send email for meaningful status changes
-    if (['confirmed', 'cancelled', 'completed'].includes(status)) {
-      sendReservationStatusEmail({
-        email:     r.email,
-        firstName: r.first_name,
-        type:      'circuit',
-        title:     r.circuit_title || `Circuit #${r.circuit_id}`,
-        status,
-        details: {
-          'Chambre':   r.chambre_type,
-          'Personnes': `${r.number_of_persons} personne(s)`,
-          'Paiement':  r.payment_method === 'online' ? '💳 En ligne' : '🏪 Agence',
-          'Total':     r.total_price
-            ? `${Number(r.total_price).toLocaleString('fr-TN')} DT`
-            : null,
-        },
-      }).catch(err => console.error('❌ Circuit status email failed:', err.message));
     }
 
-    res.json({ success: true, data: r });
+    const paymentStatus = status === 'confirmed'
+      ? 'paid'
+      : status === 'cancelled'
+        ? 'refunded'
+        : undefined;
+
+    const reservation = await model.updateStatus(id, status, paymentStatus);
+    if (!reservation) {
+      return res.status(404).json({ success: false, message: 'Réservation introuvable' });
+    }
+
+    if (['confirmed', 'cancelled', 'completed'].includes(status)) {
+      sendReservationStatusEmail({
+        email: reservation.email,
+        firstName: reservation.first_name,
+        type: 'circuit',
+        title: reservation.circuit_title || `Circuit #${reservation.circuit_id}`,
+        status,
+        details: {
+          Chambre: reservation.chambre_type,
+          Personnes: `${reservation.number_of_persons} personne(s)`,
+          Paiement: reservation.payment_method === 'online' ? '💳 En ligne' : '🏪 Agence',
+          Total: reservation.total_price ? `${Number(reservation.total_price).toLocaleString('fr-TN')} DT` : null,
+        },
+      }).catch((error) => console.error('Circuit status email failed:', error.message));
+    }
+
+    res.json({ success: true, data: reservation });
   } catch (err) {
     console.error('circuitReservationController.updateStatus:', err);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
 
-/* DELETE /api/circuit-reservations/:id */
 const remove = async (req, res) => {
   try {
-    const d = await model.deleteReservation(req.params.id);
-    if (!d) return res.status(404).json({ success: false, message: 'Réservation introuvable' });
+    const deleted = await model.deleteReservation(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'Réservation introuvable' });
+    }
     res.json({ success: true, message: 'Réservation supprimée' });
   } catch (err) {
     console.error('circuitReservationController.remove:', err);
