@@ -35,6 +35,11 @@ const DetailPanel = ({ req, onClose, onStatusChange, onSendQuote, isMain }) => {
   const [quoteMsg,   setQuoteMsg]   = useState(req?.admin_message || '');
   const [sending,    setSending]    = useState(false);
 
+  useEffect(() => {
+    setQuotePrice(req?.quoted_price ? String(req.quoted_price) : '');
+    setQuoteMsg(req?.admin_message || '');
+  }, [req?.id, req?.quoted_price, req?.admin_message]);
+
   if (!req) return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:16, height:'100%', padding:32, textAlign:'center' }}>
       <svg viewBox="0 0 24 24" fill="none" stroke="var(--g300)" strokeWidth="1" style={{ width:56, height:56 }}>
@@ -455,7 +460,7 @@ const SurMesureAdmin = () => {
 
         {selected && (
           <div style={{ margin:'0 32px 0 16px', background:'#fff', borderRadius:16, border:'1px solid var(--g200)', boxShadow:'var(--shadow-md)', overflow:'hidden', display:'flex', flexDirection:'column' }}>
-            <DetailPanel key={selected.id} req={selected} onClose={() => setSelected(null)}
+            <DetailPanel req={selected} onClose={() => setSelected(null)}
               onStatusChange={handleStatusChange} onSendQuote={handleSendQuote} isMain={isMain}/>
           </div>
         )}
