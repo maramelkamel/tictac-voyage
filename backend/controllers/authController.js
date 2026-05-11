@@ -1,13 +1,10 @@
 // backend/controllers/authController.js
-const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
 const pool = require('../config/db');
 const { sendWelcomeEmail, sendPasswordResetEmail } = require('../utils/mailer');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'tictacvoyage_secret';
-const googleClient = new OAuth2Client();
 
 const signClientToken = (client) =>
   jwt.sign({ id: client.id, email: client.email }, JWT_SECRET, { expiresIn: '7d' });
@@ -16,8 +13,6 @@ const sanitizeClient = (client) => {
   const { password_hash, reset_token, reset_token_expires, ...safe } = client;
   return safe;
 };
-
-const getGoogleClientId = () => (process.env.GOOGLE_CLIENT_ID || '').trim();
 
 exports.register = async (req, res) => {
   try {
@@ -84,93 +79,6 @@ exports.login = async (req, res) => {
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
-  }
-};
-
-exports.getGoogleClientConfig = async (_req, res) => {
-  const clientId = getGoogleClientId();
-
-  if (!clientId) {
-    return res.status(503).json({
-      success: false,
-      message: 'Connexion Google non configuree',
-    });
-  }
-
-  return res.json({ success: true, clientId });
-};
-
-exports.googleLogin = async (req, res) => {
-  try {
-    const googleClientId = getGoogleClientId();
-    const { credential } = req.body || {};
-
-    if (!googleClientId) {
-      return res.status(503).json({
-        success: false,
-        message: 'Connexion Google non configuree',
-      });
-    }
-
-    if (!credential) {
-      return res.status(400).json({
-        success: false,
-        message: 'Jeton Google requis',
-      });
-    }
-
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: googleClientId,
-    });
-    const payload = ticket.getPayload();
-
-    if (!payload?.email || payload.email_verified !== true) {
-      return res.status(401).json({
-        success: false,
-        message: 'Compte Google invalide',
-      });
-    }
-
-    const email = payload.email.toLowerCase();
-    const existing = await pool.query('SELECT * FROM clients WHERE email=$1', [email]);
-
-    let client = existing.rows[0];
-
-    if (!client) {
-      const generatedPassword = crypto.randomBytes(32).toString('hex');
-      const passwordHash = await bcrypt.hash(generatedPassword, 12);
-      const firstName = (payload.given_name || payload.name || 'Compte').trim();
-      const lastName = (payload.family_name || 'Google').trim();
-      const phone = `google-${payload.sub.slice(-10)}`;
-
-      const created = await pool.query(
-        `INSERT INTO clients (
-          first_name,
-          last_name,
-          email,
-          phone,
-          password_hash,
-          city,
-          marital_status,
-          number_of_children
-        )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-        RETURNING *`,
-        [firstName, lastName, email, phone, passwordHash, null, null, 0]
-      );
-
-      client = created.rows[0];
-    }
-
-    const token = signClientToken(client);
-    res.json({ success: true, token, client: sanitizeClient(client) });
-  } catch (err) {
-    console.error('Google login error:', err);
-    res.status(500).json({
-      success: false,
-      message: 'Impossible de finaliser la connexion Google',
-    });
   }
 };
 

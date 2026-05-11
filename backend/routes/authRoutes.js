@@ -21,8 +21,6 @@ const authMiddleware = (req, res, next) => {
 // ── Routes ────────────────────────────────────────────────────────
 router.post('/register',           controller.register);
 router.post('/login',              controller.login);
-router.get ('/google/client-id',   controller.getGoogleClientConfig);
-router.post('/google',             controller.googleLogin);
 router.get ('/me',                 authMiddleware, controller.getMe);
 
 // Password reset (code-based flow)

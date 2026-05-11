@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -7,33 +7,8 @@ import '../styles/signin.css';
 
 const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth`;
 
-const loadGoogleScript = () =>
-  new Promise((resolve, reject) => {
-    if (window.google?.accounts?.id) {
-      resolve(window.google);
-      return;
-    }
-
-    const existingScript = document.querySelector('script[data-google-identity="true"]');
-    if (existingScript) {
-      existingScript.addEventListener('load', () => resolve(window.google), { once: true });
-      existingScript.addEventListener('error', reject, { once: true });
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.dataset.googleIdentity = 'true';
-    script.onload = () => resolve(window.google);
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-
 const SignIn = () => {
   const navigate = useNavigate();
-  const googleButtonRef = useRef(null);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -46,10 +21,6 @@ const SignIn = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
-  const [googleClientId, setGoogleClientId] = useState('');
-  const [googleError, setGoogleError] = useState('');
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [isGoogleReady, setIsGoogleReady] = useState(false);
 
   const persistSession = (payload) => {
     localStorage.setItem('token', payload.token);
@@ -121,123 +92,6 @@ const SignIn = () => {
       setIsLoading(false);
     }
   };
-
-  const handleGoogleCredential = useEffectEvent(async (credential) => {
-    if (!credential) {
-      setServerError('La connexion Google a echoue. Veuillez reessayer.');
-      return;
-    }
-
-    setIsGoogleLoading(true);
-    setServerError('');
-
-    try {
-      const res = await fetch(`${API}/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential }),
-      });
-
-      const json = await res.json();
-
-      if (json.success) {
-        persistSession(json);
-      } else {
-        setServerError(json.message || 'Impossible de finaliser la connexion Google.');
-      }
-    } catch {
-      setServerError('Impossible de contacter le serveur. Verifiez votre connexion.');
-    } finally {
-      setIsGoogleLoading(false);
-    }
-  });
-
-  useEffect(() => {
-    let active = true;
-
-    const fetchGoogleConfig = async () => {
-      try {
-        const res = await fetch(`${API}/google/client-id`);
-        const json = await res.json();
-
-        if (!active) {
-          return;
-        }
-
-        if (res.ok && json.success && json.clientId) {
-          setGoogleClientId(json.clientId);
-          setGoogleError('');
-          return;
-        }
-
-        setGoogleError(json.message || 'Connexion Google indisponible pour le moment.');
-      } catch {
-        if (active) {
-          setGoogleError('Connexion Google indisponible pour le moment.');
-        }
-      }
-    };
-
-    fetchGoogleConfig();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const mountGoogleButton = async () => {
-      if (!googleClientId || !googleButtonRef.current) {
-        return;
-      }
-
-      try {
-        await loadGoogleScript();
-
-        if (cancelled || !window.google?.accounts?.id || !googleButtonRef.current) {
-          return;
-        }
-
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: ({ credential }) => {
-            handleGoogleCredential(credential);
-          },
-          ux_mode: 'popup',
-          context: 'signin',
-        });
-
-        googleButtonRef.current.innerHTML = '';
-        window.google.accounts.id.renderButton(googleButtonRef.current, {
-          theme: 'outline',
-          size: 'large',
-          shape: 'pill',
-          text: 'continue_with',
-          locale: 'fr',
-          width: 360,
-        });
-
-        setIsGoogleReady(true);
-      } catch {
-        if (!cancelled) {
-          setGoogleError('Connexion Google indisponible pour le moment.');
-          setIsGoogleReady(false);
-        }
-      }
-    };
-
-    mountGoogleButton();
-
-    return () => {
-      cancelled = true;
-
-      if (googleButtonRef.current) {
-        googleButtonRef.current.innerHTML = '';
-      }
-    };
-  }, [googleClientId]);
 
   return (
     <>
@@ -364,7 +218,7 @@ const SignIn = () => {
                   </label>
                 </div>
 
-                <button type="submit" className={`auth-btn auth-btn-primary ${isLoading ? 'auth-btn--loading' : ''}`} disabled={isLoading || isGoogleLoading}>
+                <button type="submit" className={`auth-btn auth-btn-primary ${isLoading ? 'auth-btn--loading' : ''}`} disabled={isLoading}>
                   {isLoading ? (
                     <><span className="auth-spinner" /> Connexion en cours...</>
                   ) : (
@@ -372,21 +226,6 @@ const SignIn = () => {
                   )}
                 </button>
               </form>
-
-              <div className="auth-divider"><span>ou continuez avec</span></div>
-              <div className="auth-social auth-social--single">
-                {googleClientId ? (
-                  <div className={`auth-google-slot ${isGoogleLoading ? 'auth-google-slot--busy' : ''}`}>
-                    <div ref={googleButtonRef} className="auth-google-button" />
-                    {!isGoogleReady && <span className="auth-social-help">Chargement de Google...</span>}
-                  </div>
-                ) : (
-                  <button type="button" className="auth-social-btn" disabled>
-                    <i className="fab fa-google" /> Google
-                  </button>
-                )}
-              </div>
-              {googleError && <span className="auth-social-help auth-social-help--error">{googleError}</span>}
             </div>
           </div>
         </div>
