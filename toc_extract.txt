@@ -1,0 +1,100 @@
+--- PAGE 6 ---
+Contents
+Dedication i
+dedication ii
+Acknowledgements iii
+General Introduction 1
+1 Project Framework 3
+1.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+1.2 Presentation of the Host Organization . . . . . . . . . . . . . . . . . . . . 3
+1.2.1 Services Offered . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+1.2.2 Activity Sector . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+1.3 Study of the Existing System . . . . . . . . . . . . . . . . . . . . . . . . . 4
+1.3.1 Commercial Relationship Types . . . . . . . . . . . . . . . . . . . . 4
+1.3.2 Description of the Existing System . . . . . . . . . . . . . . . . . . 5
+1.3.3 Critique of the Existing System . . . . . . . . . . . . . . . . . . . . 5
+1.3.4 Comparative Study . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+1.4 Proposed Solution . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+1.5 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+2 Requirements Specification 9
+2.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+2.2 Identification of Functional Requirements . . . . . . . . . . . . . . . . . . . 9
+2.3 Identification of Non-Functional Requirements . . . . . . . . . . . . . . . . 10
+2.4 Identification of Actors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+2.5 Working Environment . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+2.5.1 Hardware Environment . . . . . . . . . . . . . . . . . . . . . . . . . 12
+2.5.2 Software Environment . . . . . . . . . . . . . . . . . . . . . . . . . 13
+2.5.3 Technologies Used . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+2.6 Working Methodology . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+2.6.1 Agile Methodology . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+2.6.2 Why Choose Scrum? . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+2.7 Use Case Diagram . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+2.8 Product Backlog . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+2.9 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+iv
+
+--- PAGE 7 ---
+Contents Contents
+3 Sprint 0 22
+3.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+3.2 Sprint 0 Backlog Identification . . . . . . . . . . . . . . . . . . . . . . . . . 22
+3.3 Sprint 0 Refinement . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23
+3.4 Generalization of Management Use Cases . . . . . . . . . . . . . . . . . . . 23
+3.4.1 Refinement of the use case «Create account» . . . . . . . . . . . . . 23
+3.4.2 Refinement of the use case «Authenticate» . . . . . . . . . . . . . . 24
+3.5 Refinement of the use case «Manage Transport» . . . . . . . . . . . . . . . 25
+3.6 Refinement of the use case «Manage admins» . . . . . . . . . . . . . . . . 26
+3.7 Refinement of the use case «Manage users» . . . . . . . . . . . . . . . . . . 27
+3.8 Sprint 0 conception . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 28
+3.8.1 Conception of the use case «Create Account» . . . . . . . . . . . . 28
+3.8.2 Conception of the use case «Authenticate» . . . . . . . . . . . . . . 29
+3.8.3 Conception of the use case «Manage transport» . . . . . . . . . . . 30
+3.8.4 Conception of the use case «Manage admins» . . . . . . . . . . . . 32
+3.8.5 Conception of the use case «Manage users» . . . . . . . . . . . . . 34
+3.9 Deployment Diagram . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+3.10 Sprint 0 Implementation . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+3.11 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 47
+4 Sprint 1 48
+4.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 48
+4.2 Sprint 1 Backlog Identification . . . . . . . . . . . . . . . . . . . . . . . . . 48
+4.3 Sprint 1 Refinement . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+4.4 Generalization of some use cases . . . . . . . . . . . . . . . . . . . . . . . . 49
+4.4.1 Generalization of Booking Use Cases . . . . . . . . . . . . . . . . . 49
+4.4.2 Generalization of Treat Reservations . . . . . . . . . . . . . . . . . 49
+4.4.3 Refinement of the use case «Treat Reservations» . . . . . . . . . . . 49
+4.5 Refinement of the use case «Handle customized trip requests» . . . . . . . 50
+4.5.1 Refinement of the use case «Book Omra» . . . . . . . . . . . . . . . 52
+4.5.2 Refinement of the use case «Make payment» . . . . . . . . . . . . . 54
+4.6 Sprint 1 Conception . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 55
+4.6.1 Conception of the use case «Treat Reservations» . . . . . . . . . . . 56
+4.6.2 Conception of the use case «Handle customized trip
+requests» . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 57
+4.6.3 Conception of the use case «Book Omra» . . . . . . . . . . . . . . . 59
+4.6.4 Conception of the use case «Make payment» . . . . . . . . . . . . . 60
+4.7 Sprint 1 Implementation . . . . . . . . . . . . . . . . . . . . . . . . . . . . 61
+4.8 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 71
+5 Sprint 2 72
+5.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 72
+5.2 Sprint 2 Backlog Identification . . . . . . . . . . . . . . . . . . . . . . . . . 72
+5.3 Sprint 2 Refinement . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 72
+5.3.1 Refinement of the use case «Consult services» . . . . . . . . . . . . 72
+5.3.2 Refinement of the use case «Chat with chatbot» . . . . . . . . . . . 73
+5.3.3 Refinement of the use case «Send messages» . . . . . . . . . . . . . 74
+5.3.4 Refinement of the use case «Answer messages» . . . . . . . . . . . . 75
+5.3.5 Refinement of the use case «Consult profile» . . . . . . . . . . . . . 76
+v
+
+--- PAGE 8 ---
+Contents Contents
+5.4 Sprint 2 conception . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 77
+5.4.1 Conception of the use case «Consult services» . . . . . . . . . . . . 77
+5.4.2 Conception of the use case «Chat with chatbot» . . . . . . . . . . . 79
+5.4.3 Conception of the use case «Send messages» . . . . . . . . . . . . . 80
+5.4.4 Conception of the use case «Answer messages» . . . . . . . . . . . . 81
+5.4.5 Conception of the use case «Consult profile» . . . . . . . . . . . . . 82
+5.5 Sprint 2 implementations . . . . . . . . . . . . . . . . . . . . . . . . . . . 84
+5.6 Global Class Diagram . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 96
+5.7 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 98
+General Conclusion 99
+Bibliography 103
+vi

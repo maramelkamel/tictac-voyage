@@ -5,8 +5,11 @@ import Chatbot from '../../components/Chatbot';
 import '../../styles/Transport.css';
 import { usePromotions } from '../../hooks/usePromotions';
 import PromotionsSection from '../admin/promotions/PromotionsSection';
+import LocationInput from './LocationInput'; // ← nouveau composant
 
 const API_URL = 'http://localhost:5000/api/requests';
+
+// Aucune clé API requise — autocomplete via OpenStreetMap (Nominatim)
 
 const Transport = () => {
   const clientData  = (() => { try { return JSON.parse(localStorage.getItem('client') || '{}'); } catch { return {}; } })();
@@ -176,6 +179,14 @@ const Transport = () => {
   const today      = new Date().toISOString().split('T')[0];
   const lockedStyle = { background: '#f8fafc', cursor: 'not-allowed', color: '#64748b' };
 
+  /* ── Shared icon helpers ─────────────────────────────────────────── */
+  const iconLocation = (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="10" r="3" />
+      <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 10-16 0c0 3 2.7 7 8 11.7z" />
+    </svg>
+  );
+
   return (
     <>
       <Navbar />
@@ -226,7 +237,6 @@ const Transport = () => {
         <section className="transport-main">
           <div className="transport-container">
 
-            {/* Logged-in notice */}
             {clientEmail && (
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 10,
@@ -240,7 +250,6 @@ const Transport = () => {
               </div>
             )}
 
-            {/* ── SUCCESS BANNER ── */}
             {submitSuccess && (
               <div className="transport-success">
                 <div className="transport-success-icon">
@@ -260,7 +269,6 @@ const Transport = () => {
               </div>
             )}
 
-            {/* ── ERROR BANNER ── */}
             {submitError && (
               <div className="transport-error-banner">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -308,7 +316,7 @@ const Transport = () => {
             {/* FORM */}
             <form className="transport-form" onSubmit={handleSubmit} noValidate>
 
-              {/* ── SECTION 1 : Type de service ── */}
+              {/* ── SECTION 1 ── */}
               <div className="transport-form-section">
                 <div className="transport-section-header">
                   <div className="transport-section-number">1</div>
@@ -396,36 +404,31 @@ const Transport = () => {
                     )}
                   </div>
                   <div className="transport-itinerary-fields">
-                    <div className="transport-field-group">
-                      <label className="transport-label" htmlFor="departureLocation">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="10" r="3" />
-                          <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 10-16 0c0 3 2.7 7 8 11.7z" />
-                        </svg>
-                        {activeTab === 'transfert' ? 'Lieu de départ' : 'Lieu de prise en charge'}
-                      </label>
-                      <input type="text" id="departureLocation" name="departureLocation"
-                        className={`transport-input ${errors.departureLocation ? 'error' : ''}`}
-                        placeholder="Adresse, aéroport, gare, hôtel..."
-                        value={formData.departureLocation} onChange={handleChange} />
-                      {errors.departureLocation && <span className="transport-field-error">{errors.departureLocation}</span>}
-                    </div>
 
+                    {/* ── Départ — LocationInput ── */}
+                    <LocationInput
+                      id="departureLocation"
+                      name="departureLocation"
+                      value={formData.departureLocation}
+                      onChange={handleChange}
+                      placeholder="Adresse, aéroport, gare, hôtel..."
+                      error={errors.departureLocation}
+                      label={activeTab === 'transfert' ? 'Lieu de départ' : 'Lieu de prise en charge'}
+                      icon={iconLocation}
+                    />
+
+                    {/* ── Arrivée — LocationInput (transfert uniquement) ── */}
                     {activeTab === 'transfert' && (
-                      <div className="transport-field-group">
-                        <label className="transport-label" htmlFor="arrivalLocation">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="10" r="3" />
-                            <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 10-16 0c0 3 2.7 7 8 11.7z" />
-                          </svg>
-                          Lieu d'arrivée
-                        </label>
-                        <input type="text" id="arrivalLocation" name="arrivalLocation"
-                          className={`transport-input ${errors.arrivalLocation ? 'error' : ''}`}
-                          placeholder="Adresse, aéroport, gare, hôtel..."
-                          value={formData.arrivalLocation} onChange={handleChange} />
-                        {errors.arrivalLocation && <span className="transport-field-error">{errors.arrivalLocation}</span>}
-                      </div>
+                      <LocationInput
+                        id="arrivalLocation"
+                        name="arrivalLocation"
+                        value={formData.arrivalLocation}
+                        onChange={handleChange}
+                        placeholder="Adresse, aéroport, gare, hôtel..."
+                        error={errors.arrivalLocation}
+                        label="Lieu d'arrivée"
+                        icon={iconLocation}
+                      />
                     )}
                   </div>
                 </div>
