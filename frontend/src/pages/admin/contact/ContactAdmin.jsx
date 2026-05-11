@@ -442,18 +442,10 @@ export default function ContactAdmin() {
               </div>
 
               {/* Actions rapides */}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <a
-                  href={`mailto:${selected.email}?subject=Re: votre message - Tictac Voyages`}
-                  className="al-btn al-btn--primary"
-                  style={{ flex: 1, textDecoration: 'none', justifyContent: 'center', fontSize: 12 }}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>
-                  Répondre par email
-                </a>
+              <div>
                 <button
                   className="al-btn al-btn--danger"
-                  style={{ fontSize: 12 }}
+                  style={{ width: '100%', justifyContent: 'center', fontSize: 12 }}
                   onClick={() => setDelConfirm(selected)}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
