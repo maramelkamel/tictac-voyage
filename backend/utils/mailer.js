@@ -95,7 +95,7 @@ const sendWelcomeEmail = async (client) => {
   });
 };
 
-const sendReservationStatusEmail = async ({ email, firstName, type, title, status, details }) => {
+const sendReservationStatusEmail = async ({ email, firstName, type, title, status, details, customMessage }) => {
   const statusConfig = {
     confirmed: {
       emoji: 'OK',
@@ -136,7 +136,7 @@ const sendReservationStatusEmail = async ({ email, firstName, type, title, statu
 
     <div style="background:${cfg.bg};border-radius:12px;padding:16px 20px;margin-bottom:24px;border-left:4px solid ${cfg.color};">
       <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:${cfg.color};">${cfg.label}</p>
-      <p style="margin:0;font-size:13px;color:${cfg.color};">${cfg.message}</p>
+      <p style="margin:0;font-size:13px;color:${cfg.color};">${customMessage || cfg.message}</p>
     </div>
 
     <div style="background:#f8fafc;border-radius:12px;margin-bottom:24px;overflow:hidden;border:1px solid #e2e8f0;">

@@ -1,8 +1,6 @@
-// backend/controllers/omraReservationController.js
-const resModel                   = require('../models/omraReservationModel');
+const resModel = require('../models/omraReservationModel');
 const { sendReservationStatusEmail, sendAgencyReservationEmail } = require('../utils/mailer');
 
-/* GET /api/omra/reservations/stats */
 const getStats = async (req, res) => {
   try {
     const stats = await resModel.getStats();
@@ -13,11 +11,10 @@ const getStats = async (req, res) => {
   }
 };
 
-/* GET /api/omra/reservations?status=&payment_method=&search= */
 const getAll = async (req, res) => {
   try {
-    const { status, payment_method, search } = req.query;
-    const reservations = await resModel.getAllReservations({ status, payment_method, search });
+    const { status, payment_method, search, email } = req.query;
+    const reservations = await resModel.getAllReservations({ status, payment_method, search, email });
     res.json({ success: true, data: reservations });
   } catch (err) {
     console.error('omraReservationController.getAll:', err);
@@ -25,12 +22,12 @@ const getAll = async (req, res) => {
   }
 };
 
-/* GET /api/omra/reservations/:id */
 const getOne = async (req, res) => {
   try {
     const reservation = await resModel.getReservationById(req.params.id);
-    if (!reservation)
+    if (!reservation) {
       return res.status(404).json({ success: false, message: 'Réservation introuvable' });
+    }
     res.json({ success: true, data: reservation });
   } catch (err) {
     console.error('omraReservationController.getOne:', err);
@@ -38,57 +35,72 @@ const getOne = async (req, res) => {
   }
 };
 
-/* POST /api/omra/reservations */
 const create = async (req, res) => {
   try {
     const {
-      first_name, last_name, email, phone,
-      gender, passport_number, total_price, payment_method,
-      chambre_type, number_of_persons, applied_promotion, reservation_title,
+      first_name,
+      last_name,
+      email,
+      phone,
+      gender,
+      passport_number,
+      total_price,
+      payment_method,
+      chambre_type,
+      number_of_persons,
+      applied_promotion,
+      reservation_title,
     } = req.body;
 
-    if (!first_name || !last_name || !email || !phone ||
-        !gender || !passport_number || !total_price || !payment_method)
+    if (!first_name || !last_name || !email || !phone || !gender || !passport_number || !total_price || !payment_method) {
       return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
-
-    if (!['online', 'agency'].includes(payment_method))
+    }
+    if (!['online', 'agency'].includes(payment_method)) {
       return res.status(400).json({ success: false, message: 'Mode de paiement invalide' });
+    }
 
-    const reservation = await resModel.createReservation(req.body);
+    const isOnline = payment_method === 'online';
+    const reservation = await resModel.createReservation({
+      ...req.body,
+      status: isOnline ? 'confirmed' : 'pending',
+      payment_status: isOnline ? 'paid' : 'pending',
+    });
 
-    if (payment_method === 'agency') {
+    if (isOnline) {
+      sendReservationStatusEmail({
+        email,
+        firstName: first_name,
+        type: 'omra',
+        title: reservation_title || `Forfait Omra #${reservation.package_id || ''}`,
+        status: 'confirmed',
+        customMessage: 'Le payement en ligne a ete effectuer avec succes.',
+        details: {
+          Chambre: chambre_type || reservation.chambre_type || 'double',
+          Personnes: `${number_of_persons || reservation.number_of_persons || 1} personne(s)`,
+          Paiement: '💳 En ligne',
+          Total: total_price ? `${Number(total_price).toLocaleString('fr-TN')} TND` : null,
+        },
+      }).catch((error) => console.error('Omra create email failed:', error.message));
+    } else {
       sendAgencyReservationEmail({
         email,
         firstName: first_name,
         type: 'omra',
         title: reservation_title || `Forfait Omra #${reservation.package_id || ''}`,
         details: {
-          'Chambre': chambre_type || reservation.chambre_type || 'double',
-          'Personnes': `${number_of_persons || reservation.number_of_persons || 1} personne(s)`,
-          'Paiement': "A l'agence",
-          'Total': total_price ? `${Number(total_price).toLocaleString('fr-TN')} TND` : null,
+          Chambre: chambre_type || reservation.chambre_type || 'double',
+          Personnes: `${number_of_persons || reservation.number_of_persons || 1} personne(s)`,
+          Paiement: "A l'agence",
+          Total: total_price ? `${Number(total_price).toLocaleString('fr-TN')} TND` : null,
           'Code promo': applied_promotion?.code_promo || null,
         },
         promotionReminder: applied_promotion?.date_fin ? {
           code: applied_promotion.code_promo,
           date_fin: applied_promotion.date_fin,
         } : null,
-      }).catch(err => console.error('Omra agency email failed:', err.message));
-    } else {
-      sendReservationStatusEmail({
-        email,
-        firstName: first_name,
-        type: 'omra',
-        title: reservation_title || `Forfait Omra #${reservation.package_id || ''}`,
-        status: 'pending',
-        details: {
-          'Chambre': chambre_type || reservation.chambre_type || 'double',
-          'Personnes': `${number_of_persons || reservation.number_of_persons || 1} personne(s)`,
-          'Paiement': '💳 En ligne',
-          'Total': total_price ? `${Number(total_price).toLocaleString('fr-TN')} TND` : null,
-        },
-      }).catch(err => console.error('Omra create email failed:', err.message));
+      }).catch((error) => console.error('Omra agency email failed:', error.message));
     }
+
     res.status(201).json({
       success: true,
       data: reservation,
@@ -100,52 +112,55 @@ const create = async (req, res) => {
   }
 };
 
-/* PATCH /api/omra/reservations/:id/status */
 const updateStatus = async (req, res) => {
   try {
-    const { id }     = req.params;
+    const { id } = req.params;
     const { status } = req.body;
 
-    if (!['pending', 'confirmed', 'cancelled', 'completed'].includes(status))
+    if (!['pending', 'confirmed', 'cancelled', 'completed'].includes(status)) {
       return res.status(400).json({ success: false, message: 'Statut invalide' });
-
-    // Use the model to update — it returns the full row with package_title joined
-    const r = await resModel.updateStatus(id, status);
-    if (!r)
-      return res.status(404).json({ success: false, message: 'Réservation introuvable' });
-
-    // 🔔 Send email for meaningful status changes
-    if (['confirmed', 'cancelled', 'completed'].includes(status)) {
-      sendReservationStatusEmail({
-        email:     r.email,
-        firstName: r.first_name,
-        type:      'omra',
-        title:     r.package_title || `Forfait Omra #${r.package_id}`,
-        status,
-        details: {
-          'Chambre':   r.chambre_type,
-          'Personnes': `${r.number_of_persons} personne(s)`,
-          'Paiement':  r.payment_method === 'online' ? '💳 En ligne' : '🏪 Agence',
-          'Total':     r.total_price
-            ? `${Number(r.total_price).toLocaleString('fr-TN')} TND`
-            : null,
-        },
-      }).catch(err => console.error('❌ Omra status email failed:', err.message));
     }
 
-    res.json({ success: true, data: r });
+    const paymentStatus = status === 'confirmed'
+      ? 'paid'
+      : status === 'cancelled'
+        ? 'refunded'
+        : undefined;
+
+    const reservation = await resModel.updateStatus(id, status, paymentStatus);
+    if (!reservation) {
+      return res.status(404).json({ success: false, message: 'Réservation introuvable' });
+    }
+
+    if (['confirmed', 'cancelled', 'completed'].includes(status)) {
+      sendReservationStatusEmail({
+        email: reservation.email,
+        firstName: reservation.first_name,
+        type: 'omra',
+        title: reservation.package_title || `Forfait Omra #${reservation.package_id}`,
+        status,
+        details: {
+          Chambre: reservation.chambre_type,
+          Personnes: `${reservation.number_of_persons} personne(s)`,
+          Paiement: reservation.payment_method === 'online' ? '💳 En ligne' : '🏪 Agence',
+          Total: reservation.total_price ? `${Number(reservation.total_price).toLocaleString('fr-TN')} TND` : null,
+        },
+      }).catch((error) => console.error('Omra status email failed:', error.message));
+    }
+
+    res.json({ success: true, data: reservation });
   } catch (err) {
     console.error('omraReservationController.updateStatus:', err);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
 
-/* DELETE /api/omra/reservations/:id */
 const remove = async (req, res) => {
   try {
     const deleted = await resModel.deleteReservation(req.params.id);
-    if (!deleted)
+    if (!deleted) {
       return res.status(404).json({ success: false, message: 'Réservation introuvable' });
+    }
     res.json({ success: true, message: 'Réservation supprimée' });
   } catch (err) {
     console.error('omraReservationController.remove:', err);

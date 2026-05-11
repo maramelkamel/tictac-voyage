@@ -1,4 +1,3 @@
-// backend/models/omraReservationModel.js
 const pool = require('../config/db');
 
 const getAllReservations = async ({ status, payment_method, search, email } = {}) => {
@@ -11,14 +10,27 @@ const getAllReservations = async ({ status, payment_method, search, email } = {}
     LEFT JOIN public.omra_packages p ON p.id = r.package_id
     WHERE 1=1
   `;
-  const vals = []; let i = 1;
-  if (email)                              { q += ` AND LOWER(r.email) = LOWER($${i++})`;     vals.push(email); }
-  if (status && status !== 'all')         { q += ` AND r.status = $${i++}`;                  vals.push(status); }
-  if (payment_method && payment_method !== 'all') { q += ` AND r.payment_method = $${i++}`; vals.push(payment_method); }
+  const vals = [];
+  let i = 1;
+
+  if (email) {
+    q += ` AND LOWER(r.email) = LOWER($${i++})`;
+    vals.push(email);
+  }
+  if (status && status !== 'all') {
+    q += ` AND r.status = $${i++}`;
+    vals.push(status);
+  }
+  if (payment_method && payment_method !== 'all') {
+    q += ` AND r.payment_method = $${i++}`;
+    vals.push(payment_method);
+  }
   if (search) {
     q += ` AND (r.first_name ILIKE $${i} OR r.last_name ILIKE $${i} OR r.email ILIKE $${i})`;
-    vals.push(`%${search}%`); i++;
+    vals.push(`%${search}%`);
+    i++;
   }
+
   q += ' ORDER BY r.created_at DESC';
   const { rows } = await pool.query(q, vals);
   return rows;
@@ -36,48 +48,74 @@ const getReservationById = async (id) => {
 
 const createReservation = async (data) => {
   const {
-    package_id, first_name, last_name, email, phone,
-    gender, has_mahram, passport_number,
-    chambre_type, number_of_persons, total_price,
-    payment_method, notes,
+    package_id,
+    first_name,
+    last_name,
+    email,
+    phone,
+    gender,
+    has_mahram,
+    passport_number,
+    chambre_type,
+    number_of_persons,
+    total_price,
+    payment_method,
+    payment_status,
+    status,
+    notes,
   } = data;
+
   const { rows } = await pool.query(`
     INSERT INTO public.omra_reservations
       (package_id, first_name, last_name, email, phone,
        gender, has_mahram, passport_number,
        chambre_type, number_of_persons, total_price,
-       payment_method, notes)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+       payment_method, payment_status, status, notes)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
     RETURNING *
   `, [
-    package_id||null, first_name, last_name, email, phone, gender,
-    has_mahram||null, passport_number,
-    chambre_type||'double', number_of_persons||1, total_price,
-    payment_method||'agency', notes||null,
+    package_id || null,
+    first_name,
+    last_name,
+    email,
+    phone,
+    gender,
+    has_mahram || null,
+    passport_number,
+    chambre_type || 'double',
+    number_of_persons || 1,
+    total_price,
+    payment_method || 'agency',
+    payment_status || 'pending',
+    status || 'pending',
+    notes || null,
   ]);
+
   return rows[0];
 };
 
-// ── BUG FIX: scalar subquery so package_title is present in the returned row
-//    (plain RETURNING * on an UPDATE has no JOIN, so title was always undefined) ──
 const updateStatus = async (id, status, payment_status) => {
-  let q, vals;
+  let q;
+  let vals;
+
   if (payment_status) {
-    q    = `UPDATE public.omra_reservations SET status=$1, payment_status=$2, updated_at=NOW() WHERE id=$3
-            RETURNING *, (SELECT title FROM public.omra_packages WHERE id = package_id) AS package_title`;
+    q = `UPDATE public.omra_reservations SET status=$1, payment_status=$2, updated_at=NOW() WHERE id=$3
+         RETURNING *, (SELECT title FROM public.omra_packages WHERE id = package_id) AS package_title`;
     vals = [status, payment_status, id];
   } else {
-    q    = `UPDATE public.omra_reservations SET status=$1, updated_at=NOW() WHERE id=$2
-            RETURNING *, (SELECT title FROM public.omra_packages WHERE id = package_id) AS package_title`;
+    q = `UPDATE public.omra_reservations SET status=$1, updated_at=NOW() WHERE id=$2
+         RETURNING *, (SELECT title FROM public.omra_packages WHERE id = package_id) AS package_title`;
     vals = [status, id];
   }
+
   const { rows } = await pool.query(q, vals);
   return rows[0] || null;
 };
 
 const deleteReservation = async (id) => {
   const { rows } = await pool.query(
-    'DELETE FROM public.omra_reservations WHERE id=$1 RETURNING id', [id]
+    'DELETE FROM public.omra_reservations WHERE id=$1 RETURNING id',
+    [id]
   );
   return rows[0] || null;
 };
@@ -98,4 +136,11 @@ const getStats = async () => {
   return rows[0];
 };
 
-module.exports = { getAllReservations, getReservationById, createReservation, updateStatus, deleteReservation, getStats };
+module.exports = {
+  getAllReservations,
+  getReservationById,
+  createReservation,
+  updateStatus,
+  deleteReservation,
+  getStats,
+};
