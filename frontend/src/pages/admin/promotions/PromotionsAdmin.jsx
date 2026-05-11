@@ -127,11 +127,16 @@ export default function PromotionsAdmin() {
     setBlasting(id);
     try {
       const res  = await fetch(`${API}/${id}/send-blast`, { method: 'POST' });
-      const json = await res.json();
-      if (json.success) {
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        showToast(json?.message || 'Erreur lors de l\'envoi.', 'error');
+        return;
+      }
+      if (json?.success) {
         showToast(json.message || `✅ Promotion envoyée à tous les clients !`, 'success');
+        fetchAll();
       } else {
-        showToast(json.message || 'Erreur lors de l\'envoi.', 'error');
+        showToast(json?.message || 'Erreur lors de l\'envoi.', 'error');
       }
     } catch {
       showToast('Erreur réseau lors de l\'envoi.', 'error');
@@ -480,6 +485,7 @@ export default function PromotionsAdmin() {
 
                             {/* ── Envoyer par email (blast) ── */}
                             <button
+                              type="button"
                               onClick={() => handleSendBlast(p.id, p.titre)}
                               disabled={isBlasting}
                               title={isBlasting ? 'Envoi en cours...' : 'Envoyer à tous les clients par email'}

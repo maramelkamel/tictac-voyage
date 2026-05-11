@@ -27,6 +27,30 @@ const Badge = ({ s }) => {
   );
 };
 
+const Section = ({ title, children }) => (
+  <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+    <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:8, borderBottom:'1px solid var(--g100)' }}>{title}</p>
+    {children}
+  </div>
+);
+
+const Grid = ({ children }) => (
+  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>{children}</div>
+);
+
+const Item = ({ label, value, full, accent }) => value ? (
+  <div style={{ display:'flex', flexDirection:'column', gap:3, gridColumn:full?'1 / -1':undefined }}>
+    <span style={{ fontSize:10, fontWeight:600, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.05em' }}>{label}</span>
+    <span style={{ fontSize:13, fontWeight:500, color:accent||'var(--g700)' }}>{value}</span>
+  </div>
+) : null;
+
+const OptionTag = ({ label, icon }) => (
+  <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:8, background:'rgba(15,76,92,.07)', color:'var(--primary)', fontSize:12, fontWeight:600 }}>
+    {icon} {label}
+  </span>
+);
+
 /* ══════════════════════════════════════════════════════════════
    DETAIL PANEL
    ══════════════════════════════════════════════════════════════ */
@@ -49,26 +73,6 @@ const DetailPanel = ({
       </svg>
       <p style={{ fontSize:14, fontWeight:600, color:'var(--g400)', lineHeight:1.6 }}>Cliquez sur une demande<br/>pour voir les détails</p>
     </div>
-  );
-
-  const Section = ({ title, children }) => (
-    <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-      <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:8, borderBottom:'1px solid var(--g100)' }}>{title}</p>
-      {children}
-    </div>
-  );
-
-  const Grid  = ({ children })            => <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>{children}</div>;
-  const Item  = ({ label, value, full, accent }) => value ? (
-    <div style={{ display:'flex', flexDirection:'column', gap:3, gridColumn:full?'1 / -1':undefined }}>
-      <span style={{ fontSize:10, fontWeight:600, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.05em' }}>{label}</span>
-      <span style={{ fontSize:13, fontWeight:500, color:accent||'var(--g700)' }}>{value}</span>
-    </div>
-  ) : null;
-  const OptionTag = ({ label, icon }) => (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:8, background:'rgba(15,76,92,.07)', color:'var(--primary)', fontSize:12, fontWeight:600 }}>
-      {icon} {label}
-    </span>
   );
 
   const n             = nights(req.departure_date, req.return_date);
