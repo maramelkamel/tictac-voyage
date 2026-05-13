@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -37,6 +37,50 @@ const getNights = (checkIn, checkOut) => {
   const diff = Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000);
   return Number.isFinite(diff) && diff > 0 ? diff : 1;
 };
+
+const toCount = (value, fallback = 0) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(parsed, 0) : fallback;
+};
+
+const splitCountAcrossRooms = (total, roomCount) => {
+  const safeTotal = Math.max(toCount(total, 0), 0);
+  const safeRoomCount = Math.max(toCount(roomCount, 1), 1);
+  const base = Math.floor(safeTotal / safeRoomCount);
+  const remainder = safeTotal % safeRoomCount;
+  return Array.from({ length: safeRoomCount }, (_, index) => base + (index < remainder ? 1 : 0));
+};
+
+const createRoomAllocation = ({ roomNumber, roomType, mealPlan, adults = 0, children = 0, babies = 0 }) => ({
+  room_number: roomNumber,
+  room_type: roomType || '',
+  meal_plan: mealPlan || '',
+  adults: String(Math.max(toCount(adults, 0), 0)),
+  children: String(Math.max(toCount(children, 0), 0)),
+  babies: String(Math.max(toCount(babies, 0), 0)),
+});
+
+const buildInitialRoomAllocations = ({ rooms, roomType, mealPlan, adults, children, babies }) => {
+  const roomCount = Math.max(toCount(rooms, 1), 1);
+  const adultsSplit = splitCountAcrossRooms(adults, roomCount);
+  const childrenSplit = splitCountAcrossRooms(children, roomCount);
+  const babiesSplit = splitCountAcrossRooms(babies, roomCount);
+
+  return Array.from({ length: roomCount }, (_, index) => createRoomAllocation({
+    roomNumber: index + 1,
+    roomType,
+    mealPlan,
+    adults: adultsSplit[index],
+    children: childrenSplit[index],
+    babies: babiesSplit[index],
+  }));
+};
+
+const sumRoomAllocations = (roomAllocations = []) => roomAllocations.reduce((acc, room) => ({
+  adults: acc.adults + toCount(room?.adults, 0),
+  children: acc.children + toCount(room?.children, 0),
+  babies: acc.babies + toCount(room?.babies, 0),
+}), { adults: 0, children: 0, babies: 0 });
 
 const FormSection = ({ icon, title, description, children }) => (
   <div style={{ marginBottom: 32 }}>
@@ -87,28 +131,49 @@ const HotelReservationPage = () => {
   const mealPlanOpts = hotel?.meal_plans?.length ? hotel.meal_plans : ['Chambre seule', 'Petit-dejeuner', 'Demi-pension', 'Pension complete', 'All inclusive'];
   const roomViewOpts = hotel?.room_views?.length ? hotel.room_views : ['Vue standard'];
   const extrasOpts = hotel?.reservation_extras?.length ? hotel.reservation_extras : [];
+  const defaultRoomType = roomTypeOpts[0] || '';
+  const defaultMealPlan = mealPlanOpts[0] || '';
+  const defaultRoomView = roomViewOpts[0] || '';
 
-  const [form, setForm] = useState({
-    holder_first_name: clientData?.firstName || clientData?.first_name || '',
-    holder_last_name: clientData?.lastName || clientData?.last_name || '',
-    holder_email: clientData?.email || '',
-    holder_phone: clientData?.phone || '',
-    check_in: toDateValue(initialSearch.checkin, today),
-    check_out: toDateValue(initialSearch.checkout, tomorrow),
-    adults: initialSearch.adults || initialSearch.persons || '2',
-    children: '0',
-    rooms: initialSearch.rooms || '1',
-    room_type: roomTypeOpts[0] || '',
-    meal_plan: mealPlanOpts[0] || '',
-    room_view: roomViewOpts[0] || '',
-    bed_preference: BED_OPTIONS[0],
-    arrival_time: hotel?.checkin_time || '14:00',
-    airport_transfer: false,
-    selected_extras: [],
-    special_requests: '',
+  const [form, setForm] = useState(() => {
+    const initialAdults = initialSearch.adults || initialSearch.persons || '2';
+    const initialChildren = '0';
+    const initialBabies = '0';
+    const initialRooms = initialSearch.rooms || '1';
+    const initialRoomType = defaultRoomType;
+    const initialMealPlan = defaultMealPlan;
+
+    return {
+      holder_first_name: clientData?.firstName || clientData?.first_name || '',
+      holder_last_name: clientData?.lastName || clientData?.last_name || '',
+      holder_email: clientData?.email || '',
+      holder_phone: clientData?.phone || '',
+      check_in: toDateValue(initialSearch.checkin, today),
+      check_out: toDateValue(initialSearch.checkout, tomorrow),
+      adults: initialAdults,
+      children: initialChildren,
+      babies: initialBabies,
+      rooms: initialRooms,
+      room_type: initialRoomType,
+      meal_plan: initialMealPlan,
+      room_view: defaultRoomView,
+      bed_preference: BED_OPTIONS[0],
+      arrival_time: hotel?.checkin_time || '14:00',
+      airport_transfer: false,
+      selected_extras: [],
+      special_requests: '',
+      room_allocations: buildInitialRoomAllocations({
+        rooms: initialRooms,
+        roomType: initialRoomType,
+        mealPlan: initialMealPlan,
+        adults: initialAdults,
+        children: initialChildren,
+        babies: initialBabies,
+      }),
+    };
   });
-
   const [loading, setLoading] = useState(false);
+  const [splitError, setSplitError] = useState('');
 
   const clientEmail = clientData?.email || '';
   const lockedStyle = { background: '#f8fafc', cursor: 'not-allowed', color: '#64748b', borderColor: '#e2e8f0' };
@@ -118,6 +183,49 @@ const HotelReservationPage = () => {
   const nightPrice = Math.round(Number(hotel?.base_price || 0) * multiplier);
   const totalPrix = nightPrice * Number(form.rooms || 1) * nights;
   const image = hotel?.image_url || hotel?.gallery?.find(Boolean) || DEFAULT_IMAGE;
+  const allocationTotals = useMemo(() => sumRoomAllocations(form.room_allocations), [form.room_allocations]);
+  const expectedRoomCount = Math.max(toCount(form.rooms, 1), 1);
+  const roomSplitMatches = (
+    form.room_allocations.length === expectedRoomCount
+    && allocationTotals.adults === toCount(form.adults, 0)
+    && allocationTotals.children === toCount(form.children, 0)
+    && allocationTotals.babies === toCount(form.babies, 0)
+  );
+
+  useEffect(() => {
+    setForm((current) => {
+      const roomCount = Math.max(toCount(current.rooms, 1), 1);
+      const currentAllocations = Array.isArray(current.room_allocations) ? current.room_allocations : [];
+      const nextAllocations = Array.from({ length: roomCount }, (_, index) => {
+        const existing = currentAllocations[index];
+        if (existing) {
+          return {
+            ...existing,
+            room_number: index + 1,
+            room_type: existing.room_type || current.room_type || defaultRoomType,
+            meal_plan: existing.meal_plan || current.meal_plan || defaultMealPlan,
+          };
+        }
+
+        return createRoomAllocation({
+          roomNumber: index + 1,
+          roomType: current.room_type || defaultRoomType,
+          mealPlan: current.meal_plan || defaultMealPlan,
+        });
+      });
+
+      const nextRooms = String(roomCount);
+      if (JSON.stringify(currentAllocations) === JSON.stringify(nextAllocations) && current.rooms === nextRooms) {
+        return current;
+      }
+
+      return {
+        ...current,
+        rooms: nextRooms,
+        room_allocations: nextAllocations,
+      };
+    });
+  }, [form.rooms, defaultMealPlan, defaultRoomType]);
 
   if (!hotel) {
     return (
@@ -137,10 +245,39 @@ const HotelReservationPage = () => {
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
+    setSplitError('');
+
+    if (name === 'room_type' || name === 'meal_plan') {
+      setForm((current) => {
+        const previousValue = current[name];
+        return {
+          ...current,
+          [name]: value,
+          room_allocations: current.room_allocations.map((room) => ({
+            ...room,
+            [name]: toCount(current.rooms, 1) === 1 || room[name] === previousValue ? value : room[name],
+          })),
+        };
+      });
+      return;
+    }
+
+    if (name === 'adults' || name === 'children' || name === 'babies') {
+      setForm((current) => ({
+        ...current,
+        [name]: value,
+        room_allocations: toCount(current.rooms, 1) === 1
+          ? current.room_allocations.map((room, index) => (index === 0 ? { ...room, [name]: value } : room))
+          : current.room_allocations,
+      }));
+      return;
+    }
+
     setForm((current) => ({ ...current, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleExtraToggle = (extra) => {
+    setSplitError('');
     setForm((current) => ({
       ...current,
       selected_extras: current.selected_extras.includes(extra)
@@ -149,8 +286,23 @@ const HotelReservationPage = () => {
     }));
   };
 
+  const handleRoomAllocationChange = (roomIndex, field, value) => {
+    setSplitError('');
+    setForm((current) => ({
+      ...current,
+      room_allocations: current.room_allocations.map((room, index) => (
+        index === roomIndex ? { ...room, [field]: value } : room
+      )),
+    }));
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (!roomSplitMatches) {
+      setSplitError('La repartition des chambres doit correspondre exactement au total adultes, enfants et bebes.');
+      return;
+    }
+
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
@@ -267,7 +419,7 @@ const HotelReservationPage = () => {
                       </span>
                     </div>
 
-                    <div className="omra-reserve__form-row">
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 16 }}>
                       <div className="omra-reserve__field">
                         <label htmlFor="adults">Adultes</label>
                         <input id="adults" name="adults" type="number" min="1" max="10" value={form.adults} onChange={handleChange} />
@@ -275,6 +427,10 @@ const HotelReservationPage = () => {
                       <div className="omra-reserve__field">
                         <label htmlFor="children">Enfants</label>
                         <input id="children" name="children" type="number" min="0" max="6" value={form.children} onChange={handleChange} />
+                      </div>
+                      <div className="omra-reserve__field">
+                        <label htmlFor="babies">Bebes</label>
+                        <input id="babies" name="babies" type="number" min="0" max="4" value={form.babies} onChange={handleChange} />
                       </div>
                     </div>
 
@@ -290,7 +446,7 @@ const HotelReservationPage = () => {
                     </div>
                   </FormSection>
 
-                  <FormSection icon="fas fa-bed" title="Preferences de chambre" description="Les valeurs enregistrees correspondent a `room_type`, `meal_plan`, `room_view` et `bed_preference`">
+                  <FormSection icon="fas fa-bed" title="Preferences de chambre" description="Les valeurs globales sont enregistrees dans `room_type`, `meal_plan`, `room_view` et `bed_preference`">
                     <div className="omra-reserve__form-row">
                       <div className="omra-reserve__field">
                         <label htmlFor="room_type">Type de chambre</label>
@@ -327,6 +483,65 @@ const HotelReservationPage = () => {
                         </select>
                       </div>
                     </div>
+                  </FormSection>
+
+                  <FormSection icon="fas fa-th-list" title="Repartition des chambres" description="Chaque ligne alimente le voucher PDF, avec un detail par chambre.">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 14px', background: '#f8fafc', border: '1px solid var(--gray-200)', borderRadius: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray-700)' }}>
+                        Totaux saisis: {allocationTotals.adults} adulte(s), {allocationTotals.children} enfant(s), {allocationTotals.babies} bebe(s)
+                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: roomSplitMatches ? '#047857' : '#b91c1c' }}>
+                        {roomSplitMatches ? 'Repartition conforme' : 'Ajustez la repartition pour correspondre aux totaux'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'grid', gap: 14 }}>
+                      {form.room_allocations.map((room, index) => (
+                        <div key={room.room_number || index} style={{ border: '1px solid var(--gray-200)', borderRadius: 16, padding: '16px 18px', background: '#fff' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+                            <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--gray-800)' }}>
+                              Chambre {room.room_number || index + 1}
+                            </div>
+                            <div style={{ fontSize: 11, color: 'var(--gray-400)' }}>
+                              Type, formule et voyageurs par chambre
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 14 }}>
+                            <div className="omra-reserve__field">
+                              <label htmlFor={`room_type_${index}`}>Type de chambre</label>
+                              <select id={`room_type_${index}`} value={room.room_type} onChange={(event) => handleRoomAllocationChange(index, 'room_type', event.target.value)}>
+                                {roomTypeOpts.map((option) => <option key={option} value={option}>{option}</option>)}
+                              </select>
+                            </div>
+                            <div className="omra-reserve__field">
+                              <label htmlFor={`meal_plan_${index}`}>Formule repas</label>
+                              <select id={`meal_plan_${index}`} value={room.meal_plan} onChange={(event) => handleRoomAllocationChange(index, 'meal_plan', event.target.value)}>
+                                {mealPlanOpts.map((option) => <option key={option} value={option}>{option}</option>)}
+                              </select>
+                            </div>
+                            <div className="omra-reserve__field">
+                              <label htmlFor={`room_adults_${index}`}>Adultes</label>
+                              <input id={`room_adults_${index}`} type="number" min="0" max="10" value={room.adults} onChange={(event) => handleRoomAllocationChange(index, 'adults', event.target.value)} />
+                            </div>
+                            <div className="omra-reserve__field">
+                              <label htmlFor={`room_children_${index}`}>Enfants</label>
+                              <input id={`room_children_${index}`} type="number" min="0" max="6" value={room.children} onChange={(event) => handleRoomAllocationChange(index, 'children', event.target.value)} />
+                            </div>
+                            <div className="omra-reserve__field">
+                              <label htmlFor={`room_babies_${index}`}>Bebes</label>
+                              <input id={`room_babies_${index}`} type="number" min="0" max="4" value={room.babies} onChange={(event) => handleRoomAllocationChange(index, 'babies', event.target.value)} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {splitError && (
+                      <p style={{ marginTop: 12, color: '#b91c1c', fontSize: 12, fontWeight: 700 }}>
+                        {splitError}
+                      </p>
+                    )}
                   </FormSection>
 
                   <FormSection icon="fas fa-concierge-bell" title="Options et demandes speciales" description="Ajouts facultatifs et commentaires enregistres dans la reservation">
@@ -459,6 +674,7 @@ const HotelReservationPage = () => {
                   <span>
                     {form.adults} adulte{Number(form.adults) !== 1 ? 's' : ''}
                     {Number(form.children) > 0 ? ` + ${form.children} enfant${Number(form.children) !== 1 ? 's' : ''}` : ''}
+                    {Number(form.babies) > 0 ? ` + ${form.babies} bebe${Number(form.babies) !== 1 ? 's' : ''}` : ''}
                   </span>
                 </div>
                 <div className="omra-reserve__summary-row">
@@ -489,6 +705,24 @@ const HotelReservationPage = () => {
                     <span style={{ textAlign: 'right', fontSize: 12 }}>{form.selected_extras.join(', ')}</span>
                   </div>
                 )}
+                <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.12)' }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.68)', marginBottom: 8 }}>
+                    Repartition chambres
+                  </div>
+                  <div style={{ display: 'grid', gap: 8 }}>
+                    {form.room_allocations.map((room, index) => (
+                      <div key={`summary-room-${room.room_number || index}`} style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.08)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 12, fontWeight: 700 }}>
+                          <span>Chambre {room.room_number || index + 1}</span>
+                          <span>{room.room_type || form.room_type || '-'}</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.78)', marginTop: 4 }}>
+                          {room.meal_plan || form.meal_plan || '-'} · {room.adults || 0} ad. · {room.children || 0} enf. · {room.babies || 0} bebe(s)
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
                 <div className="omra-reserve__summary-total">
                   <span className="omra-reserve__summary-total-label">Total estime</span>

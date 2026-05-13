@@ -52,6 +52,7 @@ const ensureHotelSchema = async () => {
       check_out DATE NOT NULL,
       adults INTEGER NOT NULL DEFAULT 2,
       children INTEGER NOT NULL DEFAULT 0,
+      babies INTEGER NOT NULL DEFAULT 0,
       rooms INTEGER NOT NULL DEFAULT 1,
       room_type VARCHAR(120),
       meal_plan VARCHAR(120),
@@ -60,6 +61,7 @@ const ensureHotelSchema = async () => {
       arrival_time VARCHAR(40),
       airport_transfer BOOLEAN NOT NULL DEFAULT false,
       selected_extras JSONB NOT NULL DEFAULT '[]',
+      room_allocations JSONB NOT NULL DEFAULT '[]',
       total_price NUMERIC(10,2) NOT NULL DEFAULT 0,
       currency VARCHAR(10) NOT NULL DEFAULT 'TND',
       promo_code VARCHAR(60),
@@ -108,6 +110,7 @@ const ensureHotelSchema = async () => {
   await pool.query(`
     ALTER TABLE public.hotel_reservations
       ADD COLUMN IF NOT EXISTS children INTEGER NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS babies INTEGER NOT NULL DEFAULT 0,
       ADD COLUMN IF NOT EXISTS room_type VARCHAR(120),
       ADD COLUMN IF NOT EXISTS meal_plan VARCHAR(120),
       ADD COLUMN IF NOT EXISTS room_view VARCHAR(120),
@@ -115,6 +118,7 @@ const ensureHotelSchema = async () => {
       ADD COLUMN IF NOT EXISTS arrival_time VARCHAR(40),
       ADD COLUMN IF NOT EXISTS airport_transfer BOOLEAN NOT NULL DEFAULT false,
       ADD COLUMN IF NOT EXISTS selected_extras JSONB NOT NULL DEFAULT '[]',
+      ADD COLUMN IF NOT EXISTS room_allocations JSONB NOT NULL DEFAULT '[]',
       ADD COLUMN IF NOT EXISTS promo_code VARCHAR(60),
       ADD COLUMN IF NOT EXISTS applied_promotion JSONB;
   `);

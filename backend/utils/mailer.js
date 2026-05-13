@@ -95,7 +95,7 @@ const sendWelcomeEmail = async (client) => {
   });
 };
 
-const sendReservationStatusEmail = async ({ email, firstName, type, title, status, details, customMessage }) => {
+const sendReservationStatusEmail = async ({ email, firstName, type, title, status, details, customMessage, attachments }) => {
   const statusConfig = {
     confirmed: {
       emoji: 'OK',
@@ -159,6 +159,7 @@ const sendReservationStatusEmail = async ({ email, firstName, type, title, statu
     to: email,
     subject: `Reservation ${cfg.label} - TicTac Voyage`,
     html,
+    attachments,
   });
 };
 
@@ -169,6 +170,7 @@ const sendAgencyReservationEmail = async ({
   title,
   details,
   promotionReminder,
+  attachments,
 }) => {
   const detailRows = buildDetailRows(details);
 
@@ -213,6 +215,7 @@ const sendAgencyReservationEmail = async ({
     to: email,
     subject: `Reservation enregistree - paiement a l'agence`,
     html,
+    attachments,
   });
 };
 

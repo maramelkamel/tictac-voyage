@@ -1,6 +1,7 @@
 const HotelModel = require('../models/hotelModel');
 const HotelReservationModel = require('../models/hotelReservationModel');
 const { sendAgencyReservationEmail, sendReservationStatusEmail } = require('../utils/mailer');
+const generateVoucher = require('../utils/generateVoucher');
 
 const DEFAULT_HOTEL_COVERS = {
   hero: {
@@ -26,6 +27,62 @@ const normalizeHotelHero = (hero = {}) => {
 const toNumber = (value, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const buildTravellerLabel = (adults = 0, children = 0, babies = 0) => {
+  const parts = [`${adults} adulte(s)`];
+  if (children > 0) parts.push(`${children} enfant(s)`);
+  if (babies > 0) parts.push(`${babies} bebe(s)`);
+  return parts.join(', ');
+};
+
+const normalizeRoomAllocations = (reservation = {}, roomsFallback = 1) => {
+  const roomCount = Math.max(toNumber(reservation.rooms, roomsFallback), 1);
+  const rawAllocations = Array.isArray(reservation.room_allocations) ? reservation.room_allocations : [];
+  const normalized = rawAllocations
+    .slice(0, roomCount)
+    .map((room, index) => ({
+      room_number: index + 1,
+      room_type: room?.room_type || reservation.room_type || null,
+      meal_plan: room?.meal_plan || reservation.meal_plan || null,
+      adults: Math.max(toNumber(room?.adults, 0), 0),
+      children: Math.max(toNumber(room?.children, 0), 0),
+      babies: Math.max(toNumber(room?.babies, 0), 0),
+    }))
+    .filter((room) => (
+      room.room_type
+      || room.meal_plan
+      || room.adults > 0
+      || room.children > 0
+      || room.babies > 0
+    ));
+
+  if (normalized.length > 0) {
+    return normalized;
+  }
+
+  return [{
+    room_number: 1,
+    room_type: reservation.room_type || null,
+    meal_plan: reservation.meal_plan || null,
+    adults: Math.max(toNumber(reservation.adults, 0), 0),
+    children: Math.max(toNumber(reservation.children, 0), 0),
+    babies: Math.max(toNumber(reservation.babies, 0), 0),
+  }];
+};
+
+const getVoucherAttachments = async (reservation, logLabel) => {
+  try {
+    const voucherBuffer = await generateVoucher(reservation);
+    return [{
+      filename: `voucher-${reservation.id}.pdf`,
+      content: voucherBuffer,
+      contentType: 'application/pdf',
+    }];
+  } catch (error) {
+    console.error(`${logLabel} voucher generation failed:`, error.message);
+    return undefined;
+  }
 };
 
 const getPublicHotels = async (req, res) => {
@@ -164,6 +221,7 @@ const bookHotel = async (req, res) => {
     }
 
     const requestedRooms = toNumber(reservation.rooms, 1);
+    const normalizedRoomAllocations = normalizeRoomAllocations(reservation, requestedRooms);
     if (selectedHotel.available_rooms < requestedRooms) {
       return res.status(400).json({
         success: false,
@@ -186,6 +244,7 @@ const bookHotel = async (req, res) => {
       check_out: reservation.check_out,
       adults: toNumber(reservation.adults, 2),
       children: toNumber(reservation.children, 0),
+      babies: toNumber(reservation.babies, 0),
       rooms: requestedRooms,
       room_type: reservation.room_type || null,
       meal_plan: reservation.meal_plan || null,
@@ -194,6 +253,7 @@ const bookHotel = async (req, res) => {
       arrival_time: reservation.arrival_time || null,
       airport_transfer: reservation.airport_transfer === true,
       selected_extras: Array.isArray(reservation.selected_extras) ? reservation.selected_extras : [],
+      room_allocations: normalizedRoomAllocations,
       total_price: finalTotal,
       currency: selectedHotel.currency || 'TND',
       promo_code,
@@ -212,6 +272,7 @@ const bookHotel = async (req, res) => {
         selected_meal_plan: reservation.meal_plan || null,
         selected_room_view: reservation.room_view || null,
         selected_extras: Array.isArray(reservation.selected_extras) ? reservation.selected_extras : [],
+        selected_room_allocations: normalizedRoomAllocations,
         applied_promotion: applied_promotion || null,
       },
     });
@@ -224,7 +285,7 @@ const bookHotel = async (req, res) => {
       Ville: saved.hotel_city,
       'Check-in': saved.check_in,
       'Check-out': saved.check_out,
-      Voyageurs: `${saved.adults} adulte(s)${saved.children ? `, ${saved.children} enfant(s)` : ''}`,
+      Voyageurs: buildTravellerLabel(saved.adults, saved.children, saved.babies),
       Chambres: `${saved.rooms}`,
       'Type de chambre': saved.room_type || null,
       Pension: saved.meal_plan || null,
@@ -239,6 +300,7 @@ const bookHotel = async (req, res) => {
     };
 
     if (isOnline) {
+      const attachments = await getVoucherAttachments(saved, 'Hotel booking');
       await sendReservationStatusEmail({
         email: reservation.holder_email,
         firstName: reservation.holder_first_name,
@@ -246,6 +308,7 @@ const bookHotel = async (req, res) => {
         title: selectedHotel.name,
         status: saved.status,
         details: emailDetails,
+        attachments,
       }).catch((error) => console.error('Hotel reservation email failed:', error.message));
     } else {
       await sendAgencyReservationEmail({
@@ -318,6 +381,10 @@ const updateReservationStatus = async (req, res) => {
         : undefined;
 
     const reservation = await HotelReservationModel.updateStatus(req.params.id, status, paymentStatus);
+    const reservationForVoucher = { ...existing, ...reservation };
+    const attachments = status === 'confirmed'
+      ? await getVoucherAttachments(reservationForVoucher, 'Hotel status')
+      : undefined;
 
     await sendReservationStatusEmail({
       email: existing.client_email || existing.holder_email,
@@ -329,9 +396,11 @@ const updateReservationStatus = async (req, res) => {
         Ville: existing.hotel_city,
         'Check-in': existing.check_in,
         'Check-out': existing.check_out,
+        Voyageurs: buildTravellerLabel(existing.adults, existing.children, existing.babies),
         Paiement: reservation.payment_method === 'online' ? 'En ligne' : "A l'agence",
         Total: `${Number(existing.total_price).toLocaleString('fr-FR')} ${existing.currency}`,
       },
+      attachments,
     }).catch((error) => console.error('Hotel status email failed:', error.message));
 
     return res.json({ success: true, reservation });
