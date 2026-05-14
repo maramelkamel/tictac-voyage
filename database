@@ -1257,6 +1257,8 @@ ALTER TABLE public.clients
   ALTER COLUMN password_hash DROP NOT NULL;
 
 
+set PUPPETEER_SKIP_DOWNLOAD=true && npm install passport passport-google-oauth20 express-session
+
 
 
 
