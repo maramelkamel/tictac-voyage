@@ -51,7 +51,7 @@ import HotelPaymentPage from './pages/hotels/HotelPaymentPage';
 import HotelDetailsPage from './pages/hotels/HotelDetailsPage';
 import HotelCatalogAdmin from './pages/admin/hotel/HotelCatalogAdmin';
 import HotelReservationsAdmin from './pages/admin/hotel/HotelReservationsAdmin';
-
+import AuthCallback from './pages/AuthCallback';
 
 
 function App() {
@@ -117,9 +117,7 @@ function App() {
       <Route path="/hotels/payment" element={<HotelPaymentPage />} />
       <Route path="/admin/hotels/catalog" element={<HotelCatalogAdmin />} />
       <Route path="/admin/hotels/reservations" element={<HotelReservationsAdmin />} />
-      
-
-         
+      <Route path="/auth/callback" element={<AuthCallback />} /> 
 
 
 

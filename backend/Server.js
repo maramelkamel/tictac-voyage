@@ -24,7 +24,7 @@ const circuitReservationRoutes = require('./routes/circuitreservationRoutes');
 const promotionsRoutes         = require('./routes/promotionsRoutes');
 const adminAuthRoutes          = require('./routes/adminAuthRoutes');
 const mediaRoutes              = require('./routes/mediaRoutes');
-
+const passport    = require('./config/passport');
 
 
 // ── App ───────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ app.use('/api/admin-auth',           adminAuthRoutes);
 app.use('/api/media',                mediaRoutes);
 app.use('/api/flights', require('./routes/flightRoutes'));
 app.use('/api/hotels', require('./routes/hotelRoutes'));
-
+app.use(passport.initialize()); 
  
 
 
