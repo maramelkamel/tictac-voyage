@@ -1242,3 +1242,26 @@ BEGIN
     FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
   END IF;
 END $$;
+
+
+miniar
+ALTER TABLE clients ALTER COLUMN phone DROP NOT NULL;
+
+ALTER TABLE public.clients
+  ADD COLUMN IF NOT EXISTS google_id      VARCHAR(255) UNIQUE,
+  ADD COLUMN IF NOT EXISTS avatar_url     TEXT,
+  ADD COLUMN IF NOT EXISTS auth_provider  VARCHAR(50) DEFAULT 'local';
+
+-- Rendre password_hash nullable (les users Google n'ont pas de mot de passe)
+ALTER TABLE public.clients
+  ALTER COLUMN password_hash DROP NOT NULL;
+
+  -- .env de google:
+  --GOOGLE_CLIENT_ID=92534161819-k9pokl4otsi0gf7ii4hgtjklpaqaepkc.apps.googleusercontent.com
+--GOOGLE_CLIENT_SECRET=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
+--GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
+
+--JWT_SECRET=tictac@2026
+
+
+
