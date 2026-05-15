@@ -25,7 +25,7 @@ const promotionsRoutes         = require('./routes/promotionsRoutes');
 const adminAuthRoutes          = require('./routes/adminAuthRoutes');
 const mediaRoutes              = require('./routes/mediaRoutes');
 const passport    = require('./config/passport');
-
+const adminStatsRoutes = require('./routes/adminStatsRoutes');
 
 // ── App ───────────────────────────────────────────────────────
 const app = express();
@@ -73,6 +73,7 @@ app.use('/api/media',                mediaRoutes);
 app.use('/api/flights', require('./routes/flightRoutes'));
 app.use('/api/hotels', require('./routes/hotelRoutes'));
 app.use(passport.initialize()); 
+app.use('/api/admin/stats', adminStatsRoutes);
  
 
 

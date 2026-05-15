@@ -1,0 +1,1118 @@
+EXPLICATION PRINCIPALE DU CODE PAGE PAR PAGE - TICTAC VOYAGE
+
+OBJECTIF DU FICHIER
+
+Ce document explique, pour chaque page principale du projet, les parties de code a lire en priorite et ce que chaque partie fait exactement.
+
+Mode de lecture conseille :
+1. regarder la route dans `frontend/src/App.jsx`
+2. ouvrir le fichier de page correspondant
+3. lire dans cet ordre :
+   - imports
+   - hooks d'etat
+   - hooks de chargement (`useEffect`, `useMemo`)
+   - handlers (clic, recherche, submit, navigation)
+   - JSX rendu
+   - appels API relies
+
+
+1. ROUTAGE PRINCIPAL
+
+Fichier central :
+- `frontend/src/App.jsx`
+
+Ce fichier fait exactement :
+- importe toutes les pages principales
+- initialise `BrowserRouter`
+- mappe chaque URL a un composant React
+- separe les modules publics, client et admin
+
+C'est le point de depart pour comprendre :
+- quelle page s'ouvre pour quelle URL
+- quelles pages forment un tunnel complet : liste -> detail -> reservation -> paiement
+
+
+2. STRUCTURE COMMUNE D'UNE PAGE REACT DANS LE PROJET
+
+La plupart des pages suivent cette structure :
+
+1. `imports`
+- import React, hooks et router
+- import des composants partages : `Navbar`, `Footer`, cartes, formulaires, sections promo
+- import des styles CSS
+- import des hooks maison : promotions, favoris, langue
+
+2. `state`
+- stocke les champs de formulaire 
+- stocke les donnees chargees depuis l'API
+- stocke `loading`, `error`, `submitted`, `selected`, `filter`
+
+3. `useEffect`
+- charge les donnees au montage
+- recharge si un filtre ou un id change
+- synchronise certains champs derives
+
+4. `handlers`
+- `handleSearch`
+- `handleChange`
+- `handleSubmit`
+- `handleDetails`
+- `handleReserve`
+- `handleFavoriteToggle`
+- `navigate(...)` pour passer d'une page a l'autre
+
+5. `render JSX`
+- hero / bandeau principal
+- filtres et formulaires
+- cartes listees
+- resume lateral
+- boutons d'action
+
+
+3. PAGES D'AUTHENTIFICATION
+
+3.1 `frontend/src/pages/CreateAccount.jsx`
+Route :
+- `/CreateAccount`
+
+Parties necessaires du code :
+- `formData`
+  stocke tous les champs d'inscription
+- `errors`
+  stocke les erreurs de validation frontend
+- `showPassword` et `showConfirmPassword`
+  pilotent l'affichage/masquage des mots de passe
+- `validate()`
+  verifie les champs obligatoires, format email, taille du mot de passe et confirmation
+- `handleSubmit()`
+  envoie `POST /api/auth/register`
+- `localStorage.setItem('token')` et `localStorage.setItem('client')`
+  conservent la session apres inscription
+- `submitted`
+  affiche la carte de succes apres creation du compte
+
+Ce que la page fait exactement :
+- collecte les informations du client
+- valide localement
+- cree le compte via API
+- connecte automatiquement l'utilisateur cote stockage local
+
+
+3.2 `frontend/src/pages/SignIn.jsx`
+Route :
+- `/SignIn`
+
+Parties necessaires :
+- `formData`
+  email, password, rememberMe
+- `validate()`
+  verification minimale avant appel API
+- `handleSubmit()`
+  envoie `POST /api/auth/login`
+- `serverError`
+  affiche une erreur backend propre
+- `localStorage`
+  stocke `token` et `client`
+- `navigate('/hotels')`
+  redirige vers l'accueil apres connexion
+
+Ce que la page fait exactement :
+- connecte le client
+- cree la session frontend
+- ouvre ensuite le site cote client connecte
+
+
+3.3 `frontend/src/pages/ForgotPassword.jsx`
+Route :
+- `/ForgotPassword`
+
+Parties necessaires :
+- `step`
+  alterne entre l'etape email et l'etape code
+- `handleSendEmail()`
+  appelle `POST /api/auth/forgot-password`
+- `handleVerifyCode()`
+  appelle `POST /api/auth/verify-reset-code`
+- `navigate('/ResetPassword?...')`
+  transfere email + code vers la page suivante
+
+Ce que la page fait exactement :
+- orchestre le debut du flux mot de passe oublie
+
+
+3.4 `frontend/src/pages/ResetPassword.jsx`
+Route :
+- `/ResetPassword`
+
+Parties necessaires :
+- `useSearchParams()`
+  recupere email et code depuis l'URL
+- garde de securite
+  si email/code absent -> redirection vers `/forgot-password`
+- `handleSubmit()`
+  appelle `POST /api/auth/reset-password`
+- `success`
+  pilote le message de succes et la redirection vers connexion
+
+Ce que la page fait exactement :
+- termine la reinitialisation du mot de passe
+
+
+4. PAGES HOTELS
+
+4.1 `frontend/src/pages/hotels/HotelsPage.jsx`
+Routes :
+- `/`
+- `/hotels`
+- `/hotels/results`
+
+Parties necessaires :
+- `usePromotions('categorie', 'hotels')`
+  recupere les promotions liees aux hotels
+- `useFavorites('hotel')`
+  branche l'ajout/retrait des favoris
+- etats principaux :
+  `hotels`, `popularHotels`, `cover`, `loading`, `error`, `search`, `activeCity`, `sortBy`, `featuredOnly`, `visibleCount`
+- `useEffect()` principal
+  charge en parallele :
+  `getHotelsCatalog()`
+  `getPopularHotels(4)`
+  `getHotelPageCover()`
+- `heroPhotos` avec `useMemo`
+  prepare les images du hero dynamique
+- `cityOptions` avec `useMemo`
+  construit les villes disponibles
+- `handleSearch()`
+  applique la recherche et scrolle vers les resultats
+- `handleDetails()`
+  charge un hotel via API puis va vers `/hotels/details/:id`
+- `handleReserve()`
+  envoie vers `/hotels/reserve`
+- `filteredHotels`
+  applique tous les filtres et tris
+
+Ce que la page fait exactement :
+- sert d'accueil et de catalogue hotel
+- centralise recherche, tri, favoris, promotions et CTA vers contact/sur-mesure
+
+
+4.2 `frontend/src/pages/hotels/HotelDetailsPage.jsx`
+Route :
+- `/hotels/details/:id`
+
+Parties necessaires a lire :
+- `useLocation()` et parfois `useParams()`
+  recuperent l'hotel passe depuis la liste ou l'id dans l'URL
+- chargement detail si besoin
+  complete les donnees absentes
+- galerie / sections d'information
+  affichent photos, chambres, equipements, politiques, prix
+- bouton reserver
+  envoie vers `/hotels/reserve` avec les donnees
+
+Ce que la page fait exactement :
+- transforme un hotel du catalogue en fiche detaillee exploitable avant reservation
+
+
+4.3 `frontend/src/pages/hotels/HotelReservationPage.jsx`
+Route :
+- `/hotels/reserve`
+
+Parties necessaires :
+- `useLocation()`
+  recupere `hotel` et la recherche precedente
+- `clientData` depuis `localStorage`
+  pre-remplit les champs du client connecte
+- `form`
+  contient toutes les donnees de reservation hotel
+- `useMemo()` :
+  `nights`
+  `multiplier`
+  `nightPrice`
+  `totalPrix`
+- `handleExtraToggle()`
+  ajoute/retire les extras
+- `handleSubmit()`
+  ne sauvegarde pas encore ; envoie vers `/hotels/payment`
+
+Ce que la page fait exactement :
+- construit la reservation hotel complete
+- calcule le prix estime avant paiement
+
+
+4.4 `frontend/src/pages/hotels/HotelPaymentPage.jsx`
+Route :
+- `/hotels/payment`
+
+Parties necessaires :
+- etats paiement :
+  `method`, `cardForm`, `loading`, `submitted`, `apiError`, `promoCode`, `appliedPromotion`
+- calcul pricing final
+  applique reductions ou codes promo
+- `saveReservation(paymentMethod)`
+  prepare le payload final de reservation hotel
+- branchement backend :
+  `payment_method`
+  statut de paiement
+  reservation finale
+- deux branches UI :
+  paiement en ligne
+  paiement a l'agence
+
+Ce que la page fait exactement :
+- termine le tunnel hotel
+- ecrit la reservation finale cote backend
+
+
+5. PAGES VOLS
+
+5.1 `frontend/src/pages/flight/FlightSearch.jsx`
+Route :
+- `/flights`
+
+Parties necessaires :
+- etats recherche :
+  `tripType`, `origin`, `destination`, `departureDate`, `returnDate`, `adults`, `children`, `cabinClass`, `directOnly`
+- etats contenu dynamique :
+  `bestDeals`, `upcomingFlights`, `promos`
+- `fetchBestDeals()`
+  interroge `POST /api/flights/search` pour alimenter la section meilleures offres
+- `fetchUpcomingFlights()`
+  fait pareil pour les departs proches
+- `handleSwap()`
+  inverse depart et arrivee
+- `handleQuickDestination()`
+  lance une recherche preconfiguee
+- `handleSearch()`
+  valide puis appelle `POST /api/flights/search`
+  redirige vers `/flights/results`
+
+Ce que la page fait exactement :
+- point d'entree du module vols
+- fait la recherche temps reel et expose des offres marketing
+
+
+5.2 `frontend/src/pages/flight/FlightsListPage.jsx`
+Route :
+- `/flights/results`
+
+Parties necessaires :
+- `useLocation()`
+  recupere les offres et les parametres de recherche
+- logique de tri/filtre local
+  reorganise les offres sans refaire l'appel
+- cartes de vol
+  affichent prix, horaires, segments, compagnie
+- `navigate('/flights/details')`
+  ouvre le detail de l'offre choisie
+
+Ce que la page fait exactement :
+- transforme le resultat brut API en liste exploitable par l'utilisateur
+
+
+5.3 `frontend/src/pages/flight/FlightDetailPage.jsx`
+Route :
+- `/flights/details`
+
+Parties necessaires :
+- `useLocation()`
+  recupere l'offre choisie
+- extraction du premier `slice` et des `segments`
+  affiche les details du trajet
+- bouton `navigate('/flights/reserve', { state: { offer } })`
+  lance la reservation
+
+Ce que la page fait exactement :
+- donne la lecture detaillee d'une offre avant saisie passager
+
+
+5.4 `frontend/src/pages/flight/FlightReservation.jsx`
+Route :
+- `/flights/reserve`
+
+Parties necessaires :
+- `clientData`
+  pre-remplit le premier passager
+- `passengers`
+  tableau des voyageurs
+- fonctions utilitaires :
+  `toE164()`
+  `isValidE164()`
+- `validate()`
+  verifie identite, email, telephone, passeport, expiration
+- `updatePassenger()`
+  met a jour un voyageur
+- `handleSubmit()`
+  normalise les donnees puis redirige vers `/flights/payment`
+- popup d'erreur
+  bloque tant que les informations ne sont pas conformes
+
+Ce que la page fait exactement :
+- prepare un dossier passager complet et conforme pour la reservation vol
+
+
+5.5 `frontend/src/pages/flight/FlightPayment.jsx`
+Route :
+- `/flights/payment`
+
+Parties necessaires :
+- `API = /api/flights/book`
+- etats de paiement, carte, promo, succes, erreurs
+- `bookFlight(paymentMethod)`
+  appelle le backend
+- distinction forte :
+  paiement en ligne
+  paiement a l'agence
+- message de succes adapte au mode choisi
+
+Ce que la page fait exactement :
+- finalise la reservation de vol
+- sauvegarde la reservation backend et affiche le resultat
+
+
+5.6 `frontend/src/pages/billeterie/Billeterie.jsx`
+Route :
+- `/billeterie/Billeterie`
+
+Parties necessaires :
+- page historique / legacy du module vols
+- s'appuie sur des composants dedies sous `pages/billeterie/components`
+- utile pour comprendre l'ancienne architecture avant le module `/flights`
+
+Ce que la page fait exactement :
+- conserve une ancienne experience billeterie encore routee
+
+
+6. PAGES OMRA
+
+6.1 `frontend/src/pages/Omra/Omra.jsx`
+Route :
+- `/Omra/Omra`
+
+Parties necessaires :
+- `packages`, `covers`, `loading`, `error`, `activeFilter`
+- `usePromotions('categorie', 'omra')`
+- `useFavorites('omra')`
+- `useEffect()` :
+  charge les forfaits publics
+  charge la couverture hero
+- `handleDetails()`
+- `handleReserve()`
+- `handleFavoriteToggle()`
+- filtrage local des forfaits
+
+Ce que la page fait exactement :
+- affiche le catalogue Omra public
+- relie favoris, promotions et parcours reservation
+
+
+6.2 `frontend/src/pages/Omra/Details.jsx`
+Route :
+- `/Omra/Details/:id`
+
+Parties necessaires :
+- `useLocation()`
+  recupere un forfait deja passe par navigation
+- `useParams()`
+  recupere l'id si recharge directe
+- `setPkg(...)`
+  normalise les donnees du forfait
+- `useEffect()`
+  charge `GET /api/omra/packages/:id`
+- `gallery` avec `useMemo`
+  prepare les photos
+- `handleReserve()`
+  envoie vers la page reservation
+
+Ce que la page fait exactement :
+- sert de fiche detaillee d'un forfait Omra
+
+
+6.3 `frontend/src/pages/Omra/Reserve.jsx`
+Route :
+- `/Omra/Reserve/:id`
+
+Parties necessaires :
+- `pkg` depuis `useLocation()`
+- `form`
+  prenom, nom, telephone, email, chambre, personnes, genre, mahram, passeport, note
+- calcul :
+  `price`
+  `totalPrice`
+- `handleSubmit()`
+  ne sauvegarde pas encore
+  envoie `reservationData` vers `/Omra/OmraPayment/:id`
+
+Ce que la page fait exactement :
+- construit la reservation Omra avant paiement
+
+
+6.4 `frontend/src/pages/Omra/OmraPayment.jsx`
+Route :
+- `/Omra/OmraPayment/:id`
+
+Parties necessaires :
+- `API = /api/omra/reservations`
+- `payload`
+  inclut `payment_method` et `payment_status`
+- `saveReservation(paymentMethod)`
+  cree la reservation en base
+- gestion promo, total final, succes
+- deux interfaces selon mode de paiement
+
+Ce que la page fait exactement :
+- finalise la reservation Omra
+
+
+7. PAGES VOYAGES ORGANISES
+
+7.1 `frontend/src/pages/VoyagesOrganise/VoyagesOrganise.jsx`
+Route :
+- `/VoyagesOrganise/VoyagesOrganise`
+
+Parties necessaires :
+- `voyages`, `search`, `activeFilter`, `sortBy`, `continent`, `saison`, `budget`, `visibleCount`
+- `usePromotions('categorie', 'voyages_internationaux')`
+- `useFavorites('voyage')`
+- `normalize()`
+  transforme les donnees backend pour la UI
+- `useEffect()`
+  charge le catalogue public
+  charge la couverture hero
+- `displayed` avec `useMemo`
+  execute tout le pipeline de filtrage/tri
+- `handleDetails()`
+- `handleReserver()`
+- `handleFavoriteToggle()`
+
+Ce que la page fait exactement :
+- page catalogue la plus riche en filtrage du projet
+
+
+7.2 `frontend/src/pages/VoyagesOrganise/Detail.jsx`
+Route :
+- `/VoyagesOrganise/Detail/:id`
+
+Parties necessaires :
+- lecture du voyage via state ou id
+- affichage programme, inclus, non inclus, destination, duree, disponibilite
+- bouton reserver
+
+Ce que la page fait exactement :
+- transforme un voyage du catalogue en fiche pre-achat
+
+
+7.3 `frontend/src/pages/VoyagesOrganise/Reserver.jsx`
+Route :
+- `/VoyagesOrganise/Reserver/:id`
+
+Parties necessaires :
+- `state.voyage`
+  base de tout le recapitulatif
+- `form`
+  prenom, nom, email, telephone, personnes, chambre, notes
+- `totalPrix`
+  calcul local
+- `handleSubmit()`
+  va vers `/VoyagesOrganise/Payment/:id`
+
+Ce que la page fait exactement :
+- saisit la reservation utilisateur sans encore toucher la base
+
+
+7.4 `frontend/src/pages/VoyagesOrganise/Payment.jsx`
+Route :
+- `/VoyagesOrganise/Payment/:id`
+
+Parties necessaires :
+- `saveReservation(paymentMethod)`
+  envoie `POST /api/voyage-reservations`
+- etats de carte/promo/succes
+- interface a deux modes : online et agence
+
+Ce que la page fait exactement :
+- termine le tunnel voyages organises
+
+
+8. PAGES CIRCUITS
+
+8.1 `frontend/src/pages/circuits/circuit.jsx`
+Route :
+- `/circuits/circuit`
+
+Parties necessaires :
+- catalogue circuits
+- filtres et cartes
+- navigation vers detail et reservation
+
+Ce que la page fait exactement :
+- liste les circuits Tunisie disponibles
+
+
+8.2 `frontend/src/pages/circuits/CircuitDetails.jsx`
+Route :
+- `/circuits/CircuitDetails/:id`
+
+Parties necessaires :
+- lecture par `useParams()` / `useLocation()`
+- chargement detail circuit si besoin
+- rendu du programme, region, depart, duree, difficulte
+- bouton reserver
+
+Ce que la page fait exactement :
+- expose la fiche detail du circuit
+
+
+8.3 `frontend/src/pages/circuits/CircuitReserver.jsx`
+Route :
+- `/circuits/CircuitReserver/:id`
+
+Parties necessaires :
+- `form`
+  prenom, nom, email, telephone, personnes, chambre, notes
+- `clientData`
+  pre-remplissage
+- `totalPrix`
+  prix * participants
+- `handleSubmit()`
+  redirige vers `/circuits/CircuitPayment/:id`
+
+Ce que la page fait exactement :
+- capture la reservation circuit avant paiement
+
+
+8.4 `frontend/src/pages/circuits/CircuitPayment.jsx`
+Route :
+- `/circuits/CircuitPayment/:id`
+
+Parties necessaires :
+- `saveReservation(paymentMethod)`
+  appelle `POST /api/circuit-reservations`
+- etats :
+  `method`, `cardForm`, `promoCode`, `appliedPromotion`, `submitted`
+- messages finaux differents selon mode choisi
+
+Ce que la page fait exactement :
+- finalise la reservation circuit
+
+
+9. PAGES TRANSPORT ET SUR MESURE
+
+9.1 `frontend/src/pages/Transport/Transport.jsx`
+Route :
+- `/transport`
+
+Parties necessaires :
+- `activeTab`
+  choisit entre transfert et mise a disposition
+- `tripType`
+  aller simple / aller-retour
+- `durationType`
+  demi-journee / journee complete / multi-jours
+- `vehicleType`
+  type de vehicule
+- `formData`
+  toutes les informations metier
+- `validateForm()`
+  controle les champs selon le type de service
+- `handleSubmit()`
+  appelle `POST /api/requests`
+- `LocationInput`
+  composant specialise pour les lieux
+
+Ce que la page fait exactement :
+- construit une demande transport metier detaillee pour l'admin
+
+
+9.2 `frontend/src/pages/Transport/LocationInput.jsx`
+Partie support importante :
+- composant de saisie geographique reutilisable
+- encapsule la recherche/adresse
+
+Ce qu'il fait exactement :
+- evite de melanger la logique geographique avec la grosse page Transport
+
+
+9.3 `frontend/src/pages/CustomTripAbroad.jsx`
+Route :
+- `/CustomTripAbroad`
+
+Parties necessaires :
+- `EMPTY`
+  modele initial du formulaire
+- `formData`
+  structure complete de la demande sur mesure
+- `useEffect()` conditionnels
+  nettoient les champs quand une option est desactivee
+- `payload`
+  convertit les noms frontend vers les noms backend
+- `handleSubmit()`
+  appelle `POST /api/custom-trips`
+- `summaryData` avec `useMemo`
+  genere le recapitulatif en direct
+- `getPriceEstimate()`
+  calcule une estimation indicative
+
+Ce que la page fait exactement :
+- produit une demande commerciale riche a destination de l'equipe agence
+
+
+10. PAGE CONTACT
+
+10.1 `frontend/src/pages/Contact.jsx`
+Route :
+- `/Contact`
+
+Parties necessaires :
+- `useTranslation('contact')`
+  rend la page multilingue
+- `form`
+  nom, email, telephone, sujet, message
+- `handleSubmit()`
+  appelle `POST /api/contact`
+- `submitted`
+  remplace le formulaire par un message de succes
+- cartes de contact
+  telephone, email, WhatsApp, adresse
+
+Ce que la page fait exactement :
+- sert a la fois de page relation client et de formulaire CRM
+
+
+11. PAGE COMPTE CLIENT
+
+11.1 `frontend/src/pages/ClientProfile.jsx`
+Route :
+- `/mon-compte`
+
+Parties necessaires :
+- gros bloc d'etats :
+  `client`, `activeTab`, `omraRes`, `voyageRes`, `circuitRes`, `flightRes`, `hotelRes`, `transRes`, `customRes`, `messages`, `favorites`, `promotions`
+- verification session :
+  lecture `localStorage`
+  redirection si token absent
+- `useEffect()` principal
+  charge en parallele toutes les ressources client :
+  reservations, favoris, promotions, messages
+- `editMode` et `editForm`
+  permettent la modification du profil
+- `detailModal`
+  affiche le detail d'une reservation selon son type
+- helpers de fidelite
+  calculent niveau, progression et prochaine reduction
+
+Ce que la page fait exactement :
+- centralise toute la vie du client dans une seule interface
+
+
+12. PAGES ADMIN - CONNEXION ET LAYOUT
+
+12.1 `frontend/src/pages/admin/AdminLogin.jsx`
+Route :
+- `/admin/login`
+
+Parties necessaires :
+- `form`, `loading`, `error`, `showPw`
+- `handleSubmit()`
+  appelle `POST /api/admin-auth/login`
+- `localStorage.setItem('adminToken')`
+- `localStorage.setItem('admin')`
+- redirection vers `/admin`
+
+Ce que la page fait exactement :
+- ouvre la session back-office admin
+
+
+12.2 `frontend/src/pages/admin/layout/AdminLayout.jsx`
+Partie support importante :
+- enveloppe commune du back-office
+- gere titre, breadcrumb, badges, navigation laterale
+
+Ce qu'il fait exactement :
+- evite de re-ecrire la structure admin sur chaque page
+
+
+13. PAGE ADMIN DASHBOARD
+
+13.1 `frontend/src/pages/admin/dashboard/Dashboard.jsx`
+Route :
+- `/admin`
+
+Parties necessaires :
+- `st`
+  grand objet de stats agregees
+- `useEffect()`
+  lance de nombreux `fetch(...)` en parallele
+- calculs :
+  `totalPending`
+  `kpis`
+- composants visuels :
+  `KpiCard`, `ModuleCard`, `Bars3D`, `Pie3D`, `Triangles3D`, `Donuts3D`
+- navigation rapide vers les modules
+
+Ce que la page fait exactement :
+- agrege les indicateurs de tous les modules et oriente le travail admin
+
+
+14. PAGES ADMIN CATALOGUES / PACKAGES
+
+14.1 `frontend/src/pages/admin/Omra/OmraPackages.jsx`
+Route :
+- `/admin/omra/packages`
+
+Parties necessaires :
+- etats liste :
+  `packages`, `loading`, `toast`, `showModal`, `editPkg`, `selected`
+- etats hero/covers :
+  `covers`, `showCovers`
+- formulaire package
+  cree ou modifie un forfait
+- `fetch(API_PKG)` et `fetch(COVERS_API)`
+- `POST`, `PUT`, `DELETE`
+  gerent le CRUD
+
+Ce que la page fait exactement :
+- administre le catalogue Omra et son hero de page publique
+
+
+14.2 `frontend/src/pages/admin/voyages/VoyagePackages.jsx`
+Route :
+- `/admin/voyages/VoyagePackages`
+
+Parties necessaires :
+- liste des voyages
+- modal ou formulaire edition/creation
+- gestion de la couverture hero
+- appels CRUD sur `/api/voyages-organises`
+
+Ce que la page fait exactement :
+- administre le catalogue des voyages organises
+
+
+14.3 `frontend/src/pages/admin/circuits/CircuitPackages.jsx`
+Route :
+- `/admin/circuits/CircuitPackages`
+
+Parties necessaires :
+- meme logique que voyages/omra
+- CRUD circuits
+- hero covers
+
+Ce que la page fait exactement :
+- administre le catalogue circuits
+
+
+14.4 `frontend/src/pages/admin/hotel/HotelCatalogAdmin.jsx`
+Route :
+- `/admin/hotels/catalog`
+
+Parties necessaires :
+- etats volumineux : liste hotels, edition, filtres, hero covers, galerie, equipements
+- `useMemo()` pour hotels filtres
+- verification role admin
+- CRUD complet :
+  create
+  update
+  delete
+- parametres metier hotel :
+  room types, meal plans, extras, room views, disponibilite, policies
+
+Ce que la page fait exactement :
+- c'est l'ecran admin le plus riche du module hotels
+- il pilote ce que la page publique hotels affichera
+
+
+15. PAGES ADMIN RESERVATIONS
+
+15.1 `frontend/src/pages/admin/Omra/OmraReservations.jsx`
+Route :
+- `/admin/omra/reservations`
+
+Parties necessaires :
+- `reservations`, `loading`, `toast`, `selectedRes`, `filterStatus`, `filterPayment`, `search`
+- `fetchReservations()`
+  charge la liste
+- `PATCH /status`
+  met a jour le statut
+- panneau detail
+  ouvre les informations reservation
+
+Ce que la page fait exactement :
+- suit, filtre et valide les reservations Omra
+
+
+15.2 `frontend/src/pages/admin/voyages/VoyageReservations.jsx`
+Route :
+- `/admin/voyages/VoyageReservations`
+
+Parties necessaires :
+- meme structure qu'OmraReservations
+- adaptee aux reservations voyages organises
+
+Ce que la page fait exactement :
+- suit les reservations voyages et leur cycle de vie
+
+
+15.3 `frontend/src/pages/admin/circuits/CircuitReservations.jsx`
+Route :
+- `/admin/circuits/CircuitReservations`
+
+Parties necessaires :
+- meme pattern :
+  liste
+  filtres
+  detail
+  update statut
+
+Ce que la page fait exactement :
+- gere les reservations circuit
+
+
+15.4 `frontend/src/pages/admin/flight/FlightReservations.jsx`
+Route :
+- `/admin/flights/reservations`
+
+Parties necessaires :
+- `adminToken`
+  necessaire car route protegee
+- `fetchReservations()`
+  appelle `/api/flights/reservations`
+- filtres par statut/paiement/recherche
+- `PATCH /reservations/:id/status`
+
+Ce que la page fait exactement :
+- gere les reservations vols et leurs statuts admin
+
+
+15.5 `frontend/src/pages/admin/hotel/HotelReservationsAdmin.jsx`
+Route :
+- `/admin/hotels/reservations`
+
+Parties necessaires :
+- meme logique de table reservations
+- charge les reservations hotel
+- met a jour les statuts
+- ouvre les details de sejour
+
+Ce que la page fait exactement :
+- gere l'apres-vente hotel
+
+
+16. PAGES ADMIN TRANSPORT, SUR MESURE, CONTACT
+
+16.1 `frontend/src/pages/admin/transport/TransportAdmin.jsx`
+Route :
+- `/admin/transport`
+
+Parties necessaires :
+- orchestre les sous-composants :
+  `TransportForm`
+  `TransportTable`
+- charge le catalogue vehicules
+- cree, modifie et supprime les transports
+
+Ce que la page fait exactement :
+- gere le catalogue vehicule/transport de l'agence
+
+
+16.2 `frontend/src/pages/admin/transport/TransportForm.jsx`
+Partie support :
+- formulaire create/edit vehicule
+
+Ce qu'il fait exactement :
+- encapsule la saisie vehicule sans gonfler `TransportAdmin`
+
+
+16.3 `frontend/src/pages/admin/transport/TransportTable.jsx`
+Partie support :
+- tableau des vehicules
+- actions edit/delete
+
+
+16.4 `frontend/src/pages/admin/transport/RequestsAdmin.jsx`
+Route :
+- `/admin/transport/requests`
+
+Parties necessaires :
+- charge les demandes `GET /api/requests`
+- filtres par statut et recherche
+- update statut via `PATCH /api/requests/:id/status`
+- detail demande
+
+Ce que la page fait exactement :
+- gere les demandes transport des clients
+
+
+16.5 `frontend/src/pages/admin/surMesure/SurMesureAdmin.jsx`
+Route :
+- `/admin/sur-mesure`
+
+Parties necessaires :
+- charge les demandes `/api/custom-trips`
+- met a jour le statut
+- ajoute devis et message admin via endpoint `quote`
+
+Ce que la page fait exactement :
+- transforme une demande sur mesure en reponse commerciale
+
+
+16.6 `frontend/src/pages/admin/contact/ContactAdmin.jsx`
+Route :
+- `/admin/contact`
+
+Parties necessaires :
+- `messages`, `stats`, `loading`, `filter`, `sujetFilter`, `search`, `selected`, `noteEdit`, `saving`, `delConfirm`
+- `fetchAll()`
+  charge messages + stats en parallele
+- `PATCH /api/contact/:id/status`
+  change statut et notes
+- `DELETE /api/contact/:id`
+  suppression
+
+Ce que la page fait exactement :
+- gere la boite de reception du formulaire contact
+
+
+17. PAGES ADMIN PROMOTIONS, CLIENTS, ADMINS, PRIX VOLS
+
+17.1 `frontend/src/pages/admin/promotions/PromotionsAdmin.jsx`
+Route :
+- `/admin/promotions`
+
+Parties necessaires :
+- `promos`, `form`, `editId`, `loading`, `toast`, `blasting`
+- `fetchAll()`
+  charge toutes les promotions
+- `POST` / `PUT`
+  creation et modification
+- `PATCH /toggle`
+  active ou desactive
+- `POST /send-blast`
+  lance une diffusion email
+- `DELETE`
+  suppression
+
+Ce que la page fait exactement :
+- gere les promotions commerciales du site
+
+
+17.2 `frontend/src/pages/admin/clients/ClientsAdmin.jsx`
+Route :
+- `/admin/clients/ClientsAdmin`
+
+Parties necessaires :
+- chargement liste clients
+- edition profil client
+- suppression selon droits
+
+Ce que la page fait exactement :
+- fournit la vue CRM des clients
+
+
+17.3 `frontend/src/pages/admin/admins/AdminsAdmin.jsx`
+Route :
+- `/admin/admins`
+
+Parties necessaires :
+- `getToken()`
+  lit `adminToken`
+- `admins`, `loading`, `toast`, `showModal`, `editAdmin`
+- `fetchAdmins()`
+  appelle `/api/admin-auth/admins`
+- `POST`, `PUT`, `DELETE`
+  gerent les comptes admin
+
+Ce que la page fait exactement :
+- permet au main admin de gerer les administrateurs
+
+
+17.4 `frontend/src/pages/admin/flight/FlightPricingAdmin.jsx`
+Route :
+- `/admin/flights/pricing`
+
+Parties necessaires :
+- `selectedRoute`, `offers`, `overrides`, `editOffer`
+- `fetchOffers()`
+  relance une recherche vols admin
+- `fetchOverrides()`
+  charge les surcharges existantes
+- `POST /price-override`
+- `DELETE /price-override/:offerId`
+
+Ce que la page fait exactement :
+- permet de surcharger le prix public de certaines offres vols
+
+
+18. COMPOSANTS DE SUPPORT IMPORTANTS
+
+Promotions :
+- `frontend/src/pages/admin/promotions/PromotionsSection.jsx`
+  affiche une promotion dans les pages publiques et admin
+
+Favoris :
+- `frontend/src/hooks/useFavorites.js`
+  connecte les coeurs au backend
+
+Promotions hook :
+- `frontend/src/hooks/usePromotions.js`
+  recupere les promotions par categorie
+
+API centralisee :
+- `frontend/src/services/api.js`
+  contient plusieurs appels utilitaires cote frontend
+
+Navbar / Footer :
+- `frontend/src/components/Navbar.jsx`
+- `frontend/src/components/Footer.jsx`
+  sont presents sur presque toutes les pages publiques
+
+
+19. LECTURE RAPIDE PAR TYPE DE PAGE
+
+Pour une page catalogue :
+- lire `useEffect()` de chargement
+- lire `useMemo()` de filtrage
+- lire `handleDetails()` et `handleReserve()`
+
+Pour une page detail :
+- lire `useLocation()` / `useParams()`
+- lire le bloc de chargement API
+- lire le bouton reserver
+
+Pour une page reservation :
+- lire `form`
+- lire `handleChange()`
+- lire le calcul total
+- lire `handleSubmit()`
+
+Pour une page paiement :
+- lire `saveReservation()` ou `bookFlight()`
+- lire le payload final
+- lire la distinction `online` / `agency`
+
+Pour une page admin :
+- lire `fetch...()`
+- lire les etats de filtres
+- lire les endpoints `PATCH`, `PUT`, `DELETE`
+- lire la logique de modale/detail
+
+
+20. RESUME FINAL
+
+Si vous voulez comprendre "ce que chaque partie du code fait exactement", retenez cette logique globale :
+
+- `App.jsx` decide quelle page s'ouvre
+- les pages catalogue chargent les donnees et filtrent
+- les pages detail affichent une offre choisie
+- les pages reservation collectent les informations utilisateur
+- les pages paiement envoient la reservation finale au backend
+- `ClientProfile.jsx` rassemble toutes les donnees du client
+- les pages admin font du CRUD, du suivi et du changement de statut
+
+Le coeur du projet est donc :
+- navigation React Router
+- gestion d'etat avec `useState`
+- chargement donnees avec `useEffect`
+- optimisation de listes avec `useMemo`
+- communication backend avec `fetch(...)`
+- transmission d'etat entre pages avec `navigate(..., { state })`
