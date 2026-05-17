@@ -156,6 +156,7 @@ router.get('/', async (req, res) => {
     console.error('[AdminStats FATAL]', err);
     res.status(500).json({ success: false, message: err.message });
   }
+  
 });
 
 module.exports = router;

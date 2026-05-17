@@ -742,3 +742,623 @@
   .dash-grid { grid-template-columns: 1fr; }
   .rq-layout { grid-template-columns: 1fr; }
 }
+/* ================================================================
+   DASHBOARD — ADDITIONS (coller à la fin de adminLayout.css)
+   ================================================================ */
+
+/* ── Skeleton shimmer ── */
+.dash-sk {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  display: block;
+}
+
+/* ── Bouton actualiser bannière ── */
+.dash-refresh-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 16px; border-radius: 10px;
+  background: rgba(255,255,255,.15);
+  border: 1.5px solid rgba(255,255,255,.25);
+  color: #fff; font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  transition: background .2s, transform .2s;
+}
+.dash-refresh-btn:hover { background: rgba(255,255,255,.25); transform: translateY(-1px); }
+
+/* ── Erreur inline ── */
+.dash-error {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-radius: 10px;
+  background: #fef2f2; border: 1px solid #fecaca;
+  color: #dc2626; font-size: 13px;
+}
+.dash-error span { flex: 1; }
+.dash-error button {
+  background: #dc2626; color: #fff; border: none;
+  border-radius: 7px; padding: 5px 12px; cursor: pointer;
+  font-size: 12px; font-weight: 600; font-family: inherit;
+}
+
+/* ================================================================
+   STAT CARDS — grille 4×2
+   ================================================================ */
+.dash-sc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.dash-sc {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 18px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border: 1px solid var(--g200);
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  position: relative;
+  overflow: hidden;
+  transition: transform .22s var(--ease), box-shadow .22s var(--ease);
+}
+.dash-sc::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 14px 14px 0 0;
+}
+.dash-sc:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(15,76,92,.11); }
+
+/* accent bar colors */
+.dash-sc--blue::before   { background: #3b82f6; }
+.dash-sc--teal::before   { background: var(--secondary); }
+.dash-sc--green::before  { background: #10b981; }
+.dash-sc--orange::before { background: #f97316; }
+.dash-sc--violet::before { background: #8b5cf6; }
+.dash-sc--red::before    { background: var(--accent); }
+
+/* icon circle */
+.dash-sc__icon {
+  width: 42px; height: 42px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.dash-sc__icon svg { width: 19px; height: 19px; }
+
+.dash-sc--blue   .dash-sc__icon { background: #eff6ff; }
+.dash-sc--blue   .dash-sc__icon svg { stroke: #2563eb; }
+.dash-sc--teal   .dash-sc__icon { background: #e0fbfc; }
+.dash-sc--teal   .dash-sc__icon svg { stroke: #0e7490; }
+.dash-sc--green  .dash-sc__icon { background: #dcfce7; }
+.dash-sc--green  .dash-sc__icon svg { stroke: #16a34a; }
+.dash-sc--orange .dash-sc__icon { background: #fff7ed; }
+.dash-sc--orange .dash-sc__icon svg { stroke: #ea580c; }
+.dash-sc--violet .dash-sc__icon { background: #f5f3ff; }
+.dash-sc--violet .dash-sc__icon svg { stroke: #7c3aed; }
+.dash-sc--red    .dash-sc__icon { background: #fef2f2; }
+.dash-sc--red    .dash-sc__icon svg { stroke: #dc2626; }
+
+.dash-sc__body  { flex: 1; min-width: 0; }
+.dash-sc__label {
+  display: block;
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--g400); margin-bottom: 5px;
+}
+.dash-sc__value {
+  display: block;
+  font-size: 24px; font-weight: 800;
+  color: var(--g900); line-height: 1; margin-bottom: 4px;
+}
+.dash-sc__sub {
+  display: block;
+  font-size: 11px; color: var(--g400); font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* badge flottant en haut à droite */
+.dash-sc__badge {
+  position: absolute; top: 10px; right: 12px;
+  background: var(--accent); color: #fff;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 999px;
+  line-height: 1.5;
+}
+
+/* ================================================================
+   SÉPARATEUR MODULES
+   ================================================================ */
+.dash-divider {
+  display: flex; align-items: center; gap: 14px;
+  color: var(--g400); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+}
+.dash-divider::before,
+.dash-divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--g200), transparent);
+}
+
+/* ================================================================
+   MODULE CARDS — grille 3 colonnes, design riche
+   ================================================================ */
+.dash-mod-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.dash-mod {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--g200);
+  box-shadow: 0 1px 4px rgba(15,76,92,.05);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform .22s var(--ease), box-shadow .22s var(--ease);
+}
+.dash-mod:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(15,76,92,.11); }
+
+/* barre colorée à gauche */
+.dash-mod--teal   { border-left: 3px solid #0e7490; }
+.dash-mod--indigo { border-left: 3px solid #6366f1; }
+.dash-mod--green  { border-left: 3px solid #10b981; }
+.dash-mod--violet { border-left: 3px solid #8b5cf6; }
+.dash-mod--blue   { border-left: 3px solid #3b82f6; }
+.dash-mod--orange { border-left: 3px solid #f97316; }
+.dash-mod--red    { border-left: 3px solid var(--accent); }
+.dash-mod--gray   { border-left: 3px solid var(--g400); }
+
+/* ── Header module ── */
+.dash-mod__head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--g100);
+}
+
+.dash-mod__icon-wrap { position: relative; flex-shrink: 0; }
+.dash-mod__icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.dash-mod__icon svg { width: 17px; height: 17px; }
+
+.dash-mod--teal   .dash-mod__icon { background: #e0fbfc; color: #0e7490; stroke: #0e7490; }
+.dash-mod--teal   .dash-mod__icon svg { stroke: #0e7490; }
+.dash-mod--indigo .dash-mod__icon { background: #ede9fe; }
+.dash-mod--indigo .dash-mod__icon svg { stroke: #5b21b6; }
+.dash-mod--green  .dash-mod__icon { background: #dcfce7; }
+.dash-mod--green  .dash-mod__icon svg { stroke: #16a34a; }
+.dash-mod--violet .dash-mod__icon { background: #f5f3ff; }
+.dash-mod--violet .dash-mod__icon svg { stroke: #7c3aed; }
+.dash-mod--blue   .dash-mod__icon { background: #eff6ff; }
+.dash-mod--blue   .dash-mod__icon svg { stroke: #2563eb; }
+.dash-mod--orange .dash-mod__icon { background: #fff7ed; }
+.dash-mod--orange .dash-mod__icon svg { stroke: #ea580c; }
+.dash-mod--red    .dash-mod__icon { background: #fef2f2; }
+.dash-mod--red    .dash-mod__icon svg { stroke: #dc2626; }
+.dash-mod--gray   .dash-mod__icon { background: var(--g100); }
+.dash-mod--gray   .dash-mod__icon svg { stroke: var(--g500); }
+
+/* puce de statut */
+.dash-mod__dot {
+  position: absolute; bottom: 1px; right: 1px;
+  width: 9px; height: 9px; border-radius: 50%;
+  border: 2px solid #fff;
+}
+.dash-mod__dot--active  { background: #10b981; }
+.dash-mod__dot--pending { background: #f97316; }
+.dash-mod__dot--warn    { background: var(--accent); }
+
+.dash-mod__info  { flex: 1; min-width: 0; }
+.dash-mod__title { font-size: 13px; font-weight: 700; color: var(--g800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-mod__desc  { font-size: 10px; color: var(--g400); margin-top: 2px; }
+
+/* badge pending rouge */
+.dash-mod__pending {
+  background: var(--accent); color: #fff;
+  font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 999px;
+  flex-shrink: 0; animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(233,47,100,.4); }
+  50%      { box-shadow: 0 0 0 5px rgba(233,47,100,.0); }
+}
+
+/* ── KV stats ── */
+.dash-mod__kv {
+  display: flex;
+  border-bottom: 1px solid var(--g100);
+  background: var(--g50);
+}
+.dash-mod__kv-item {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8px 6px;
+  border-right: 1px solid var(--g100);
+}
+.dash-mod__kv-item:last-child { border-right: none; }
+.dash-mod__kv-val {
+  font-size: 18px; font-weight: 800;
+  color: var(--g900); line-height: 1;
+}
+.dash-mod__kv-lbl {
+  font-size: 9px; font-weight: 600;
+  color: var(--g400); text-transform: uppercase;
+  letter-spacing: .05em; margin-top: 3px;
+}
+
+/* ── Links ── */
+.dash-mod__links { padding: 6px 8px 8px; display: flex; flex-direction: column; gap: 2px; }
+
+.dash-mod__link {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 7px 9px; border-radius: 8px;
+  border: none; background: transparent;
+  cursor: pointer; font-family: inherit;
+  font-size: 12px; font-weight: 500; color: var(--g600);
+  transition: background .15s, color .15s; text-align: left;
+}
+.dash-mod__link:hover { background: var(--g50); color: var(--primary); }
+
+.dash-mod__link-label {
+  display: flex; align-items: center; gap: 6px; pointer-events: none;
+}
+.dash-mod__link-arrow {
+  width: 12px; height: 12px; flex-shrink: 0;
+  opacity: .45; transition: opacity .15s, transform .15s;
+}
+.dash-mod__link:hover .dash-mod__link-arrow { opacity: 1; transform: translateX(3px); }
+
+.dash-mod__link-count {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 999px;
+  background: var(--g100); color: var(--g500);
+  flex-shrink: 0; pointer-events: none;
+}
+.dash-mod__link-count--badge { background: var(--accent); color: #fff; }
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media (max-width: 1280px) {
+  .dash-sc-grid  { grid-template-columns: repeat(4, 1fr); }
+  .dash-mod-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1100px) {
+  .dash-sc-grid  { grid-template-columns: repeat(2, 1fr); }
+  .dash-mod-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .dash-sc-grid  { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .dash-mod-grid { grid-template-columns: 1fr; }
+}
+/* ================================================================
+   DASHBOARD STATS SECTION — coller à la fin de adminLayout.css
+   ================================================================ */
+
+/* ── Shimmer keyframe (si pas déjà présent) ── */
+@keyframes shimmer { to { background-position: -200% 0 } }
+
+/* ── Header section stats ── */
+.dstat-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 4px;
+}
+.dstat-updated { font-size: 11px; color: var(--g400); margin-top: 3px; }
+.dstat-err {
+  font-size: 12px; color: #dc2626; background: #fef2f2;
+  padding: 4px 10px; border-radius: 8px; border: 1px solid #fecaca;
+}
+.dstat-refresh {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 9px;
+  background: var(--g50); border: 1px solid var(--g200);
+  font-size: 12px; font-weight: 600; color: var(--g600);
+  cursor: pointer; font-family: inherit; transition: background .15s;
+}
+.dstat-refresh:hover { background: var(--g100); }
+
+/* ================================================================
+   CERCLES DE PROGRESSION (4 rings)
+   ================================================================ */
+.dstat-rings {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.dash-ring {
+  background: #fff;
+  border: 1px solid var(--g200);
+  border-radius: 16px;
+  padding: 24px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(15,76,92,.06);
+  transition: transform .22s var(--ease), box-shadow .22s var(--ease);
+  position: relative;
+}
+.dash-ring:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(15,76,92,.12); }
+
+/* SVG ring wrapper */
+.dash-ring > svg { display: block; }
+
+/* Valeur au centre du cercle (position absolue sur le svg) */
+.dash-ring__center {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px; height: 110px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  pointer-events: none;
+  gap: 2px;
+}
+.dash-ring__icon { display: flex; line-height: 1; }
+.dash-ring__val  { font-size: 20px; font-weight: 800; color: var(--g900); line-height: 1; }
+.dash-ring__sk   {
+  width: 50px; height: 22px; border-radius: 6px;
+  background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
+}
+
+/* Labels sous le cercle */
+.dash-ring__labels { text-align: center; width: 100%; }
+.dash-ring__label  { font-size: 12px; font-weight: 700; color: var(--g700); margin: 0 0 3px; }
+.dash-ring__sub    { font-size: 11px; color: var(--g400); margin: 0; }
+.dash-ring__sk--sm {
+  display: block; width: 90px; height: 12px; border-radius: 4px; margin: 0 auto;
+  background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
+}
+
+/* ================================================================
+   LIGNE DÉTAIL — 4 panneaux en grille
+   ================================================================ */
+.dstat-detail {
+  display: grid;
+  grid-template-columns: 1fr 220px 1fr 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.dstat-panel {
+  background: #fff;
+  border: 1px solid var(--g200);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 1px 4px rgba(15,76,92,.05);
+  display: flex; flex-direction: column; gap: 12px;
+  transition: box-shadow .2s;
+}
+.dstat-panel:hover { box-shadow: 0 4px 14px rgba(15,76,92,.09); }
+.dstat-panel--center { align-items: center; }
+
+.dstat-panel__title {
+  font-size: 11px; font-weight: 700; color: var(--g500);
+  text-transform: uppercase; letter-spacing: .07em;
+  display: flex; align-items: center; gap: 6px;
+  margin: 0;
+}
+.dstat-panel__title svg { flex-shrink: 0; }
+
+/* Barres horizontales */
+.dstat-panel__bars { display: flex; flex-direction: column; gap: 10px; }
+
+.dash-bar {}
+.dash-bar__top {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 5px;
+}
+.dash-bar__label { font-size: 12px; color: var(--g600); font-weight: 500; }
+.dash-bar__val   { font-size: 12px; font-weight: 800; }
+.dash-bar__sk {
+  width: 30px; height: 12px; border-radius: 4px;
+  background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
+}
+.dash-bar__track {
+  height: 7px; background: var(--g100); border-radius: 999px; overflow: hidden;
+}
+.dash-bar__fill {
+  height: 100%; border-radius: 999px;
+  transition: width .9s cubic-bezier(.4,0,.2,1);
+}
+
+/* Donut + taux */
+.dstat-donut-wrap {
+  display: flex; align-items: center; gap: 14px; width: 100%;
+}
+.dstat-donut-sk {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
+  flex-shrink: 0;
+}
+.dstat-rate { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.dstat-rate__val { font-size: 30px; font-weight: 800; color: var(--g900); line-height: 1; }
+.dstat-rate__lbl { font-size: 11px; color: var(--g400); font-weight: 500; }
+.dstat-rate__sk  {
+  width: 60px; height: 32px; border-radius: 6px;
+  background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
+}
+
+/* Légende donut */
+.dstat-legend { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.dstat-legend__item {
+  display: flex; align-items: center; gap: 7px; font-size: 11px;
+}
+.dstat-legend__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dstat-legend__lbl { color: var(--g500); flex: 1; }
+.dstat-legend__val { font-weight: 700; color: var(--g800); }
+
+/* KV grid messages */
+.dstat-kv-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.dstat-kv-item {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px; padding: 10px 10px 8px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  transition: border-color .2s;
+}
+.dstat-kv-item:hover { border-color: var(--secondary); }
+.dstat-kv-icon { font-size: 16px; line-height: 1; }
+.dstat-kv-val  { font-size: 20px; font-weight: 800; line-height: 1; }
+.dstat-kv-lbl  { font-size: 10px; color: var(--g400); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.dstat-kv-sk   {
+  width: 40px; height: 20px; border-radius: 5px;
+  background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
+}
+
+/* ================================================================
+   SÉPARATEUR modules
+   ================================================================ */
+.dash-divider-line {
+  display: flex; align-items: center; gap: 16px;
+  color: var(--g400); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+}
+.dash-divider-line::before,
+.dash-divider-line::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--g200), transparent);
+}
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media (max-width: 1280px) {
+  .dstat-rings  { grid-template-columns: repeat(4, 1fr); }
+  .dstat-detail { grid-template-columns: 1fr 1fr; }
+  .dstat-panel--center { grid-column: span 2; flex-direction: row; align-items: flex-start; gap: 24px; }
+  .dstat-panel--center .dstat-donut-wrap { flex-direction: column; align-items: center; }
+  .dstat-panel--center .dstat-legend { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+}
+@media (max-width: 1024px) {
+  .dstat-rings  { grid-template-columns: repeat(2, 1fr); }
+  .dstat-detail { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .dstat-rings  { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .dstat-detail { grid-template-columns: 1fr; }
+  .dstat-panel--center { grid-column: 1; }
+  .dstat-kv-grid { grid-template-columns: repeat(2, 1fr); }
+}
+/* ================================================================
+   ADDITIONS À COLLER À LA FIN DE adminLayout.css
+   Concerne : titres de section, grille stats pleine largeur,
+              séparateur "Modules de gestion"
+   ================================================================ */
+
+/* ── Titre de section — clair, contrasté, avec icône ── */
+.dash-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--g900);          /* ← texte sombre, lisible */
+  letter-spacing: -.01em;
+  margin: 0 0 2px;
+}
+.dash-section-title svg {
+  stroke: var(--primary);
+  flex-shrink: 0;
+}
+
+/* ── Grille détail pleine largeur (3 colonnes égales) ── */
+.dstat-detail--full {
+  grid-template-columns: repeat(3, 1fr);  /* remplace le 4 colonnes déséquilibré */
+  gap: 18px;
+}
+
+/* ── Séparateur "Modules de gestion" redesigné ── */
+.dash-divider-line {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 4px 0;
+}
+.dash-divider-line::before,
+.dash-divider-line::after {
+  content: '';
+  flex: 1;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--g300), transparent);
+}
+
+.dash-divider-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;           /* plus grand que l'ancien 10px */
+  font-weight: 700;
+  color: var(--g700);        /* sombre, lisible — pas gris clair */
+  text-transform: none;      /* pas de majuscules agressives */
+  letter-spacing: .01em;
+  background: #fff;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--g200);
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  white-space: nowrap;
+}
+.dash-divider-label svg {
+  stroke: var(--primary);
+  flex-shrink: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .dstat-detail--full { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .dstat-detail--full { grid-template-columns: 1fr; }
+  .dash-section-title { font-size: 14px; }
+}
+/* ── Badge "Actualisé à" ── */
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .5; transform: scale(.7); }
+}
+
+.dstat-updated-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px 5px 8px;
+  background: var(--g50);
+  border: 1px solid var(--g200);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--g500);
+  margin-top: 5px;
+  width: fit-content;
+}
+.dstat-updated-pill__dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  flex-shrink: 0;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+.dstat-updated-pill__icon {
+  width: 13px; height: 13px;
+  stroke: var(--g400);
+  flex-shrink: 0;
+}
+.dstat-updated-pill__time {
+  font-weight: 700;
+  color: var(--g800);
+}
