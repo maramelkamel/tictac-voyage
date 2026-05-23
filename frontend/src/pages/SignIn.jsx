@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import Chatbot from '../components/Chatbot';
 import '../styles/signin.css';
 
 const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth`;
@@ -259,7 +258,7 @@ const SignIn = () => {
           </div>
         </div>
       </main>
-      <Chatbot />
+     
       <Footer />
     </>
   );
