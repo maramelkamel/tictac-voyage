@@ -2,7 +2,7 @@
 const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 
-// Create a new client
+// This model helper creates a local email/password client record.
 const createClient = async ({ firstName, lastName, email, phone, password, maritalStatus, numberOfChildren, city }) => {
   const password_hash = await bcrypt.hash(password, 12);
   const result = await pool.query(
@@ -18,7 +18,7 @@ const createClient = async ({ firstName, lastName, email, phone, password, marit
   return result.rows[0];
 };
 
-// Find client by email
+// This model helper finds a client by email.
 const findByEmail = async (email) => {
   const result = await pool.query(
     `SELECT * FROM clients WHERE email = $1`,
@@ -27,7 +27,7 @@ const findByEmail = async (email) => {
   return result.rows[0] || null;
 };
 
-// Find client by id
+// This model helper finds a client by id with safe profile fields.
 const findById = async (id) => {
   const result = await pool.query(
     `SELECT id, first_name, last_name, email, phone, marital_status, number_of_children, city, created_at
@@ -38,16 +38,16 @@ const findById = async (id) => {
 };
 
 const SAFE_FIELDS = 'id, first_name, last_name, email, phone, city, avatar_url, auth_provider, created_at';
-// Trouve ou crée un client via Google OAuth
+// This model helper links or creates a client account during Google OAuth login.
 const upsertGoogleClient = async ({ google_id, email, first_name, last_name, avatar_url }) => {
-  // 1. Chercher par google_id
+  // This step reuses an existing Google-linked account when it already exists.
   const byGoogle = await pool.query(
     `SELECT ${SAFE_FIELDS} FROM public.clients WHERE google_id = $1 LIMIT 1`,
     [google_id]
   );
   if (byGoogle.rows[0]) return byGoogle.rows[0];
 
-  // 2. Chercher par email (compte local existant → lier le compte Google)
+  // This step links Google auth to an existing local account that uses the same email.
   const byEmail = await pool.query(
     `SELECT ${SAFE_FIELDS} FROM public.clients WHERE LOWER(email) = LOWER($1) LIMIT 1`,
     [email]
@@ -63,7 +63,7 @@ const upsertGoogleClient = async ({ google_id, email, first_name, last_name, ava
     return rows[0];
   }
 
-  // 3. Créer un nouveau client Google
+  // This step creates a brand-new client record for a first-time Google user.
   const { rows } = await pool.query(
     `INSERT INTO public.clients
        (first_name, last_name, email, google_id, avatar_url, auth_provider)
@@ -79,4 +79,4 @@ const upsertGoogleClient = async ({ google_id, email, first_name, last_name, ava
     
 
 
-module.exports = { createClient, findByEmail, findById,upsertGoogleClient };
+module.exports = { createClient, findByEmail, findById, upsertGoogleClient };

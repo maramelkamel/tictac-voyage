@@ -43,6 +43,11 @@ const toCount = (value, fallback = 0) => {
   return Number.isFinite(parsed) ? Math.max(parsed, 0) : fallback;
 };
 
+const getValidRoomCount = (value, fallback = 1) => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+};
+
 const splitCountAcrossRooms = (total, roomCount) => {
   const safeTotal = Math.max(toCount(total, 0), 0);
   const safeRoomCount = Math.max(toCount(roomCount, 1), 1);
@@ -184,7 +189,7 @@ const HotelReservationPage = () => {
   const totalPrix = nightPrice * Number(form.rooms || 1) * nights;
   const image = hotel?.image_url || hotel?.gallery?.find(Boolean) || DEFAULT_IMAGE;
   const allocationTotals = useMemo(() => sumRoomAllocations(form.room_allocations), [form.room_allocations]);
-  const expectedRoomCount = Math.max(toCount(form.rooms, 1), 1);
+  const expectedRoomCount = getValidRoomCount(form.rooms, form.room_allocations.length || 1);
   const roomSplitMatches = (
     form.room_allocations.length === expectedRoomCount
     && allocationTotals.adults === toCount(form.adults, 0)
@@ -194,7 +199,11 @@ const HotelReservationPage = () => {
 
   useEffect(() => {
     setForm((current) => {
-      const roomCount = Math.max(toCount(current.rooms, 1), 1);
+      if (current.rooms === '') {
+        return current;
+      }
+
+      const roomCount = getValidRoomCount(current.rooms, current.room_allocations.length || 1);
       const currentAllocations = Array.isArray(current.room_allocations) ? current.room_allocations : [];
       const nextAllocations = Array.from({ length: roomCount }, (_, index) => {
         const existing = currentAllocations[index];
@@ -273,6 +282,11 @@ const HotelReservationPage = () => {
       return;
     }
 
+    if (name === 'rooms') {
+      setForm((current) => ({ ...current, rooms: value === '' ? '' : value }));
+      return;
+    }
+
     setForm((current) => ({ ...current, [name]: type === 'checkbox' ? checked : value }));
   };
 
@@ -298,6 +312,11 @@ const HotelReservationPage = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (getValidRoomCount(form.rooms, 0) < 1) {
+      setSplitError('Le nombre de chambres doit etre superieur ou egal a 1.');
+      return;
+    }
+
     if (!roomSplitMatches) {
       setSplitError('La repartition des chambres doit correspondre exactement au total adultes, enfants et bebes.');
       return;

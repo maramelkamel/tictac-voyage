@@ -4,16 +4,20 @@ const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 const { sendWelcomeEmail, sendPasswordResetEmail } = require('../utils/mailer');
 
+// This secret signs client JWT tokens for email/password authentication.
 const JWT_SECRET = process.env.JWT_SECRET || 'tictacvoyage_secret';
 
+// This helper creates the standard client token payload returned by auth endpoints.
 const signClientToken = (client) =>
   jwt.sign({ id: client.id, email: client.email }, JWT_SECRET, { expiresIn: '7d' });
 
+// This helper removes sensitive fields before client data is returned to the frontend.
 const sanitizeClient = (client) => {
   const { password_hash, reset_token, reset_token_expires, ...safe } = client;
   return safe;
 };
 
+// This controller creates a new client account and returns a ready-to-use session token.
 exports.register = async (req, res) => {
   try {
     const first_name = req.body.first_name || req.body.firstName || '';
@@ -56,6 +60,7 @@ exports.register = async (req, res) => {
   }
 };
 
+// This controller validates the client credentials and returns the authenticated session.
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -82,6 +87,7 @@ exports.login = async (req, res) => {
   }
 };
 
+// This controller returns the authenticated client profile for session restoration.
 exports.getMe = async (req, res) => {
   try {
     const result = await pool.query(
@@ -101,6 +107,7 @@ exports.getMe = async (req, res) => {
   }
 };
 
+// This controller generates and emails a short-lived password reset code.
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -139,6 +146,7 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
+// This controller checks whether the password reset code is still valid.
 exports.verifyResetCode = async (req, res) => {
   try {
     const { email, code } = req.body;
@@ -163,6 +171,7 @@ exports.verifyResetCode = async (req, res) => {
   }
 };
 
+// This controller replaces the password after the email and reset code are verified.
 exports.resetPassword = async (req, res) => {
   try {
     const { email, code, password } = req.body;

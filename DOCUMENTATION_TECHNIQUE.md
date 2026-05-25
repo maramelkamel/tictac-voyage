@@ -285,3 +285,123 @@ npm run dev
 - Le backend expose les images uploadees via `/uploads`
 - Le frontend et le backend utilisent des variables d'environnement pour les secrets et les cles API
 - Les formulaires de reservation clients et les outils admin reposent sur la meme API backend
+
+## Flux hotel et voucher
+
+### Reservation hotel cote frontend
+
+Le formulaire hotel principal est dans :
+
+- [HotelReservationPage.jsx](/C:/Users/laptop/Desktop/tictac-voyage/frontend/src/pages/hotels/HotelReservationPage.jsx)
+
+Le flux actuel suit ces etapes :
+
+- pre-remplissage du titulaire depuis `localStorage`
+- choix des dates, voyageurs, nombre de chambres et preferences
+- construction d une repartition par chambre dans `room_allocations`
+- verification que la somme des chambres correspond bien aux totaux globaux
+- passage vers la page de paiement avec le recapitulatif
+
+Point technique important :
+
+- le champ `rooms` peut maintenant etre vide temporairement pendant la saisie, puis etre revalide proprement avant soumission
+
+### Paiement hotel cote frontend
+
+La page de paiement hotel est :
+
+- [HotelPaymentPage.jsx](/C:/Users/laptop/Desktop/tictac-voyage/frontend/src/pages/hotels/HotelPaymentPage.jsx)
+
+Elle :
+
+- recalcule le total affiche
+- applique un code promo si present
+- envoie la reservation au backend via `createHotelBooking`
+- gere les cas de session expiree cote client
+
+### Reservation hotel cote backend
+
+Le point d entree backend est :
+
+- [hotelController.js](/C:/Users/laptop/Desktop/tictac-voyage/backend/controllers/hotelController.js)
+
+La creation d une reservation hotel fait maintenant les verifications suivantes avant insertion :
+
+- hotel cible existant
+- titulaire complet
+- nombre de chambres valide et superieur ou egal a 1
+- dates `check_in` et `check_out` coherentes
+- correspondance exacte entre les totaux voyageurs et `room_allocations`
+- disponibilite des chambres restantes
+
+Les donnees sont ensuite persistees dans :
+
+- [hotelReservationModel.js](/C:/Users/laptop/Desktop/tictac-voyage/backend/models/hotelReservationModel.js)
+
+### Generation du voucher PDF
+
+Le voucher hotel est genere par :
+
+- [generateVoucher.js](/C:/Users/laptop/Desktop/tictac-voyage/backend/utils/generateVoucher.js)
+
+Le fichier :
+
+- construit un HTML de voucher
+- injecte les donnees hotel, dates, beneficiaire et repartition des chambres
+- genere un PDF A4 avec Puppeteer
+
+Le controller hotel encapsule cette etape dans un helper d attachement email afin que l envoi continue meme si la generation PDF echoue.
+
+### Envoi des emails hotel
+
+La logique email partagee est dans :
+
+- [mailer.js](/C:/Users/laptop/Desktop/tictac-voyage/backend/utils/mailer.js)
+
+Comportement actuel :
+
+- paiement en ligne : reservation confirmee, email de statut envoye avec voucher PDF en piece jointe
+- paiement a l agence : reservation enregistree, email d attente envoye sans voucher
+- confirmation admin ulterieure : email de statut envoye, avec voucher lors du passage a `confirmed`
+
+## Flux auth frontend et backend
+
+### Frontend auth
+
+Les ecrans principaux sont :
+
+- [SignIn.jsx](/C:/Users/laptop/Desktop/tictac-voyage/frontend/src/pages/SignIn.jsx)
+- [CreateAccount.jsx](/C:/Users/laptop/Desktop/tictac-voyage/frontend/src/pages/CreateAccount.jsx)
+- [ForgotPassword.jsx](/C:/Users/laptop/Desktop/tictac-voyage/frontend/src/pages/ForgotPassword.jsx)
+- [ResetPassword.jsx](/C:/Users/laptop/Desktop/tictac-voyage/frontend/src/pages/ResetPassword.jsx)
+- [AuthCallback.jsx](/C:/Users/laptop/Desktop/tictac-voyage/frontend/src/pages/AuthCallback.jsx)
+- [ClientProfile.jsx](/C:/Users/laptop/Desktop/tictac-voyage/frontend/src/pages/ClientProfile.jsx)
+
+Points techniques importants :
+
+- les pages auth frontend utilisent maintenant `VITE_API_URL` avec fallback local
+- le callback Google stocke `token` et `client` dans `localStorage`
+- la page de reset redirige proprement si `email` ou `code` manquent dans l URL
+- le profil client recharge les reservations et promotions avec le token client stocke
+
+### Backend auth
+
+Les fichiers auth backend principaux sont :
+
+- [authController.js](/C:/Users/laptop/Desktop/tictac-voyage/backend/controllers/authController.js)
+- [authModel.js](/C:/Users/laptop/Desktop/tictac-voyage/backend/models/authModel.js)
+- [passport.js](/C:/Users/laptop/Desktop/tictac-voyage/backend/config/passport.js)
+- [authRoutes.js](/C:/Users/laptop/Desktop/tictac-voyage/backend/routes/authRoutes.js)
+
+Le backend gere :
+
+- inscription client avec hash `bcryptjs`
+- connexion client avec JWT
+- recuperation du profil connecte
+- oubli de mot de passe avec code a 6 chiffres
+- reinitialisation du mot de passe avec expiration
+- connexion Google OAuth avec creation ou liaison du compte client
+
+Point de fiabilite ajoute :
+
+- la route Google callback utilise maintenant la meme valeur de secours JWT que le reste du backend si `JWT_SECRET` n est pas defini

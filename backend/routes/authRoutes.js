@@ -3,11 +3,13 @@ const router     = express.Router();
 const jwt        = require('jsonwebtoken');
 const controller = require('../controllers/authController');
 const passport = require('../config/passport');
+
+// These values centralize redirects and token signing for the auth routes.
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
-const JWT_SECRET   = process.env.JWT_SECRET;
+const JWT_SECRET   = process.env.JWT_SECRET || 'tictacvoyage_secret';
 const JWT_EXPIRES  = process.env.JWT_EXPIRES_IN || '7d';
 
-// ── JWT Middleware ────────────────────────────────────────────────
+// This middleware protects client routes that require a valid JWT session.
 const authMiddleware = (req, res, next) => {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer '))
@@ -22,16 +24,17 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-// ── Routes ────────────────────────────────────────────────────────
+// These routes handle the classic email/password authentication flow.
 router.post('/register',           controller.register);
 router.post('/login',              controller.login);
 router.get ('/me',                 authMiddleware, controller.getMe);
 
-// Password reset (code-based flow)
+// These routes handle the code-based password recovery flow.
 router.post('/forgot-password',    controller.forgotPassword);
 router.post('/verify-reset-code',  controller.verifyResetCode);
 router.post('/reset-password',     controller.resetPassword);
 
+// These routes start and complete the Google OAuth authentication flow.
 router.get('/google',
   passport.authenticate('google', { scope: ['profile', 'email'], session: false })
 );

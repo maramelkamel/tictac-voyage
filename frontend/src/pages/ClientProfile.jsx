@@ -5,15 +5,18 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { getFavoritePath } from '../utils/favorites';
 
-const API = 'http://localhost:5000/api';
+// This base URL keeps the profile and reservation requests aligned with the frontend environment.
+const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // ── Loyalty helpers ───────────────────────────────────────────────
+// This helper maps the total number of reservations to the loyalty badge UI.
 const getLoyaltyInfo = (total) => {
   if (total === 0)  return { level:0, label:'Nouveau client',  color:'#64748b', bg:'#f1f5f9', icon:'🌱', next:1,  nextLabel:'1 réservation pour Niveau 1' };
   if (total === 1)  return { level:1, label:'Niveau 1 ⭐',     color:'#0e7490', bg:'#e0fbfc', icon:'⭐', next:2,  nextLabel:'1 réservation pour Niveau 2' };
   if (total <= 3)   return { level:2, label:'Niveau 2 ⭐⭐',   color:'#c2410c', bg:'#fff7ed', icon:'⭐⭐', next:4, nextLabel:`${4 - total} réservation(s) pour Niveau 3` };
   return                   { level:3, label:'Niveau 3 ⭐⭐⭐', color:'#7c3aed', bg:'#f5f3ff', icon:'⭐⭐⭐', next:null, nextLabel:'Niveau maximum atteint ! 🎉' };
 };
+// This helper calculates the next automatic discount milestone for the client.
 const getNextDiscount = (total) => {
   if (total < 5)  return { at:5,  pct:10, remaining:5  - total };
   if (total < 10) return { at:10, pct:20, remaining:10 - total };
@@ -21,6 +24,7 @@ const getNextDiscount = (total) => {
   return { at:next, pct:5, remaining:next - total };
 };
 
+// This helper maps reservation totals to the profile's loyalty level card.
 const getClientLevelInfo = (total) => {
   if (total < 3) {
     return { level:0, label:'Niveau 0', color:'#64748b', bg:'#f1f5f9', icon:'🌱', min:0, next:3, nextLabel:`${3 - total} réservation(s) pour Niveau 1` };
@@ -34,6 +38,7 @@ const getClientLevelInfo = (total) => {
   return { level:3, label:'Niveau 3 ⭐⭐⭐', color:'#7c3aed', bg:'#f5f3ff', icon:'⭐⭐⭐', min:10, next:null, nextLabel:'Niveau maximum atteint ! 🎉' };
 };
 
+// This helper hides promotions that are disabled or outside their valid date range.
 const isPromotionActive = (promotion) => {
   if (!promotion?.is_active) return false;
   const today = new Date();
@@ -45,6 +50,7 @@ const isPromotionActive = (promotion) => {
   return true;
 };
 
+// This helper turns backend promotion categories into readable labels for the UI.
 const formatPromotionCategory = (category) => ({
   omra: 'Omra',
   hotels: 'Hotels',
@@ -59,6 +65,7 @@ const fDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
 const fDT   = (d) => d ? new Date(d).toLocaleString('fr-FR')     : '—';
 
 // ── Helpers ───────────────────────────────────────────────────────
+// This badge renders a consistent visual state for reservations and contact messages.
 const StatusBadge = ({ status }) => {
   const map = {
     pending:   { label:'En attente', bg:'#fff7ed', color:'#c2410c' },
@@ -74,6 +81,7 @@ const StatusBadge = ({ status }) => {
   return <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'3px 10px', borderRadius:999, fontSize:11, fontWeight:600, background:m.bg, color:m.color, whiteSpace:'nowrap' }}>{m.label}</span>;
 };
 
+// This tab button is reused across the profile sections.
 const Tab = ({ id, label, icon, active, onClick, count }) => (
   <button onClick={() => onClick(id)}
     style={{ display:'flex', alignItems:'center', gap:8, padding:'12px 20px', border:'none', fontFamily:'inherit', borderRadius:'10px 10px 0 0', background:active?'#fff':'transparent', color:active?'#0F4C5C':'#64748b', fontWeight:active?700:500, fontSize:14, cursor:'pointer', borderBottom:active?'2px solid #0F4C5C':'2px solid transparent', marginBottom:-2, transition:'all .2s' }}>
@@ -85,6 +93,7 @@ const Tab = ({ id, label, icon, active, onClick, count }) => (
   </button>
 );
 
+// This section header standardizes titles for grouped reservation cards.
 const SectionHead = ({ emoji, label, count, color, bg }) => (
   <h3 style={{ fontSize:13, fontWeight:700, color, textTransform:'uppercase', letterSpacing:'.08em', marginBottom:12, display:'flex', alignItems:'center', gap:8 }}>
     {emoji} {label}
@@ -95,10 +104,12 @@ const SectionHead = ({ emoji, label, count, color, bg }) => (
 // ══════════════════════════════════════════════════════════════════
 //  RESERVATION DETAIL MODAL
 // ══════════════════════════════════════════════════════════════════
+// This modal shows the detailed content for one reservation entry.
 const ReservationDetailModal = ({ reservation, type, onClose }) => {
   if (!reservation) return null;
   const r = reservation;
 
+  // This local section wrapper keeps the modal layout consistent.
   const Section = ({ title, children }) => (
     <div style={{ marginBottom:20 }}>
       <p style={{ fontSize:10, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:10, borderBottom:'1px solid #f1f5f9', marginBottom:12 }}>{title}</p>
@@ -106,6 +117,7 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
     </div>
   );
 
+  // This local row helper displays label/value pairs inside the modal.
   const Row = ({ label, value, accent }) => value ? (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:8, background:'#f8fafc', marginBottom:6 }}>
       <span style={{ fontSize:12, color:'#64748b', fontWeight:500 }}>{label}</span>
@@ -114,6 +126,7 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
   ) : null;
 
   // ── Type-specific content ─────────────────────────────────────
+  // This renderer switches the modal body to the correct reservation type.
   const renderContent = () => {
     if (type === 'omra') return (
       <>
@@ -407,6 +420,7 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
 };
 
 // ── Clickable reservation card ────────────────────────────────────
+// This card wrapper is reused across the reservation grids in the profile.
 const ResCard = ({ children, right, onClick }) => (
   <div onClick={onClick}
     style={{ background:'#fff', borderRadius:12, border:'1px solid #e2e8f0', padding:'18px 22px', marginBottom:10, display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap', cursor:'pointer', transition:'all .2s', boxShadow:'0 1px 4px rgba(0,0,0,.04)' }}
@@ -423,6 +437,7 @@ const ResCard = ({ children, right, onClick }) => (
 // ═══════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════
+// This page loads the authenticated client dashboard, reservations, favorites, and promotions.
 const ClientProfile = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -451,8 +466,10 @@ const ClientProfile = () => {
   const [detailModal, setDetailModal] = useState(null); // { reservation, type }
 
   const token = localStorage.getItem('token');
+  // This helper shows short success or error messages in the profile view.
   const notify = (msg, type='success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
 
+  // This effect restores the stored client session and triggers the initial data load.
   useEffect(() => {
     const stored = localStorage.getItem('client');
     if (!stored || !token) { navigate('/SignIn'); return; }
@@ -469,6 +486,7 @@ const ClientProfile = () => {
     fetchAll(c.email);
   }, []);
 
+  // This loader gathers all profile-related data sources with the current client token.
   const fetchAll = async (email) => {
     setLoading(true);
     try {
@@ -500,11 +518,14 @@ const ClientProfile = () => {
     finally { setLoading(false); }
   };
 
+  // This handler keeps the active profile tab synchronized with the URL query string.
   const handleTabChange = (tab) => { setActiveTab(tab); setSearchParams({ tab }); };
+  // This handler opens the saved favorite in its original detail page.
   const handleFavoriteOpen = (favorite) => {
     const path = favorite.item_data?.detailPath || getFavoritePath(favorite.item_type, favorite.item_id);
     if (path) navigate(path);
   };
+  // This helper copies a promotion code so the client can reuse it quickly.
   const handleCopyPromo = async (code) => {
     if (!code) return;
     try {
@@ -515,6 +536,7 @@ const ClientProfile = () => {
     }
   };
 
+  // This handler persists profile edits to the backend and refreshes local session data.
   const handleSaveProfile = async () => {
     setSaving(true);
     try {

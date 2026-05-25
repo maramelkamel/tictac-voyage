@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API = 'http://localhost:5000/api/auth';
+// This base URL keeps the password recovery flow aligned with the frontend environment.
+const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth`;
 
+// This page sends the reset code and verifies it before the new password step.
 const ForgotPassword = () => {
   const navigate          = useNavigate();
   const [email,   setEmail]   = useState('');
@@ -11,7 +13,7 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
 
-  // ── Step 1: send code ─────────────────────────────────────────
+  // This handler requests the reset code for the provided email address.
   const handleSendEmail = async (e) => {
     e.preventDefault();
     setError('');
@@ -34,7 +36,7 @@ const ForgotPassword = () => {
     setLoading(false);
   };
 
-  // ── Step 2: verify code ───────────────────────────────────────
+  // This handler validates the 6-digit code before opening the reset page.
   const handleVerifyCode = async (e) => {
     e.preventDefault();
     setError('');
@@ -58,6 +60,7 @@ const ForgotPassword = () => {
     setLoading(false);
   };
 
+  // These shared styles keep both recovery steps visually consistent.
   const inputStyle = {
     padding: '13px 16px', borderRadius: 10, border: '1.5px solid #e2e8f0',
     fontSize: 14, fontFamily: 'inherit', outline: 'none', width: '100%',
