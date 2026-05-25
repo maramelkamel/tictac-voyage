@@ -5,7 +5,6 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import OmraCard from '../../components/OmraCard';
 import OmraSearchBar from '../../components/OmraSearchBar';
-import Chatbot from '../../components/Chatbot';
 import { statsData } from '../../data/OmraData';
 import '../../styles/omrastyle.css';
 import { usePromotions }  from '../../hooks/usePromotions';

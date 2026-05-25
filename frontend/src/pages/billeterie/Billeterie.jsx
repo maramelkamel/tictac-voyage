@@ -1,7 +1,6 @@
 // Import des composants globaux comme demandé
 import Navbar from '../../components/Navbar.jsx'
 import Footer from '../../components/Footer.jsx'
-import Chatbot from '../../components/Chatbot.jsx'
 
 // Import des hooks React
 import { useState, useMemo } from 'react'
