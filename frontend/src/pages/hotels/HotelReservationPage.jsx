@@ -87,6 +87,42 @@ const sumRoomAllocations = (roomAllocations = []) => roomAllocations.reduce((acc
   babies: acc.babies + toCount(room?.babies, 0),
 }), { adults: 0, children: 0, babies: 0 });
 
+const roomAllocationTotalsMatch = (roomAllocations = [], { adults = 0, children = 0, babies = 0 } = {}) => {
+  const totals = sumRoomAllocations(roomAllocations);
+  return (
+    totals.adults === toCount(adults, 0)
+    && totals.children === toCount(children, 0)
+    && totals.babies === toCount(babies, 0)
+  );
+};
+
+const rebalanceRoomAllocations = ({
+  existingAllocations = [],
+  rooms,
+  roomType,
+  mealPlan,
+  adults,
+  children,
+  babies,
+}) => {
+  const roomCount = Math.max(getValidRoomCount(rooms, 1), 1);
+  const adultsSplit = splitCountAcrossRooms(adults, roomCount);
+  const childrenSplit = splitCountAcrossRooms(children, roomCount);
+  const babiesSplit = splitCountAcrossRooms(babies, roomCount);
+
+  return Array.from({ length: roomCount }, (_, index) => {
+    const existing = existingAllocations[index];
+    return createRoomAllocation({
+      roomNumber: index + 1,
+      roomType: existing?.room_type || roomType,
+      mealPlan: existing?.meal_plan || mealPlan,
+      adults: adultsSplit[index],
+      children: childrenSplit[index],
+      babies: babiesSplit[index],
+    });
+  });
+};
+
 const FormSection = ({ icon, title, description, children }) => (
   <div style={{ marginBottom: 32 }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6, paddingBottom: 14, borderBottom: '2px solid var(--gray-100)' }}>
@@ -205,6 +241,31 @@ const HotelReservationPage = () => {
 
       const roomCount = getValidRoomCount(current.rooms, current.room_allocations.length || 1);
       const currentAllocations = Array.isArray(current.room_allocations) ? current.room_allocations : [];
+      const shouldRedistribute = roomAllocationTotalsMatch(currentAllocations, current);
+
+      if (shouldRedistribute) {
+        const redistributedAllocations = rebalanceRoomAllocations({
+          existingAllocations: currentAllocations,
+          rooms: roomCount,
+          roomType: current.room_type || defaultRoomType,
+          mealPlan: current.meal_plan || defaultMealPlan,
+          adults: current.adults,
+          children: current.children,
+          babies: current.babies,
+        });
+        const nextRooms = String(roomCount);
+
+        if (JSON.stringify(currentAllocations) === JSON.stringify(redistributedAllocations) && current.rooms === nextRooms) {
+          return current;
+        }
+
+        return {
+          ...current,
+          rooms: nextRooms,
+          room_allocations: redistributedAllocations,
+        };
+      }
+
       const nextAllocations = Array.from({ length: roomCount }, (_, index) => {
         const existing = currentAllocations[index];
         if (existing) {
@@ -272,13 +333,27 @@ const HotelReservationPage = () => {
     }
 
     if (name === 'adults' || name === 'children' || name === 'babies') {
-      setForm((current) => ({
-        ...current,
-        [name]: value,
-        room_allocations: toCount(current.rooms, 1) === 1
-          ? current.room_allocations.map((room, index) => (index === 0 ? { ...room, [name]: value } : room))
-          : current.room_allocations,
-      }));
+      setForm((current) => {
+        const nextForm = { ...current, [name]: value };
+        const shouldRedistribute = roomAllocationTotalsMatch(current.room_allocations, current);
+
+        return {
+          ...nextForm,
+          room_allocations: shouldRedistribute
+            ? rebalanceRoomAllocations({
+              existingAllocations: current.room_allocations,
+              rooms: current.rooms,
+              roomType: current.room_type || defaultRoomType,
+              mealPlan: current.meal_plan || defaultMealPlan,
+              adults: name === 'adults' ? value : current.adults,
+              children: name === 'children' ? value : current.children,
+              babies: name === 'babies' ? value : current.babies,
+            })
+            : toCount(current.rooms, 1) === 1
+              ? current.room_allocations.map((room, index) => (index === 0 ? { ...room, [name]: value } : room))
+              : current.room_allocations,
+        };
+      });
       return;
     }
 
@@ -506,9 +581,14 @@ const HotelReservationPage = () => {
 
                   <FormSection icon="fas fa-th-list" title="Repartition des chambres" description="Chaque ligne alimente le voucher PDF, avec un detail par chambre.">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 14px', background: '#f8fafc', border: '1px solid var(--gray-200)', borderRadius: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray-700)' }}>
-                        Totaux saisis: {allocationTotals.adults} adulte(s), {allocationTotals.children} enfant(s), {allocationTotals.babies} bebe(s)
-                      </span>
+                      <div style={{ display: 'grid', gap: 4 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray-700)' }}>
+                          Totaux demandes: {toCount(form.adults, 0)} adulte(s), {toCount(form.children, 0)} enfant(s), {toCount(form.babies, 0)} bebe(s)
+                        </span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: roomSplitMatches ? '#047857' : '#b45309' }}>
+                          Totaux repartis: {allocationTotals.adults} adulte(s), {allocationTotals.children} enfant(s), {allocationTotals.babies} bebe(s)
+                        </span>
+                      </div>
                       <span style={{ fontSize: 12, fontWeight: 700, color: roomSplitMatches ? '#047857' : '#b91c1c' }}>
                         {roomSplitMatches ? 'Repartition conforme' : 'Ajustez la repartition pour correspondre aux totaux'}
                       </span>
