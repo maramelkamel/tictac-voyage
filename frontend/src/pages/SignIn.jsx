@@ -238,6 +238,8 @@ const SignIn = () => {
   <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
 </div>
 
+
+
 {/* Bouton Google */}
 <button
   type="button"

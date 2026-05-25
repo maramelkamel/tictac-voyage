@@ -70,7 +70,6 @@ const NAV_BASE = [
         icon: 'billets',
         sub: [
           { label: 'Reservations de vols', path: '/admin/flights/reservations', badgeKey: 'flightsPending' },
-          { label: 'Gestion des prix', path: '/admin/flights/pricing', badgeKey: null },
         ],
       },
       {

@@ -77,8 +77,8 @@ const FlightSearch = () => {
   // ── Dynamic content state ──────────────────────────────────
   const [bestDeals,       setBestDeals]       = useState([]);
   const [dealsLoading,    setDealsLoading]    = useState(false);
-  const [upcomingFlights, setUpcomingFlights] = useState([]);
-  const [upcomingLoading, setUpcomingLoading] = useState(false);
+  const upcomingFlights = [];
+  const upcomingLoading = false;
   const { promos } = usePromotions('categorie', 'vols');
 
   const totalPassengers = adults + children;
@@ -86,7 +86,6 @@ const FlightSearch = () => {
   // ── Fetch best deals on mount ──────────────────────────────
   useEffect(() => {
     fetchBestDeals();
-    fetchUpcomingFlights();
   }, []);
 
   const fetchBestDeals = async () => {
@@ -110,27 +109,6 @@ const FlightSearch = () => {
       }
     } catch { /* silent fail */ }
     finally { setDealsLoading(false); }
-  };
-
-  const fetchUpcomingFlights = async () => {
-    setUpcomingLoading(true);
-    try {
-      const d = new Date();
-      d.setDate(d.getDate() + 7);
-      const departure_date = d.toISOString().split('T')[0];
-      const res = await fetch(`${API_BASE}/flights/search`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          slices: [{ origin: 'TUN', destination: 'IST', departure_date }],
-          passengers: [{ type: 'adult' }], cabin_class: 'economy',
-        }),
-      });
-      const json = await res.json();
-      if (json.success && json.offers?.length) {
-        setUpcomingFlights(json.offers.slice(0, 3));
-      }
-    } catch { /* silent fail */ }
-    finally { setUpcomingLoading(false); }
   };
 
   // ── Swap origin / destination ──────────────────────────────
@@ -439,7 +417,7 @@ const FlightSearch = () => {
         </section>
 
         {/* 3 — Upcoming/next departures ─────────────────────── */}
-        <section style={{ marginBottom: 64 }}>
+        {false && (<section style={{ marginBottom: 64 }}>
           <SectionTitle icon="fa-clock" badge="Prochains départs" title="📍 Vols les plus proches"
             subtitle="Départs dans les 7 prochains jours depuis Tunis · Réservez maintenant" />
           {upcomingLoading ? (
@@ -460,7 +438,7 @@ const FlightSearch = () => {
               <p style={{ color: '#94a3b8', fontSize: 14, margin: 0 }}>Aucun vol imminent disponible.</p>
             </div>
           )}
-        </section>
+        </section>)}
 
         {/* 4 — Why book with us ─────────────────────────────── */}
         <section>
