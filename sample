@@ -300,3 +300,22 @@ ADD COLUMN babies INTEGER DEFAULT 0;
 
 ALTER TABLE hotel_reservations
 ADD COLUMN room_allocations JSONB NOT NULL DEFAULT '[]';
+
+
+
+
+miniar
+ALTER TABLE clients ALTER COLUMN phone DROP NOT NULL;
+
+ALTER TABLE public.clients
+  ADD COLUMN IF NOT EXISTS google_id      VARCHAR(255) UNIQUE,
+  ADD COLUMN IF NOT EXISTS avatar_url     TEXT,
+  ADD COLUMN IF NOT EXISTS auth_provider  VARCHAR(50) DEFAULT 'local';
+
+-- Rendre password_hash nullable (les users Google n'ont pas de mot de passe)
+ALTER TABLE public.clients
+  ALTER COLUMN password_hash DROP NOT NULL;
+
+
+set PUPPETEER_SKIP_DOWNLOAD=true && npm install passport passport-google-oauth20 express-session
+HH
