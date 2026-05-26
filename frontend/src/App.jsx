@@ -11,7 +11,7 @@ import Detail from './pages/VoyagesOrganise/Detail';
 import Reserver from './pages/VoyagesOrganise/Reserver';
 import Contact from './pages/Contact';
 import OmraPayment from './pages/Omra/OmraPayment';
-import Billeterie from './pages/billeterie/Billeterie';
+
 import Payment from './pages/VoyagesOrganise/Payment';
 import CustomTripAbroad from './pages/CustomTripAbroad';
 import TransportAdmin from './pages/admin/transport/TransportAdmin';
@@ -71,7 +71,7 @@ function App() {
         <Route path="/VoyagesOrganise/Detail/:id" element={<Detail />} />
         <Route path="/VoyagesOrganise/Reserver/:id" element={<Reserver />} />
          <Route path="/Contact" element={<Contact/>} />
-         <Route path="/billeterie/Billeterie" element={<Billeterie/>} />
+         
          <Route path="/VoyagesOrganise/Payment/:id" element={<Payment />} />
          <Route path="/CustomTripAbroad" element={<CustomTripAbroad/>} />
        

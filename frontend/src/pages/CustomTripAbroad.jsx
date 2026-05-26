@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import Chatbot from '../components/Chatbot';
 import '../styles/CustomTripAbroad.css';
 import { usePromotions }  from '../hooks/usePromotions';
 import PromotionsSection  from './admin/promotions/PromotionsSection';

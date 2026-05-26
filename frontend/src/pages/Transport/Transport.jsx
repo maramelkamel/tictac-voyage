@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import Chatbot from '../../components/Chatbot';
 import '../../styles/Transport.css';
 import { usePromotions } from '../../hooks/usePromotions';
 import PromotionsSection from '../admin/promotions/PromotionsSection';
