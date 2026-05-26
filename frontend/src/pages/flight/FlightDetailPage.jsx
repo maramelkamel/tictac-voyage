@@ -1,47 +1,90 @@
+// src/pages/flights/FlightDetails.jsx
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import '../../styles/omrastyle.css';
+import '../../styles/FlightsPage.css'; // tous les styles dans FlightsPage.css
 
+// ─────────────────────────────────────────────────────────────────
+//  FONCTIONS DE FORMATAGE
+//  Définies hors composant — pas d'état React, réutilisables.
+// ─────────────────────────────────────────────────────────────────
+
+// Formate une date ISO en date+heure lisible en français
+// Ex: "2026-06-04T10:30:00Z" → "mer. 04 juin, 10:30"
 const fmt = (isoStr) => {
-  if (!isoStr) return '---';
+  if (!isoStr) return '---'; // évite d'afficher "Invalid Date"
   return new Date(isoStr).toLocaleString('fr-FR', {
-    weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+    weekday: 'short',  // "mer."
+    day:     '2-digit',
+    month:   'short',  // "juin"
+    hour:    '2-digit',
+    minute:  '2-digit',
   });
 };
 
+// Formate une date ISO en date longue
+// Ex: "2026-06-04T10:30:00Z" → "04 juin 2026"
 const fmtDate = (isoStr) => {
   if (!isoStr) return '---';
-  return new Date(isoStr).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  return new Date(isoStr).toLocaleDateString('fr-FR', {
+    day:   '2-digit',
+    month: 'long',    // nom complet du mois
+    year:  'numeric',
+  });
 };
 
-// Convert ISO 8601 duration PT2H35M → "2h 35min"
+// Convertit une durée ISO 8601 en texte lisible
+// Ex: "PT2H35M" → "2h 35min"
+// Ex: "PT45M"   → "45min"
+// Ex: "PT3H"    → "3h"
 const fmtDuration = (dur) => {
   if (!dur) return '---';
+
+  // .match(/(\d+)H/) cherche un ou plusieurs chiffres suivis de H
+  // ?.[1] = groupe de capture (le nombre seul, sans le H)
+  // ex: "PT2H35M".match(/(\d+)H/) → ["2H", "2"] → ?.[1] = "2"
   const h = dur.match(/(\d+)H/)?.[1];
   const m = dur.match(/(\d+)M/)?.[1];
-  return [h ? `${h}h` : '', m ? `${m}min` : ''].filter(Boolean).join(' ') || dur;
+
+  // filter(Boolean) supprime les chaînes vides ('') du tableau
+  // join(' ') assemble avec un espace → "2h 35min"
+  return [h ? `${h}h` : '', m ? `${m}min` : '']
+    .filter(Boolean)
+    .join(' ')
+    || dur; // fallback : affiche la valeur brute si le format ne correspond pas
 };
 
+// ─────────────────────────────────────────────────────────────────
+//  COMPOSANT FlightDetails
+//  Page de détail d'une offre de vol.
+//  Affiche : slices (trajets), segments (vols), correspondances,
+//  conditions tarifaires, bagages, et sidebar avec prix + CTA.
+// ─────────────────────────────────────────────────────────────────
 const FlightDetails = () => {
-  const navigate     = useNavigate();
-  const { state }    = useLocation();
+  const navigate  = useNavigate();
+  const { state } = useLocation(); // lit les données passées par navigate(..., { state })
 
+  // offer et searchParams passés depuis FlightListPage ou FlightSearch
   const offer        = state?.offer;
   const searchParams = state?.searchParams || {};
 
+  // ── Guard clause : accès direct à l'URL sans offer ──────────────
+  // Affiche une page d'erreur propre plutôt qu'un crash React
   if (!offer) {
     return (
       <>
         <Navbar />
-        <div style={{ paddingTop: 160, textAlign: 'center', minHeight: '60vh' }}>
-          <i className="fas fa-exclamation-circle" style={{ fontSize: 48, color: 'var(--gray-300)', marginBottom: 20, display: 'block' }} />
+        <div className="flights-guard">
+          <i
+            className="fas fa-exclamation-circle"
+            style={{ fontSize: 48, color: 'var(--gray-300)', marginBottom: 20, display: 'block' }}
+          />
           <h2 style={{ color: 'var(--gray-600)', marginBottom: 12 }}>Aucun vol sélectionné</h2>
           <p style={{ color: 'var(--gray-400)', marginBottom: 28 }}>Revenez à la liste des résultats.</p>
-          <button onClick={() => navigate('/flights/search')}
-            style={{ padding: '14px 32px', background: 'var(--secondary)', color: '#fff',
-              border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-            <i className="fas fa-arrow-left" style={{ marginRight: 8 }} />Rechercher un vol
+          <button onClick={() => navigate('/flights/search')} className="flights-guard__btn">
+            <i className="fas fa-arrow-left" style={{ marginRight: 8 }} />
+            Rechercher un vol
           </button>
         </div>
         <Footer />
@@ -49,171 +92,209 @@ const FlightDetails = () => {
     );
   }
 
-  const totalAmount  = parseFloat(offer.total_amount || 0);
-  const currency     = offer.total_currency || 'EUR';
-  const cabinClass   = offer.cabin_class || 'economy';
-  const cabinLabel   = { economy: 'Économique', premium_economy: 'Premium Éco', business: 'Affaires', first: 'Première' }[cabinClass] || cabinClass;
-  const expireAt     = offer.expires_at ? new Date(offer.expires_at) : null;
+  // ── Extraction des données de l'offre ───────────────────────────
+  const totalAmount = parseFloat(offer.total_amount || 0); // prix TND (avec marge)
+  const currency    = offer.total_currency || 'EUR';
+  const cabinClass  = offer.cabin_class || 'economy';
 
+  // Traduction du code cabine en label lisible (même dictionnaire que FlightListPage)
+  const cabinLabel = {
+    economy:         'Économique',
+    premium_economy: 'Premium Éco',
+    business:        'Affaires',
+    first:           'Première',
+  }[cabinClass] || cabinClass; // fallback : affiche la valeur brute si inconnue
+
+  // Date d'expiration de l'offre — null si non fournie
+  const expireAt = offer.expires_at ? new Date(offer.expires_at) : null;
+
+  // ── Navigation vers la réservation ─────────────────────────────
+  // Passe l'offre complète à FlightReservation via React Router state
   const handleBook = () => {
     navigate('/flights/reserve', { state: { offer } });
   };
 
+  // ─────────────────────────────────────────────────────────────────
+  //  RENDU PRINCIPAL
+  // ─────────────────────────────────────────────────────────────────
   return (
     <>
       <Navbar />
 
-      {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #0f3460 100%)',
-        paddingTop: 110, paddingBottom: 28 }}>
+      {/* ── Header gradient bleu ─────────────────────────────── */}
+      <div className="flights-page-header" style={{ paddingBottom: 28 }}>
         <div className="container">
+
+          {/* Fil d'Ariane : Recherche > Résultats > Détail */}
           <div className="omra-page-breadcrumb" style={{ paddingTop: 0, marginBottom: 14 }}>
-            <button onClick={() => navigate('/flights/search')} style={{ color: 'rgba(255,255,255,0.7)' }}>
+            <button
+              onClick={() => navigate('/flights/search')}
+              style={{ color: 'rgba(255,255,255,0.7)' }}
+            >
               <i className="fas fa-arrow-left" /> Recherche
             </button>
             <i className="fas fa-chevron-right" style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }} />
-            <button onClick={() => navigate(-1)} style={{ color: 'rgba(255,255,255,0.7)' }}>Résultats</button>
+            {/* navigate(-1) = retour dans l'historique du navigateur (comme le bouton ←) */}
+            <button onClick={() => navigate(-1)} style={{ color: 'rgba(255,255,255,0.7)' }}>
+              Résultats
+            </button>
             <i className="fas fa-chevron-right" style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }} />
             <span style={{ color: '#fff', fontWeight: 700 }}>Détail du vol</span>
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: 0 }}>
-            ✈️ Détail de l'offre
-          </h1>
+
+          <h1 className="flights-page-header__title">✈️ Détail de l'offre</h1>
         </div>
       </div>
 
+      {/* ── Contenu principal ────────────────────────────────── */}
       <div className="container" style={{ padding: '28px 0 60px' }}>
+        {/* Layout 2 colonnes : omra-reserve__layout défini dans omrastyle.css */}
         <div className="omra-reserve__layout">
 
-          {/* LEFT — Slices detail */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* ════════════════════════════════════════════════════
+              COLONNE GAUCHE — Détail des trajets (slices)
+              + Conditions tarifaires + Bagages
+          ════════════════════════════════════════════════════ */}
+          <div className="flights-details-left">
 
+            {/* Itération sur chaque slice (aller, retour si aller-retour) */}
             {offer.slices?.map((slice, si) => {
+              // Premier segment du slice → aéroport de départ du trajet
               const firstSeg = slice.segments?.[0];
+              // Dernier segment → aéroport d'arrivée final du trajet
               const lastSeg  = slice.segments?.[slice.segments.length - 1];
+              // Nombre d'escales = nombre de segments - 1
               const stops    = slice.segments?.length - 1;
 
               return (
-                <div key={si} style={{ background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+                <div key={si} className="flights-slice-card">
 
-                  {/* Slice header */}
-                  <div style={{ background: 'linear-gradient(135deg, var(--primary), #0f3460)',
-                    padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  {/* ── Header du slice : "Aller — TUN → CDG" ─ */}
+                  <div className="flights-slice-header">
+                    <div className="flights-slice-header__title">
                       <i className="fas fa-plane" style={{ color: 'var(--secondary)', fontSize: 16 }} />
-                      <span style={{ color: '#fff', fontWeight: 800, fontSize: 15 }}>
-                        {si === 0 ? 'Aller' : 'Retour'} — {firstSeg?.origin?.iata_code} → {lastSeg?.destination?.iata_code}
-                      </span>
+                      {/* si === 0 = aller, si === 1 = retour */}
+                      {si === 0 ? 'Aller' : 'Retour'} — {firstSeg?.origin?.iata_code} → {lastSeg?.destination?.iata_code}
                     </div>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <span style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', borderRadius: 12,
-                        padding: '3px 10px', fontSize: 12, fontWeight: 600 }}>
-                        <i className="fas fa-clock" style={{ marginRight: 4 }} />{fmtDuration(slice.duration)}
+
+                    <div className="flights-slice-header__badges">
+                      {/* Badge durée totale du slice */}
+                      <span className="flights-slice-badge flights-slice-badge--duration">
+                        <i className="fas fa-clock" style={{ marginRight: 4 }} />
+                        {fmtDuration(slice.duration)}
                       </span>
-                      <span style={{ background: stops === 0 ? 'rgba(26,138,74,0.8)' : 'rgba(176,125,0,0.8)',
-                        color: '#fff', borderRadius: 12, padding: '3px 10px', fontSize: 12, fontWeight: 600 }}>
+                      {/* Badge escales : vert si direct, jaune si escale(s) */}
+                      <span className={`flights-slice-badge ${stops === 0 ? 'flights-slice-badge--direct' : 'flights-slice-badge--stopover'}`}>
                         {stops === 0 ? 'Direct' : `${stops} escale${stops > 1 ? 's' : ''}`}
                       </span>
                     </div>
                   </div>
 
-                  {/* Segments */}
-                  <div style={{ padding: 20 }}>
+                  {/* ── Corps du slice : liste des segments ──── */}
+                  <div className="flights-slice-body">
                     {slice.segments?.map((seg, idx) => {
-                      const carrier  = seg.marketing_carrier;
-                      const logoUrl  = carrier?.logo_symbol_url || carrier?.logo_lockup_url;
+                      const carrier = seg.marketing_carrier; // compagnie commerciale
+                      // Essaie le logo carré en priorité, puis le logo horizontal
+                      const logoUrl = carrier?.logo_symbol_url || carrier?.logo_lockup_url;
 
                       return (
                         <div key={idx}>
-                          {/* Connexion badge */}
+
+                          {/* Badge de correspondance — affiché entre les segments */}
+                          {/* idx > 0 : ne s'affiche pas avant le premier segment */}
                           {idx > 0 && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '16px 0',
-                              padding: '8px 14px', background: '#fff8e1', borderRadius: 8,
-                              border: '1px solid #fde68a' }}>
+                            <div className="flights-connexion-badge">
                               <i className="fas fa-exchange-alt" style={{ color: '#b07d00', fontSize: 12 }} />
-                              <span style={{ fontSize: 12, fontWeight: 600, color: '#b07d00' }}>
+                              <span>
                                 Correspondance à {seg.origin?.name || seg.origin?.iata_code}
+                                {/* Préfère le nom complet, fallback sur le code IATA */}
                               </span>
                             </div>
                           )}
 
-                          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 16, alignItems: 'center' }}>
-                            {/* Airline logo */}
-                            <div style={{ textAlign: 'center', minWidth: 64 }}>
+                          {/* Grid 3 colonnes : logo | trajet | classe */}
+                          <div className="flights-segment-grid">
+
+                            {/* ── Colonne 1 : logo + numéro de vol ─── */}
+                            <div className="flights-segment-logo">
                               {logoUrl ? (
-                                <img src={logoUrl} alt={carrier?.name}
-                                  style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8,
-                                    border: '1px solid #f1f5f9', padding: 4 }} />
+                                <img src={logoUrl} alt={carrier?.name} />
                               ) : (
-                                <div style={{ width: 48, height: 48, borderRadius: 8, background: '#f1f5f9',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                // Placeholder si pas de logo disponible
+                                <div className="flights-segment-logo__placeholder">
                                   <i className="fas fa-plane" style={{ color: 'var(--secondary)' }} />
                                 </div>
                               )}
-                              <p style={{ fontSize: 10, color: 'var(--gray-400)', marginTop: 4, fontWeight: 600 }}>
+                              {/* Numéro de vol : code IATA + numéro (ex: "TK512") */}
+                              <p className="flights-segment-logo__number">
                                 {carrier?.iata_code}{seg.marketing_carrier_flight_number}
                               </p>
                             </div>
 
-                            {/* Flight path */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-                              {/* Departure */}
-                              <div style={{ textAlign: 'center', minWidth: 80 }}>
-                                <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--gray-800)', margin: 0, lineHeight: 1 }}>
-                                  {new Date(seg.departing_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                            {/* ── Colonne 2 : trajet (départ — ligne — arrivée) ─── */}
+                            <div className="flights-segment-path">
+
+                              {/* Départ */}
+                              <div className="flights-segment-airport">
+                                <p className="flights-segment-airport__time">
+                                  {new Date(seg.departing_at).toLocaleTimeString('fr-FR', {
+                                    hour: '2-digit', minute: '2-digit',
+                                  })}
                                 </p>
-                                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--secondary)', margin: '2px 0' }}>
+                                <p className="flights-segment-airport__iata">
                                   {seg.origin?.iata_code}
                                 </p>
-                                <p style={{ fontSize: 11, color: 'var(--gray-400)', margin: 0 }}>
+                                <p className="flights-segment-airport__name">
                                   {seg.origin?.name}
                                 </p>
-                                <p style={{ fontSize: 10, color: 'var(--gray-400)', margin: 0 }}>
+                                <p className="flights-segment-airport__date">
                                   {fmtDate(seg.departing_at)}
                                 </p>
                               </div>
 
-                              {/* Line */}
-                              <div style={{ flex: 1, display: 'flex', alignItems: 'center', padding: '0 12px' }}>
-                                <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
-                                <div style={{ padding: '0 8px', color: 'var(--gray-400)', fontSize: 11, textAlign: 'center', whiteSpace: 'nowrap' }}>
+                              {/* Ligne centrale avec icône avion et durée du segment */}
+                              <div className="flights-segment-line">
+                                <div className="flights-segment-line__bar" />
+                                {/* whiteSpace: nowrap évite que "2h 35min" se coupe en 2 lignes */}
+                                <div className="flights-segment-line__info">
                                   <i className="fas fa-plane" style={{ fontSize: 10 }} /><br />
                                   {fmtDuration(seg.duration)}
                                 </div>
-                                <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+                                <div className="flights-segment-line__bar" />
                               </div>
 
-                              {/* Arrival */}
-                              <div style={{ textAlign: 'center', minWidth: 80 }}>
-                                <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--gray-800)', margin: 0, lineHeight: 1 }}>
-                                  {new Date(seg.arriving_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                              {/* Arrivée */}
+                              <div className="flights-segment-airport">
+                                <p className="flights-segment-airport__time">
+                                  {new Date(seg.arriving_at).toLocaleTimeString('fr-FR', {
+                                    hour: '2-digit', minute: '2-digit',
+                                  })}
                                 </p>
-                                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--secondary)', margin: '2px 0' }}>
+                                <p className="flights-segment-airport__iata">
                                   {seg.destination?.iata_code}
                                 </p>
-                                <p style={{ fontSize: 11, color: 'var(--gray-400)', margin: 0 }}>
+                                <p className="flights-segment-airport__name">
                                   {seg.destination?.name}
                                 </p>
-                                <p style={{ fontSize: 10, color: 'var(--gray-400)', margin: 0 }}>
+                                <p className="flights-segment-airport__date">
                                   {fmtDate(seg.arriving_at)}
                                 </p>
                               </div>
                             </div>
 
-                            {/* Cabin / Aircraft */}
-                            <div style={{ textAlign: 'right' }}>
-                              <span style={{ display: 'inline-block', background: '#f0f9ff', color: '#0369a1',
-                                borderRadius: 8, padding: '4px 10px', fontSize: 11, fontWeight: 700, marginBottom: 4 }}>
-                                {cabinLabel}
-                              </span>
+                            {/* ── Colonne 3 : classe cabine + avion + compagnie ─── */}
+                            <div className="flights-segment-info">
+                              {/* Badge bleu classe cabine */}
+                              <span className="flights-segment-info__cabin">{cabinLabel}</span>
+                              {/* Nom de l'avion — affiché seulement si disponible */}
                               {seg.aircraft?.name && (
-                                <p style={{ fontSize: 11, color: 'var(--gray-400)', margin: 0 }}>
+                                <p className="flights-segment-info__aircraft">
                                   {seg.aircraft.name}
                                 </p>
                               )}
+                              {/* Nom de la compagnie */}
                               {carrier?.name && (
-                                <p style={{ fontSize: 11, color: 'var(--gray-500)', margin: '2px 0 0', fontWeight: 600 }}>
+                                <p className="flights-segment-info__carrier">
                                   {carrier.name}
                                 </p>
                               )}
@@ -227,46 +308,72 @@ const FlightDetails = () => {
               );
             })}
 
-            {/* Conditions tarifaires */}
+            {/* ── Carte Conditions tarifaires ─────────────── */}
+            {/* Affichée seulement si l'offre a des conditions */}
             {offer.conditions && (
-              <div style={{ background: '#fff', borderRadius: 16, padding: 20,
-                border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-                <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--gray-700)', marginBottom: 14,
-                  textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div className="flights-conditions-card">
+                <h3 className="flights-conditions-card__title">
                   <i className="fas fa-file-contract" style={{ color: 'var(--secondary)' }} />
                   Conditions tarifaires
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+
+                {/* Grid 2 colonnes : changement + remboursement */}
+                <div className="flights-conditions-grid">
                   {[
                     {
-                      icon: 'fa-exchange-alt',
+                      icon:  'fa-exchange-alt',
                       label: 'Changement de billet',
+                      // Construction du texte selon allowed + penalty_amount
                       val: offer.conditions.change_before_departure
                         ? (offer.conditions.change_before_departure.allowed
-                            ? `Autorisé${offer.conditions.change_before_departure.penalty_amount ? ` — pénalité : ${offer.conditions.change_before_departure.penalty_amount} ${offer.conditions.change_before_departure.penalty_currency}` : ''}`
+                            ? `Autorisé${
+                                offer.conditions.change_before_departure.penalty_amount
+                                  ? ` — pénalité : ${offer.conditions.change_before_departure.penalty_amount} ${offer.conditions.change_before_departure.penalty_currency}`
+                                  : '' // pas de pénalité
+                              }`
                             : 'Non autorisé')
-                        : 'Non précisé',
+                        : 'Non précisé', // champ absent dans l'offre
                       ok: offer.conditions.change_before_departure?.allowed,
+                      // ok peut être : true (autorisé), false (refusé), undefined (non précisé)
                     },
                     {
-                      icon: 'fa-times-circle',
+                      icon:  'fa-times-circle',
                       label: 'Remboursement avant départ',
                       val: offer.conditions.refund_before_departure
                         ? (offer.conditions.refund_before_departure.allowed
-                            ? `Autorisé${offer.conditions.refund_before_departure.penalty_amount ? ` — pénalité : ${offer.conditions.refund_before_departure.penalty_amount} ${offer.conditions.refund_before_departure.penalty_currency}` : ''}`
+                            ? `Autorisé${
+                                offer.conditions.refund_before_departure.penalty_amount
+                                  ? ` — pénalité : ${offer.conditions.refund_before_departure.penalty_amount} ${offer.conditions.refund_before_departure.penalty_currency}`
+                                  : ''
+                              }`
                             : 'Non autorisé')
                         : 'Non précisé',
                       ok: offer.conditions.refund_before_departure?.allowed,
                     },
                   ].map((c, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 14px',
-                      background: c.ok === true ? '#f0fdf4' : c.ok === false ? '#fef2f2' : '#f8fafc',
-                      borderRadius: 10, border: `1px solid ${c.ok === true ? '#bbf7d0' : c.ok === false ? '#fecaca' : '#e2e8f0'}` }}>
-                      <i className={`fas ${c.icon}`}
-                        style={{ color: c.ok === true ? '#16a34a' : c.ok === false ? '#dc2626' : 'var(--gray-400)', marginTop: 2, fontSize: 13 }} />
+                    <div
+                      key={i}
+                      className={[
+                        'flights-condition-item',
+                        // === strict : distingue true, false, et undefined
+                        c.ok === true  ? 'flights-condition-item--ok' :
+                        c.ok === false ? 'flights-condition-item--no' :
+                                         'flights-condition-item--na',
+                      ].join(' ')}
+                    >
+                      <i
+                        className={`fas ${c.icon}`}
+                        style={{
+                          color: c.ok === true  ? '#16a34a'           // vert
+                               : c.ok === false ? '#dc2626'           // rouge
+                               :                  'var(--gray-400)',  // gris
+                          marginTop: 2,
+                          fontSize:  13,
+                        }}
+                      />
                       <div>
-                        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray-700)', margin: '0 0 2px' }}>{c.label}</p>
-                        <p style={{ fontSize: 11, color: 'var(--gray-500)', margin: 0 }}>{c.val}</p>
+                        <p className="flights-condition-item__label">{c.label}</p>
+                        <p className="flights-condition-item__val">{c.val}</p>
                       </div>
                     </div>
                   ))}
@@ -274,31 +381,39 @@ const FlightDetails = () => {
               </div>
             )}
 
-            {/* Bagages par passager */}
+            {/* ── Carte Bagages par passager ───────────────── */}
+            {/* Affichée seulement si des passagers sont définis dans l'offre */}
             {offer.passengers?.length > 0 && (
-              <div style={{ background: '#fff', borderRadius: 16, padding: 20,
-                border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-                <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--gray-700)', marginBottom: 14,
-                  textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div className="flights-baggage-card">
+                <h3 className="flights-baggage-card__title">
                   <i className="fas fa-suitcase" style={{ color: 'var(--secondary)' }} />
                   Bagages inclus
                 </h3>
+
                 {offer.passengers.map((pax, pi) => {
                   const bags = pax.baggages || [];
                   return (
-                    <div key={pi} style={{ marginBottom: pi < offer.passengers.length - 1 ? 12 : 0 }}>
-                      <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 6 }}>
+                    <div
+                      key={pi}
+                      // Marge basse entre passagers, sauf le dernier
+                      style={{ marginBottom: pi < offer.passengers.length - 1 ? 12 : 0 }}
+                    >
+                      {/* Label "PASSAGER 1 (adult)" */}
+                      <p className="flights-baggage__pax-label">
                         Passager {pi + 1} ({pax.type})
                       </p>
+
                       {bags.length === 0 ? (
-                        <p style={{ fontSize: 13, color: 'var(--gray-400)' }}>Aucun bagage inclus</p>
+                        <p style={{ fontSize: 13, color: 'var(--gray-400)' }}>
+                          Aucun bagage inclus
+                        </p>
                       ) : (
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                           {bags.map((b, bi) => (
-                            <span key={bi} style={{ display: 'inline-flex', alignItems: 'center', gap: 6,
-                              background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8,
-                              padding: '4px 10px', fontSize: 12, fontWeight: 600, color: '#16a34a' }}>
+                            // Tag vert pour chaque bagage inclus
+                            <span key={bi} className="flights-baggage-tag">
                               <i className="fas fa-check" style={{ fontSize: 10 }} />
+                              {/* b.quantity = nombre, b.type = 'carry_on' ou 'checked' */}
                               {b.quantity}× {b.type === 'carry_on' ? 'Bagage cabine' : 'Bagage en soute'}
                             </span>
                           ))}
@@ -311,93 +426,103 @@ const FlightDetails = () => {
             )}
           </div>
 
-          {/* RIGHT — Sidebar price + CTA */}
+          {/* ════════════════════════════════════════════════════
+              COLONNE DROITE — Sidebar prix + CTA
+              omra-details__sidebar défini dans omrastyle.css
+          ════════════════════════════════════════════════════ */}
           <div className="omra-details__sidebar">
 
-            {/* Price card */}
-            <div style={{ background: '#fff', borderRadius: 16, padding: 24,
-              border: '1px solid #f1f5f9', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: 16 }}>
+            {/* ── Carte prix principale ────────────────────── */}
+            <div className="flights-price-card">
 
-              {/* Flight summary */}
-              <div style={{ textAlign: 'center', marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+              {/* Résumé du vol : logo + route + compagnie */}
+              <div className="flights-price-card__summary">
+                {/* Logo affiché seulement s'il est disponible */}
                 {offer.slices?.[0]?.segments?.[0]?.marketing_carrier?.logo_symbol_url && (
                   <img
                     src={offer.slices[0].segments[0].marketing_carrier.logo_symbol_url}
                     alt=""
-                    style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8,
-                      border: '1px solid #f1f5f9', padding: 4, marginBottom: 10 }}
                   />
                 )}
-                <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--gray-800)', margin: '0 0 4px' }}>
-                  {offer.slices?.[0]?.segments?.[0]?.origin?.iata_code} → {
-                    offer.slices?.[offer.slices.length - 1]?.segments?.slice(-1)[0]?.destination?.iata_code
-                  }
+                <p className="flights-price-card__route">
+                  {/* Aéroport de départ du premier segment */}
+                  {offer.slices?.[0]?.segments?.[0]?.origin?.iata_code}
+                  {' → '}
+                  {/* Aéroport d'arrivée du dernier segment du dernier slice
+                      .slice(-1)[0] = dernier élément du tableau segments */}
+                  {offer.slices?.[offer.slices.length - 1]?.segments?.slice(-1)[0]?.destination?.iata_code}
                 </p>
-                <p style={{ fontSize: 13, color: 'var(--gray-400)', margin: 0 }}>
+                <p className="flights-price-card__carrier">
                   {offer.slices?.[0]?.segments?.[0]?.marketing_carrier?.name}
                 </p>
               </div>
 
-              {/* Price breakdown */}
-              <div style={{ marginBottom: 16 }}>
+              {/* Décomposition du prix */}
+              <div className="flights-price-breakdown">
                 {[
-                  { label: `${offer.passengers?.length || 1} passager(s)`, value: `${totalAmount.toLocaleString('fr-FR')} ${currency}` },
-                  { label: 'Taxes & frais',                                 value: 'Inclus' },
+                  {
+                    label: `${offer.passengers?.length || 1} passager(s)`,
+                    value: `${totalAmount.toLocaleString('fr-FR')} ${currency}`,
+                    // toLocaleString('fr-FR') formate 1234.5 → "1 234,5"
+                  },
+                  { label: 'Taxes & frais', value: 'Inclus' },
                 ].map((row, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between',
-                    padding: '8px 0', borderBottom: '1px dashed #f1f5f9', fontSize: 13 }}>
-                    <span style={{ color: 'var(--gray-500)' }}>{row.label}</span>
-                    <span style={{ fontWeight: 700, color: 'var(--gray-700)' }}>{row.value}</span>
+                  <div key={i} className="flights-price-row">
+                    <span className="flights-price-row__label">{row.label}</span>
+                    <span className="flights-price-row__value">{row.value}</span>
                   </div>
                 ))}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '12px 0', marginBottom: 16 }}>
-                <span style={{ fontWeight: 700, color: 'var(--gray-700)' }}>Total</span>
-                <span style={{ fontSize: 22, fontWeight: 900, color: 'var(--secondary)' }}>
+              {/* Total mis en valeur */}
+              <div className="flights-price-total">
+                <span className="flights-price-total__label">Total</span>
+                <span className="flights-price-total__amount">
                   {totalAmount.toLocaleString('fr-FR')} {currency}
                 </span>
               </div>
 
-              {/* Expiry warning */}
+              {/* Avertissement d'expiration — visible seulement si expireAt est défini */}
               {expireAt && (
-                <div style={{ background: '#fff8e1', border: '1px solid #fde68a', borderRadius: 8,
-                  padding: '8px 12px', marginBottom: 14, fontSize: 12, color: '#b07d00',
-                  display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div className="flights-expiry-warning">
                   <i className="fas fa-clock" />
-                  Offre valable jusqu'au {expireAt.toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  Offre valable jusqu'au{' '}
+                  {expireAt.toLocaleString('fr-FR', {
+                    day:    '2-digit',
+                    month:  'short',
+                    hour:   '2-digit',
+                    minute: '2-digit',
+                  })}
                 </div>
               )}
 
-              <button onClick={handleBook}
-                style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #e92f64, #c2185b)',
-                  color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800,
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              {/* CTA principal "Réserver ce vol" */}
+              <button onClick={handleBook} className="flights-book-btn">
                 <i className="fas fa-ticket-alt" />
                 Réserver ce vol
               </button>
-              <p style={{ fontSize: 11, color: 'var(--gray-400)', textAlign: 'center', marginTop: 10 }}>
-                <i className="fas fa-lock" style={{ marginRight: 4 }} />Sans frais supplémentaires
+
+              {/* Mention rassurante sous le bouton */}
+              <p className="flights-book-reassurance">
+                <i className="fas fa-lock" style={{ marginRight: 4 }} />
+                Sans frais supplémentaires
               </p>
             </div>
 
-            {/* Help */}
-            <div style={{ background: '#fff', borderRadius: 16, padding: 20,
-              border: '1px solid #f1f5f9' }}>
-              <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--gray-700)', marginBottom: 12 }}>
-                <i className="fas fa-headset" style={{ color: 'var(--secondary)', marginRight: 8 }} />Besoin d'aide ?
+            {/* ── Carte d'aide téléphonique ─────────────────── */}
+            <div className="flights-help-card">
+              <h4>
+                <i className="fas fa-headset" style={{ color: 'var(--secondary)', marginRight: 8 }} />
+                Besoin d'aide ?
               </h4>
-              <p style={{ fontSize: 13, color: 'var(--gray-500)', lineHeight: 1.6, marginBottom: 12 }}>
-                Notre équipe est disponible du lundi au samedi de 09h à 18h.
-              </p>
-              <a href="tel:+21636149885"
-                style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14,
-                  fontWeight: 700, color: 'var(--secondary)', textDecoration: 'none' }}>
+              <p>Notre équipe est disponible du lundi au samedi de 09h à 18h.</p>
+              {/* href="tel:" = lien cliquable sur mobile pour appeler directement */}
+              <a href="tel:+21636149885" className="flights-help-card__phone">
                 <i className="fas fa-phone" /> +216 36 149 885
               </a>
             </div>
           </div>
+
         </div>
       </div>
 

@@ -7,26 +7,41 @@ import FlightCard from '../../components/FlightCard';
 import { usePromotions } from '../../hooks/usePromotions';
 import PromotionsSection from '../admin/promotions/PromotionsSection';
 import '../../styles/omrastyle.css';
-import '../../styles/FlightsPage.css';
+import '../../styles/FlightsPage.css'; // tous les styles dans FlightsPage.css
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// ── Helpers ────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+//  HELPERS — extraient des données d'une offre Duffel normalisée
+//  Définis hors composant car ne dépendent d'aucun état React.
+//  Ils cherchent d'abord dans _summary (chemin court mis en place
+//  par normaliseOffer) puis descendent dans la structure complète.
+// ─────────────────────────────────────────────────────────────────
+
+// Retourne le nom de la compagnie aérienne
 const getAirlineName = (o) =>
   o._summary?.airline_name ||
   o.slices?.[0]?.segments?.[0]?.marketing_carrier?.name || '';
 
+// Retourne le nombre d'escales (0 = direct)
 const getStops = (o) =>
   o._summary?.stops ?? (o.slices?.[0]?.segments?.length ?? 1) - 1;
+  // ?? = nullish coalescing : si _summary.stops est absent, calcule segments.length - 1
 
+// Retourne la date/heure de départ au format ISO (ex: "2026-06-04T10:30:00Z")
+// Utilisée pour le tri par heure de départ
 const getDeparture = (o) =>
   o._summary?.departing_at || o.slices?.[0]?.segments?.[0]?.departing_at || '';
 
+// Retourne la durée ISO du vol (ex: "PT2H35M")
+// Utilisée pour le tri par durée
 const getDuration = (o) =>
   o._summary?.duration || o.slices?.[0]?.duration || '';
 
+// Retourne le prix en nombre décimal (total_amount est une string dans Duffel)
 const getPrice = (o) => parseFloat(o.total_amount || '0');
 
+// ── Correspondance valeur API → label affiché ────────────────────
 const CABIN_LABELS = {
   economy:         'Économique',
   premium_economy: 'Premium',
@@ -34,7 +49,9 @@ const CABIN_LABELS = {
   first:           'Première',
 };
 
-// ── Routes proposées pour les vols exemples ────────────────────
+// ── Routes prédéfinies pour les suggestions (aucune recherche active) ─
+// Chaque objet contient les données nécessaires pour lancer un fetch
+// ET pour afficher le bouton d'onglet.
 const SUGGESTION_ROUTES = [
   { origin: 'TUN', destination: 'CDG', label: 'Paris',     emoji: '🗼' },
   { origin: 'TUN', destination: 'IST', label: 'Istanbul',  emoji: '🕌' },
@@ -44,148 +61,152 @@ const SUGGESTION_ROUTES = [
   { origin: 'TUN', destination: 'MRS', label: 'Marseille', emoji: '⛵' },
 ];
 
-// ══════════════════════════════════════════════════════════════
-//  SUGGESTED FLIGHTS — affiché quand aucune recherche active
-// ══════════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────────
+//  COMPOSANT SuggestedFlights
+//  Affiché quand l'utilisateur arrive sur /flights/results
+//  sans passer par une recherche (pas d'offers dans le state).
+//  Propose des vols populaires depuis Tunis via des onglets de routes.
+// ─────────────────────────────────────────────────────────────────
 const SuggestedFlights = ({ onSelect }) => {
   const navigate = useNavigate();
 
+  // Index de l'onglet actif (0 = Paris par défaut)
   const [activeRoute, setActiveRoute] = useState(0);
+  // Offres retournées par l'API pour la route active
   const [suggestions, setSuggestions] = useState([]);
-  const [loading,     setLoading]     = useState(false);
-  const [error,       setError]       = useState('');
+  // Contrôle l'affichage du skeleton loader
+  const [loading, setLoading]         = useState(false);
+  // Message d'erreur si le fetch échoue
+  const [error, setError]             = useState('');
 
+  // ── Fetch les offres pour une route donnée par son index ────────
   const fetchSuggestions = async (idx) => {
     setLoading(true);
     setError('');
-    setSuggestions([]);
+    setSuggestions([]); // vide les anciennes cartes immédiatement
 
     const route = SUGGESTION_ROUTES[idx];
-    const d     = new Date();
+
+    // Date dans 14 jours — assez loin pour avoir des disponibilités
+    const d = new Date();
     d.setDate(d.getDate() + 14);
-    const departure_date = d.toISOString().split('T')[0];
+    const departure_date = d.toISOString().split('T')[0]; // "YYYY-MM-DD"
 
     try {
-      const res  = await fetch(`${API_BASE}/flights/search`, {
+      const res = await fetch(`${API_BASE}/flights/search`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
+        body: JSON.stringify({
           slices:      [{ origin: route.origin, destination: route.destination, departure_date }],
           passengers:  [{ type: 'adult' }],
           cabin_class: 'economy',
         }),
       });
+
       const json = await res.json();
+
       if (json.success && json.offers?.length) {
-        setSuggestions(json.offers.slice(0, 6));
+        setSuggestions(json.offers.slice(0, 6)); // max 6 suggestions
       } else {
         setError('Aucune offre disponible pour cette route en ce moment.');
       }
     } catch {
+      // Erreur réseau ou serveur indisponible
       setError('Impossible de charger les offres. Vérifiez votre connexion.');
     } finally {
-      setLoading(false);
+      setLoading(false); // toujours arrêter le skeleton, succès ou erreur
     }
   };
 
-  useEffect(() => { fetchSuggestions(activeRoute); }, [activeRoute]);
+  // Déclenche un fetch à chaque changement d'onglet (et au montage initial)
+  // [] vide → montage ; [activeRoute] → changement d'onglet
+  useEffect(() => {
+    fetchSuggestions(activeRoute);
+  }, [activeRoute]);
 
   return (
-    <div style={{ paddingTop: 36, paddingBottom: 60 }}>
+    <div className="flights-suggestions">
 
-      {/* Section header */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8,
-          background: 'rgba(230,126,34,0.08)', borderRadius: 20, padding: '4px 14px', marginBottom: 12 }}>
+      {/* ── En-tête de la section suggestions ──────────────── */}
+      <div className="flights-suggestions__header">
+        {/* Badge "Offres du moment" */}
+        <div className="flights-badge" style={{ marginBottom: 12 }}>
           <i className="fas fa-fire" style={{ color: 'var(--secondary)', fontSize: 12 }} />
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--secondary)',
-            textTransform: 'uppercase', letterSpacing: '.1em' }}>
-            Offres du moment
-          </span>
+          <span className="flights-badge__text">Offres du moment</span>
         </div>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--gray-800, #1e293b)', margin: '0 0 6px' }}>
-          Vols populaires depuis Tunis
-        </h2>
-        <p style={{ fontSize: 13, color: 'var(--gray-500, #64748b)', margin: 0 }}>
+        <h2 className="flights-suggestions__headline">Vols populaires depuis Tunis</h2>
+        <p className="flights-suggestions__meta">
           Prix en temps réel · Taxes incluses · Marge agence incluse
         </p>
       </div>
 
-      {/* Route tabs */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
+      {/* ── Onglets de routes ───────────────────────────────── */}
+      <div className="flights-route-tabs">
         {SUGGESTION_ROUTES.map((route, i) => (
-          <button key={i} onClick={() => setActiveRoute(i)} disabled={loading}
-            style={{
-              padding: '9px 18px', borderRadius: 30, border: 'none',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontWeight: 700, fontSize: 12, transition: 'all .2s',
-              background: activeRoute === i ? 'var(--secondary, #e67e22)' : '#f1f5f9',
-              color:      activeRoute === i ? '#fff' : 'var(--gray-600, #475569)',
-              boxShadow:  activeRoute === i ? '0 2px 10px rgba(230,126,34,.30)' : 'none',
-              opacity:    loading && activeRoute !== i ? 0.6 : 1,
-            }}>
+          <button
+            key={i}
+            onClick={() => setActiveRoute(i)}
+            disabled={loading} // désactive tous les onglets pendant un fetch
+            className={[
+              'flights-route-tab',
+              // Onglet actif : orange ; inactif : gris
+              activeRoute === i ? 'flights-route-tab--active' : 'flights-route-tab--inactive',
+              // Onglets inactifs semi-transparents pendant chargement
+              loading && activeRoute !== i ? 'flights-route-tab--loading' : '',
+            ].join(' ')}
+          >
             {route.emoji} Tunis → {route.label}
           </button>
         ))}
       </div>
 
-      {/* Skeleton loader */}
+      {/* ── Skeleton loader (4 cartes placeholder) ─────────── */}
       {loading && (
-        <>
-          <style>{`
-            @keyframes shimmer {
-              0%   { background-position: -200% 0; }
-              100% { background-position:  200% 0; }
-            }
-          `}</style>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} style={{
-                height: 120, borderRadius: 16,
-                background: 'linear-gradient(90deg, #f1f5f9 25%, #e8edf2 50%, #f1f5f9 75%)',
-                backgroundSize: '200% 100%',
-                animation: 'shimmer 1.4s ease-in-out infinite',
-              }} />
-            ))}
-          </div>
-        </>
+        <div className="flights-skeleton-list">
+          {[1, 2, 3, 4].map(i => (
+            // Skeleton légèrement plus grand que sur FlightSearch
+            <div key={i} className="flights-skeleton flights-skeleton--large" />
+          ))}
+        </div>
       )}
 
-      {/* Error state */}
+      {/* ── Bloc d'erreur ───────────────────────────────────── */}
+      {/* Affiché seulement si le chargement est terminé ET qu'il y a une erreur */}
       {!loading && error && (
-        <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 12,
-          padding: '18px 22px', fontSize: 13, color: '#991b1b',
-          display: 'flex', alignItems: 'center', gap: 12 }}>
-          <i className="fas fa-exclamation-circle" style={{ fontSize: 18, flexShrink: 0 }} />
+        <div className="flights-error-box">
+          <i className="fas fa-exclamation-circle flights-error-box__icon" />
           <div>
-            <p style={{ fontWeight: 700, margin: '0 0 4px' }}>Chargement impossible</p>
-            <p style={{ margin: 0, opacity: 0.8 }}>{error}</p>
+            <p className="flights-error-box__title">Chargement impossible</p>
+            <p className="flights-error-box__msg">{error}</p>
           </div>
         </div>
       )}
 
-      {/* Flight cards */}
+      {/* ── Cartes de vols + pied de section ───────────────── */}
+      {/* Affiché seulement si chargement terminé ET au moins une offre */}
       {!loading && suggestions.length > 0 && (
         <>
-          {/* Count badge */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            marginBottom: 14 }}>
-            <p style={{ fontSize: 13, color: 'var(--gray-500)', margin: 0 }}>
+          {/* Compteur d'offres + label "Prix temps réel" */}
+          <div className="flights-offers-bar">
+            <p className="flights-offers-bar__count">
               <strong style={{ color: 'var(--gray-700)' }}>{suggestions.length}</strong>
               {' '}offre{suggestions.length > 1 ? 's' : ''} disponible{suggestions.length > 1 ? 's' : ''}
               {' '}· {SUGGESTION_ROUTES[activeRoute].emoji} Tunis → {SUGGESTION_ROUTES[activeRoute].label}
             </p>
-            <span style={{ fontSize: 11, color: 'var(--gray-400)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span className="flights-offers-bar__realtime">
               <i className="fas fa-sync-alt" style={{ fontSize: 10 }} />
               Prix temps réel
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Liste des cartes d'offres */}
+          <div className="flights-cards-list">
             {suggestions.map(offer => (
               <FlightCard
                 key={offer.id}
                 offer={offer}
+                // Passe l'offre ET les params de route extraits du _summary
+                // (nécessaire car pas de searchParams complet comme une vraie recherche)
                 onSelect={() => onSelect(offer, {
                   origin:      offer._summary?.origin_iata,
                   destination: offer._summary?.destination_iata,
@@ -194,18 +215,13 @@ const SuggestedFlights = ({ onSelect }) => {
             ))}
           </div>
 
-          {/* CTA */}
-          <div style={{ marginTop: 28, padding: '20px 24px', background: '#f8fafc',
-            borderRadius: 16, border: '1px solid #f1f5f9', textAlign: 'center' }}>
-            <p style={{ fontSize: 14, color: 'var(--gray-600)', margin: '0 0 14px' }}>
-              Vous avez une destination précise en tête ?
-            </p>
-            <button onClick={() => navigate('/flights/search')}
-              style={{ padding: '12px 32px',
-                background: 'linear-gradient(135deg, #e92f64, #c2185b)',
-                color: '#fff', border: 'none', borderRadius: 12,
-                fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'inline-flex',
-                alignItems: 'center', gap: 8 }}>
+          {/* CTA "Faire une recherche personnalisée" */}
+          <div className="flights-cta-box">
+            <p>Vous avez une destination précise en tête ?</p>
+            <button
+              onClick={() => navigate('/flights/search')}
+              className="flights-cta-btn"
+            >
               <i className="fas fa-search" />
               Faire une recherche personnalisée
             </button>
@@ -216,98 +232,151 @@ const SuggestedFlights = ({ onSelect }) => {
   );
 };
 
-// ══════════════════════════════════════════════════════════════
-//  MAIN — FlightListPage
-// ══════════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────────
+//  COMPOSANT PRINCIPAL FlightListPage
+//  Deux modes :
+//  1. Pas d'offres (state vide) → affiche SuggestedFlights
+//  2. Offres reçues depuis FlightSearch → affiche filtres + résultats
+// ─────────────────────────────────────────────────────────────────
 const FlightListPage = () => {
   const navigate  = useNavigate();
-  const { state } = useLocation();
+  const { state } = useLocation(); // lit les données passées par navigate(..., { state })
 
+  // Données reçues depuis FlightSearch via React Router state
+  // || [] et || {} = valeurs par défaut si accès direct à l'URL
   const offers       = state?.offers       || [];
   const searchParams = state?.searchParams || {};
 
+  // Déstructure les paramètres de recherche pour les afficher dans le header
+  // adults = 1 et children = 0 : valeurs par défaut si searchParams est vide
   const {
     origin, destination, departureDate, returnDate,
     adults = 1, children = 0, cabinClass,
   } = searchParams;
 
-  const [sortBy,        setSortBy]        = useState('price_asc');
-  const [maxPrice,      setMaxPrice]      = useState('');
-  const [filterAirline, setFilterAirline] = useState('');
-  const [filterStops,   setFilterStops]   = useState('all');
+  // ── États des filtres et du tri ──────────────────────────────────
+  const [sortBy,        setSortBy]        = useState('price_asc'); // tri par défaut : prix croissant
+  const [maxPrice,      setMaxPrice]      = useState('');           // '' = pas de filtre prix
+  const [filterAirline, setFilterAirline] = useState('');           // '' = toutes les compagnies
+  const [filterStops,   setFilterStops]   = useState('all');        // 'all' | 'direct' | 'oneplus'
+
+  // Promotions actives pour la catégorie vols
   const { promos } = usePromotions('categorie', 'vols');
 
+  // Booléen pour éviter de réécrire offers.length > 0 partout
   const hasResults = offers.length > 0;
 
-  // ── Callback used by both search results + suggestions ─────
+  // ── Callback partagé entre résultats de recherche ET suggestions ─
+  // overrideParams : utilisé par SuggestedFlights qui n'a pas de searchParams complet
   const handleSelect = (offer, overrideParams) => {
     navigate('/flights/details', {
-      state: { offer, searchParams: overrideParams || searchParams },
+      state: {
+        offer,
+        searchParams: overrideParams || searchParams, // priorité aux overrides des suggestions
+      },
     });
   };
 
-  // ── Derived data (search results only) ────────────────────
+  // ── Liste dédupliquée et triée des compagnies aériennes ──────────
+  // useMemo : ne recalcule que si offers change (pas à chaque re-render de filtre/tri)
   const airlines = useMemo(() => {
-    const set = new Set();
-    offers.forEach(o => { const n = getAirlineName(o); if (n) set.add(n); });
-    return [...set].sort();
+    const set = new Set(); // Set = déduplique automatiquement
+    offers.forEach(o => {
+      const n = getAirlineName(o);
+      if (n) set.add(n); // ignore les noms vides
+    });
+    return [...set].sort(); // convertit en tableau et trie alphabétiquement
   }, [offers]);
 
+  // ── Calculs de prix (min/max) pour l'input de filtre ────────────
+  // Calculés hors useMemo car simples et dépendent directement de offers
   const prices      = offers.map(getPrice);
   const minPrice    = prices.length ? Math.min(...prices) : 0;
+  // Math.min(...[400,250,800]) = Math.min(400,250,800) = 250 (spread déploie le tableau)
   const maxPriceAll = prices.length ? Math.max(...prices) : 0;
-  const currency    = offers[0]?.total_currency || 'TND';
+  const currency    = offers[0]?.total_currency || 'TND'; // devise du premier résultat
 
-  // ── Filter + sort ──────────────────────────────────────────
+  // ── Filtrage + tri de la liste d'offres ─────────────────────────
+  // useMemo avec 5 dépendances : recalcule si les offres OU n'importe quel filtre change
   const filtered = useMemo(() => {
-    let list = [...offers];
-    if (filterAirline) list = list.filter(o => getAirlineName(o) === filterAirline);
+    let list = [...offers]; // copie pour ne JAMAIS muter le state React directement
+
+    // Filtre compagnie — ignoré si filterAirline === '' (falsy)
+    if (filterAirline)
+      list = list.filter(o => getAirlineName(o) === filterAirline);
+
+    // Filtres escales — deux if séparés car filterStops peut valoir 'all' (aucun filtre)
     if (filterStops === 'direct')  list = list.filter(o => getStops(o) === 0);
     if (filterStops === 'oneplus') list = list.filter(o => getStops(o) > 0);
+
+    // Filtre prix maximum — appliqué seulement si l'input contient un nombre valide
     if (maxPrice !== '') {
       const cap = parseFloat(maxPrice);
+      // isNaN(cap) = true si l'utilisateur a tapé des lettres → filtre ignoré
       if (!isNaN(cap)) list = list.filter(o => getPrice(o) <= cap);
     }
+
+    // Tri
     list.sort((a, b) => {
-      const pa = getPrice(a),     pb = getPrice(b);
-      const da = getDeparture(a), db = getDeparture(b);
-      const ta = getDuration(a),  tb = getDuration(b);
+      const pa = getPrice(a),     pb = getPrice(b);     // prix numériques
+      const da = getDeparture(a), db = getDeparture(b); // dates ISO comparables comme strings
+      const ta = getDuration(a),  tb = getDuration(b);  // durées ISO comparables comme strings
+
       switch (sortBy) {
-        case 'price_asc':  return pa - pb;
-        case 'price_desc': return pb - pa;
-        case 'dep_asc':    return da < db ? -1 : da > db ? 1 : 0;
-        case 'dep_desc':   return da > db ? -1 : da < db ? 1 : 0;
-        case 'duration':   return ta < tb ? -1 : ta > tb ? 1 : 0;
-        default:           return 0;
+        case 'price_asc':  return pa - pb;       // négatif → a avant b (croissant)
+        case 'price_desc': return pb - pa;       // négatif → b avant a (décroissant)
+        case 'dep_asc':    return da < db ? -1 : da > db ? 1 : 0; // tôt → tard
+        case 'dep_desc':   return da > db ? -1 : da < db ? 1 : 0; // tard → tôt
+        case 'duration':   return ta < tb ? -1 : ta > tb ? 1 : 0; // court → long
+        default:           return 0; // 0 = ne change pas l'ordre relatif
       }
     });
+
     return list;
   }, [offers, filterAirline, filterStops, maxPrice, sortBy]);
 
-  const handleReset = () => { setFilterAirline(''); setFilterStops('all'); setMaxPrice(''); };
+  // Réinitialise tous les filtres en une seule action
+  // React 18 batch ces 3 setState en un seul re-render
+  const handleReset = () => {
+    setFilterAirline('');
+    setFilterStops('all');
+    setMaxPrice('');
+  };
 
-  // ── Shared header ──────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────
+  //  COMPOSANT INTERNE PageHeader
+  //  Partagé entre les deux modes (suggestions et résultats).
+  //  Reçoit subtitle en prop pour personnaliser le sous-titre.
+  // ─────────────────────────────────────────────────────────────────
   const PageHeader = ({ subtitle }) => (
-    <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #0f3460 100%)',
-      paddingTop: 110, paddingBottom: 24 }}>
+    <div className="flights-page-header">
       <div className="container">
+
+        {/* Fil d'Ariane : Recherche > Résultats */}
         <div className="omra-page-breadcrumb" style={{ paddingTop: 0, marginBottom: 16 }}>
-          <button onClick={() => navigate('/flights/search')} style={{ color: 'rgba(255,255,255,0.7)' }}>
+          <button
+            onClick={() => navigate('/flights/search')}
+            style={{ color: 'rgba(255,255,255,0.7)' }}
+          >
             <i className="fas fa-arrow-left" /> Recherche
           </button>
           <i className="fas fa-chevron-right" style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }} />
           <span style={{ color: '#fff', fontWeight: 700 }}>Résultats</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+
+        {/* Titre + badge compteur */}
+        <div className="flights-page-header__row">
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>
+            <h1 className="flights-page-header__title">
+              {/* Titre dynamique selon le contexte */}
               ✈️ {hasResults ? `${origin} → ${destination}` : 'Vols disponibles'}
             </h1>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', margin: 0 }}>{subtitle}</p>
+            <p className="flights-page-header__subtitle">{subtitle}</p>
           </div>
+
+          {/* Badge "12 vols trouvés" — visible seulement si des résultats existent */}
           {hasResults && (
-            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 20, padding: '6px 16px',
-              color: '#fff', fontSize: 13, fontWeight: 700 }}>
+            <div className="flights-count-badge">
               {filtered.length} vol{filtered.length > 1 ? 's' : ''} trouvé{filtered.length > 1 ? 's' : ''}
             </div>
           )}
@@ -316,9 +385,10 @@ const FlightListPage = () => {
     </div>
   );
 
-  // ══════════════════════════════════════════════════════════
-  //  NO SEARCH RESULTS → affiche les suggestions
-  // ══════════════════════════════════════════════════════════
+  // ─────────────────────────────────────────────────────────────────
+  //  CAS 1 : Pas de résultats → affiche les suggestions
+  //  Retour anticipé : tout le code après ce bloc ne s'exécute pas
+  // ─────────────────────────────────────────────────────────────────
   if (!hasResults) {
     return (
       <>
@@ -332,16 +402,22 @@ const FlightListPage = () => {
     );
   }
 
-  // ══════════════════════════════════════════════════════════
-  //  SEARCH RESULTS
-  // ══════════════════════════════════════════════════════════
+  // ─────────────────────────────────────────────────────────────────
+  //  CAS 2 : Résultats de recherche → affiche filtres + liste
+  // ─────────────────────────────────────────────────────────────────
   return (
     <>
       <Navbar />
+
+      {/* Header avec les paramètres de recherche en sous-titre */}
       <PageHeader subtitle={
-        `${departureDate}${returnDate ? ` · Retour ${returnDate}` : ''} · ${adults + children} passager${adults + children > 1 ? 's' : ''} · ${CABIN_LABELS[cabinClass] || cabinClass}`
+        `${departureDate}`
+        + `${returnDate ? ` · Retour ${returnDate}` : ''}`  // retour seulement en aller-retour
+        + ` · ${adults + children} passager${adults + children > 1 ? 's' : ''}`
+        + ` · ${CABIN_LABELS[cabinClass] || cabinClass}`     // label lisible ou valeur brute
       } />
 
+      {/* Promotions actives (affichées seulement si au moins une promo) */}
       {promos.length > 0 && (
         <div className="container" style={{ paddingTop: 24 }}>
           <PromotionsSection promos={promos} titre="Promotions billeterie" showCards={false} />
@@ -349,79 +425,96 @@ const FlightListPage = () => {
       )}
 
       <div className="container flights-results-layout" style={{ padding: '28px 0 60px' }}>
-        <div className="flights-results-grid" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 24, alignItems: 'start' }}>
 
-          {/* ── Filters sidebar ─────────────────────────────── */}
-          <aside style={{ background: '#fff', borderRadius: 16, padding: 20,
-            border: '1px solid #f1f5f9', boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-            position: 'sticky', top: 90 }}>
+        {/* Grid 2 colonnes : 260px sidebar + 1fr résultats */}
+        <div className="flights-results-grid">
 
-            <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--gray-700)', marginBottom: 20,
-              textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              <i className="fas fa-sliders-h" style={{ color: 'var(--secondary)', marginRight: 8 }} />Filtres
+          {/* ── SIDEBAR FILTRES ─────────────────────────────── */}
+          {/* position: sticky — reste visible lors du scroll (défini dans CSS) */}
+          <aside className="flights-sidebar">
+
+            <h3 className="flights-sidebar__title">
+              <i className="fas fa-sliders-h" style={{ color: 'var(--secondary)', marginRight: 8 }} />
+              Filtres
             </h3>
 
-            {/* Escales */}
+            {/* Filtre par nombre d'escales */}
             <div style={{ marginBottom: 20 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray-500)',
-                textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Escales</p>
+              <p className="flights-sidebar__section-label">Escales</p>
               {[
                 { value: 'all',     label: 'Tous les vols' },
                 { value: 'direct',  label: 'Direct seulement' },
                 { value: 'oneplus', label: '1 escale ou plus' },
               ].map(opt => (
-                <label key={opt.value}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, cursor: 'pointer', fontSize: 13 }}>
-                  <input type="radio" name="stops" value={opt.value}
-                    checked={filterStops === opt.value}
+                // label cliquable : cliquer sur le texte active le radio
+                <label key={opt.value} className="flights-filter-label">
+                  <input
+                    type="radio"
+                    name="stops"
+                    value={opt.value}
+                    checked={filterStops === opt.value} // controlled component
                     onChange={() => setFilterStops(opt.value)}
-                    style={{ accentColor: 'var(--secondary)' }} />
+                    style={{ accentColor: 'var(--secondary)' }}
+                  />
                   {opt.label}
                 </label>
               ))}
             </div>
 
-            <div style={{ height: 1, background: '#f1f5f9', marginBottom: 20 }} />
+            {/* Séparateur */}
+            <div className="flights-sidebar__divider" />
 
-            {/* Prix max */}
+            {/* Filtre par prix maximum */}
             <div style={{ marginBottom: 20 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray-500)',
-                textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-                Prix max ({currency})
-              </p>
-              <input type="number" min={minPrice} max={maxPriceAll}
+              <p className="flights-sidebar__section-label">Prix max ({currency})</p>
+              <input
+                type="number"
+                min={minPrice}
+                max={maxPriceAll}
                 placeholder={`Max : ${Math.round(maxPriceAll)}`}
-                value={maxPrice} onChange={e => setMaxPrice(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px', borderRadius: 8,
-                  border: '1px solid #e2e8f0', fontSize: 13 }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between',
-                fontSize: 11, color: 'var(--gray-400)', marginTop: 4 }}>
+                value={maxPrice}
+                onChange={e => setMaxPrice(e.target.value)}
+                // e.target.value est toujours une string même pour type="number"
+                className="flights-price-input"
+              />
+              {/* Affichage min/max sous l'input pour guider l'utilisateur */}
+              <div className="flights-price-range">
                 <span>Min : {Math.round(minPrice)}</span>
                 <span>Max : {Math.round(maxPriceAll)}</span>
               </div>
             </div>
 
-            {/* Compagnie */}
+            {/* Filtre par compagnie — affiché seulement si plusieurs compagnies */}
             {airlines.length > 1 && (
               <>
-                <div style={{ height: 1, background: '#f1f5f9', marginBottom: 20 }} />
+                <div className="flights-sidebar__divider" />
                 <div style={{ marginBottom: 20 }}>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray-500)',
-                    textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Compagnie</p>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, cursor: 'pointer', fontSize: 13 }}>
-                    <input type="radio" name="airline" value=""
+                  <p className="flights-sidebar__section-label">Compagnie</p>
+
+                  {/* Option "Toutes" */}
+                  <label className="flights-filter-label">
+                    <input
+                      type="radio"
+                      name="airline"
+                      value=""
                       checked={filterAirline === ''}
                       onChange={() => setFilterAirline('')}
-                      style={{ accentColor: 'var(--secondary)' }} />
+                      style={{ accentColor: 'var(--secondary)' }}
+                    />
                     Toutes
                   </label>
+
+                  {/* Une option par compagnie dédupliquée */}
                   {airlines.map(a => (
-                    <label key={a} style={{ display: 'flex', alignItems: 'center', gap: 8,
-                      marginBottom: 8, cursor: 'pointer', fontSize: 13 }}>
-                      <input type="radio" name="airline" value={a}
+                    <label key={a} className="flights-filter-label">
+                      <input
+                        type="radio"
+                        name="airline"
+                        value={a}
                         checked={filterAirline === a}
                         onChange={() => setFilterAirline(a)}
-                        style={{ accentColor: 'var(--secondary)' }} />
+                        style={{ accentColor: 'var(--secondary)' }}
+                      />
                       {a}
                     </label>
                   ))}
@@ -429,26 +522,31 @@ const FlightListPage = () => {
               </>
             )}
 
-            <button onClick={handleReset}
-              style={{ width: '100%', padding: '10px', borderRadius: 10, border: '1px solid #e2e8f0',
-                background: '#f8fafc', color: 'var(--gray-600)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-              <i className="fas fa-undo" style={{ marginRight: 6 }} />Réinitialiser
+            {/* Bouton reset — remet tous les filtres à leurs valeurs initiales */}
+            <button onClick={handleReset} className="flights-reset-btn">
+              <i className="fas fa-undo" style={{ marginRight: 6 }} />
+              Réinitialiser
             </button>
           </aside>
 
-          {/* ── Results ─────────────────────────────────────── */}
+          {/* ── ZONE DES RÉSULTATS ──────────────────────────── */}
           <div>
-            {/* Sort bar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-              <p style={{ fontSize: 13, color: 'var(--gray-500)', margin: 0 }}>
+
+            {/* Barre de tri : compteur à gauche, select à droite */}
+            <div className="flights-sort-bar">
+              <p className="flights-sort-bar__count">
                 <strong style={{ color: 'var(--gray-700)' }}>{filtered.length}</strong>
                 {' '}vol{filtered.length > 1 ? 's' : ''} correspondant{filtered.length > 1 ? 's' : ''}
               </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+
+              <div className="flights-sort-bar__controls">
                 <span style={{ fontSize: 13, color: 'var(--gray-500)' }}>Trier :</span>
-                <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                  style={{ padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13, fontWeight: 600 }}>
+                {/* Select controlled : value={sortBy} + onChange → mise à jour état */}
+                <select
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value)}
+                  className="flights-sort-select"
+                >
                   <option value="price_asc">Prix croissant</option>
                   <option value="price_desc">Prix décroissant</option>
                   <option value="dep_asc">Départ (tôt → tard)</option>
@@ -458,25 +556,24 @@ const FlightListPage = () => {
               </div>
             </div>
 
+            {/* État vide : aucun vol ne correspond aux filtres */}
             {filtered.length === 0 ? (
-              <div style={{ background: '#fff', borderRadius: 16, padding: 40,
-                textAlign: 'center', border: '1px solid #f1f5f9' }}>
-                <i className="fas fa-filter"
-                  style={{ fontSize: 36, color: 'var(--gray-300)', marginBottom: 16, display: 'block' }} />
-                <p style={{ color: 'var(--gray-500)', fontSize: 14, marginBottom: 16 }}>
-                  Aucun vol ne correspond à vos filtres.
-                </p>
-                <button onClick={handleReset}
-                  style={{ padding: '8px 20px', borderRadius: 8, border: '1px solid #e2e8f0',
-                    background: '#f8fafc', color: 'var(--gray-600)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              <div className="flights-empty-state">
+                <i
+                  className="fas fa-filter"
+                  style={{ fontSize: 36, color: 'var(--gray-300)', marginBottom: 16, display: 'block' }}
+                />
+                <p>Aucun vol ne correspond à vos filtres.</p>
+                <button onClick={handleReset} className="flights-empty-state__btn">
                   Réinitialiser les filtres
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              /* Liste des cartes de vols filtrées et triées */
+              <div className="flights-cards-list">
                 {filtered.map(offer => (
                   <FlightCard
-                    key={offer.id}
+                    key={offer.id}   // key = ID Duffel unique → React optimise le re-render
                     offer={offer}
                     onSelect={() => handleSelect(offer)}
                   />

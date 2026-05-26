@@ -1,19 +1,47 @@
+/* ============================================================
+   FlightsPage.css
+   Styles pour toutes les pages vols :
+   FlightSearch, FlightListPage, FlightDetails
+   ============================================================ */
+
+/* ── Animations globales ─────────────────────────────────── */
+
+/* Effet de brillance qui balaie les skeleton loaders */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* Apparition depuis le bas — utilisée sur les stat-cards du hero */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Fond général des pages vols ─────────────────────────── */
+
+/* Fond avec dégradés radiaux subtils pour donner de la profondeur */
 .flights-page,
 .flights-reservation-page {
   background:
     radial-gradient(circle at top right, rgba(30, 202, 211, 0.12), transparent 22rem),
-    radial-gradient(circle at 10% 30%, rgba(160, 18, 56, 0.08), transparent 18rem),
+    radial-gradient(circle at 10% 30%,   rgba(160, 18, 56, 0.08),  transparent 18rem),
     linear-gradient(180deg, #f8fbfc 0%, #ffffff 32%, #f7fafc 100%);
 }
 
+/* ── Hero section ────────────────────────────────────────── */
+
+/* Pseudo-élément qui adoucit la transition entre le hero sombre et le fond blanc */
 .flights-hero::after {
   content: '';
   position: absolute;
-  inset: auto 0 0;
+  inset: auto 0 0;           /* collé en bas, bords gauche et droit */
   height: 110px;
   background: linear-gradient(180deg, rgba(15, 76, 92, 0) 0%, rgba(248, 251, 252, 0.9) 100%);
-  pointer-events: none;
+  pointer-events: none;      /* ne bloque pas les clics */
 }
+
+/* Image de fond optionnelle dans le hero */
 .flight-hero-image {
   position: absolute;
   inset: 0;
@@ -23,23 +51,524 @@
   object-position: center 40%;
 }
 
-.flights-search-card,
-.flights-reservation-shell .omra-reserve__form-card,
-.flights-reservation-shell .omra-reserve__pkg-card,
-.flights-reservation-shell .omra-reserve__summary,
-.flights-results-grid aside,
-.flights-results-grid > div:last-child {
-  backdrop-filter: blur(10px);
+/* Cercles décoratifs absolus dans le hero */
+.flights-hero__circle-tr {
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  pointer-events: none;
 }
 
-.flights-reservation-shell {
-  padding: 18px 0 42px;
+.flights-hero__circle-bl {
+  position: absolute;
+  bottom: -80px;
+  left: -40px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  pointer-events: none;
 }
+
+/* Icône avion décorative en filigrane dans le hero */
+.flights-hero__watermark {
+  position: absolute;
+  top: 30%;
+  left: 8%;
+  opacity: 0.07;
+  font-size: 120px;
+  color: #fff;
+  transform: rotate(-20deg);
+  pointer-events: none;
+}
+
+/* Conteneur principal du hero : texte centré + formulaire */
+.flights-hero__inner {
+  position: relative;
+  z-index: 1;  /* passe au-dessus des cercles et du filigrane */
+}
+
+/* Titre principal du hero */
+.flights-hero__title {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.flights-hero__title h1 {
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+}
+
+.flights-hero__subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+}
+
+/* ── Carte de recherche (formulaire) ─────────────────────── */
+
+/* Carte blanche flottante qui contient le formulaire de recherche */
+.flights-search-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  max-width: 960px;
+  margin: 0 auto;
+  backdrop-filter: blur(10px);  /* léger flou sur fond si image présente */
+}
+
+/* Groupe de boutons aller-simple / aller-retour */
+.flights-trip-type {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+/* Bouton de type de trajet (aller-simple ou aller-retour) */
+.flights-trip-btn {
+  padding: 9px 20px;
+  border-radius: 30px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.flights-trip-btn--active {
+  background: var(--secondary);
+  color: #fff;
+}
+
+.flights-trip-btn--inactive {
+  background: #f1f5f9;
+  color: var(--gray-600);
+}
+
+/* Ligne 1 du formulaire : origine / swap / destination / date départ / date retour */
+.flights-form-row1 {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: end;
+}
+
+/* 4 colonnes en aller simple, 5 colonnes en aller-retour */
+.flights-form-row1--oneway    { grid-template-columns: 1fr auto 1fr 1fr; }
+.flights-form-row1--roundtrip { grid-template-columns: 1fr auto 1fr 1fr 1fr; }
+
+/* Bouton rond pour inverser origine et destination */
+.flights-swap-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: end;
+  margin-bottom: 2px;
+  flex-shrink: 0;  /* ne rétrécit pas dans le grid */
+}
+
+/* Ligne 2 du formulaire : adultes / enfants / classe / checkbox directs */
+.flights-form-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 14px;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+/* Label + checkbox "Vols directs seulement" */
+.flights-direct-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-600);
+  white-space: nowrap;
+  padding-bottom: 4px;
+}
+
+/* Bouton de soumission du formulaire de recherche */
+.flights-submit-btn {
+  width: 100%;
+  padding: 15px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #fff;
+  transition: background 0.2s;
+}
+
+.flights-submit-btn--loading {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.flights-submit-btn--ready {
+  background: linear-gradient(135deg, #e92f64, #c2185b);
+  cursor: pointer;
+}
+
+/* ── Bande de statistiques sous le formulaire ────────────── */
+
+/* Conteneur flex centré pour les 4 chiffres clés */
+.flights-stats-strip {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 32px;
+  flex-wrap: wrap;  /* passe à la ligne sur petit écran */
+}
+
+/* Un seul chiffre clé (500+, 130+, etc.) */
+.stat-card {
+  text-align: center;
+  animation: fadeUp 0.5s ease both;  /* apparition animée au chargement */
+}
+
+.stat-card__value {
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.stat-card__label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+/* ── Message d'erreur formulaire ─────────────────────────── */
+
+.flights-form-error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Composant Counter (±) ───────────────────────────────── */
+
+/* Conteneur du compteur adultes/enfants */
+.flights-counter {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;  /* coins arrondis respectés par les boutons enfants */
+}
+
+/* Boutons − et + */
+.flights-counter__btn {
+  padding: 10px 16px;
+  border: none;
+  background: #f8fafc;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.flights-counter__btn--active {
+  cursor: pointer;
+  color: var(--gray-700);
+}
+
+.flights-counter__btn--disabled {
+  cursor: not-allowed;
+  color: #cbd5e1;  /* gris clair quand désactivé */
+}
+
+/* Affichage de la valeur numérique entre les deux boutons */
+.flights-counter__value {
+  flex: 1;            /* prend tout l'espace disponible pour rester centré */
+  text-align: center;
+  font-weight: 700;
+  font-size: 15px;
+  min-width: 30px;    /* évite le rétrécissement quand valeur = 1 chiffre */
+}
+
+/* ── Skeleton loader (placeholder animé pendant chargement) ── */
+
+/* Bloc gris animé qui simule une carte de vol en cours de chargement */
+.flights-skeleton {
+  border-radius: 16px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e8edf2 50%, #f1f5f9 75%);
+  background-size: 200% 100%;  /* gradient 2× plus large pour l'effet de balayage */
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.flights-skeleton--card  { height: 110px; }  /* taille sur FlightSearch */
+.flights-skeleton--large { height: 120px; }  /* taille sur SuggestedFlights */
+
+/* Liste verticale de skeletons */
+.flights-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Badge "Offres du moment" ────────────────────────────── */
+
+/* Petit badge orange arrondi affiché au-dessus des titres de section */
+.flights-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(230, 126, 34, 0.08);
+  border-radius: 20px;
+  padding: 4px 14px;
+  margin-bottom: 10px;
+}
+
+.flights-badge__text {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ── Section title bloc (badge + h2 + sous-titre) ────────── */
+
+.flights-section-title {
+  margin-bottom: 28px;
+}
+
+.flights-section-title h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 6px;
+}
+
+.flights-section-title p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ── Onglets de routes (SuggestedFlights) ────────────────── */
+
+/* Conteneur flex des onglets Tunis → Paris, Istanbul... */
+.flights-route-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+/* Un onglet de route */
+.flights-route-tab {
+  padding: 9px 18px;
+  border-radius: 30px;
+  border: none;
+  font-weight: 700;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.flights-route-tab--active {
+  background: var(--secondary, #e67e22);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(230, 126, 34, 0.3);
+  cursor: pointer;
+}
+
+.flights-route-tab--inactive {
+  background: #f1f5f9;
+  color: var(--gray-600, #475569);
+  cursor: pointer;
+}
+
+.flights-route-tab--loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Compteur d'offres + label "Prix temps réel" ─────────── */
+
+.flights-offers-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.flights-offers-bar__count {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+.flights-offers-bar__realtime {
+  font-size: 11px;
+  color: var(--gray-400);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── CTA bas de page suggestions ─────────────────────────── */
+
+/* Bloc "Vous avez une destination précise ?" */
+.flights-cta-box {
+  margin-top: 28px;
+  padding: 20px 24px;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  text-align: center;
+}
+
+.flights-cta-box p {
+  font-size: 14px;
+  color: var(--gray-600);
+  margin: 0 0 14px;
+}
+
+/* Bouton rose "Faire une recherche personnalisée" */
+.flights-cta-btn {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #e92f64, #c2185b);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── État d'erreur (chargement impossible) ───────────────── */
+
+.flights-error-box {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 12px;
+  padding: 18px 22px;
+  font-size: 13px;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.flights-error-box__icon {
+  font-size: 18px;
+  flex-shrink: 0;  /* l'icône ne rétrécit pas si le texte est long */
+}
+
+.flights-error-box__title {
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.flights-error-box__msg {
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* ── Section suggestions (SuggestedFlights wrapper) ─────── */
+
+.flights-suggestions {
+  padding-top: 36px;
+  padding-bottom: 60px;
+}
+
+.flights-suggestions__header {
+  margin-bottom: 24px;
+}
+
+.flights-suggestions__headline {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--gray-800, #1e293b);
+  margin: 0 0 6px;
+}
+
+.flights-suggestions__meta {
+  font-size: 13px;
+  color: var(--gray-500, #64748b);
+  margin: 0;
+}
+
+/* ── Page header dégradé (FlightListPage & FlightDetails) ── */
+
+/* Barre de navigation supérieure gradient bleu marine */
+.flights-page-header {
+  background: linear-gradient(135deg, var(--primary) 0%, #0f3460 100%);
+  padding-top: 110px;
+  padding-bottom: 24px;
+}
+
+/* Conteneur flex : titre à gauche, badge compteur à droite */
+.flights-page-header__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.flights-page-header__title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.flights-page-header__subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* Badge blanc semi-transparent : "12 vols trouvés" */
+.flights-count-badge {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 6px 16px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ── Layout résultats (sidebar + liste) ──────────────────── */
 
 .flights-results-layout {
   position: relative;
 }
 
+/* Tache décorative orange en arrière-plan */
 .flights-results-layout::before {
   content: '';
   position: absolute;
@@ -51,29 +580,752 @@
   pointer-events: none;
 }
 
+/* Grid 2 colonnes : sidebar filtres 260px + résultats flexibles */
+.flights-results-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  align-items: start;
+  backdrop-filter: blur(10px);
+}
+
+/* ── Sidebar filtres ─────────────────────────────────────── */
+
+.flights-sidebar {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  position: sticky;  /* reste visible lors du scroll */
+  top: 90px;         /* distance du haut = hauteur navbar (~70px) + marge */
+}
+
+.flights-sidebar__title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--gray-700);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Label de section dans la sidebar (ESCALES, PRIX MAX...) */
+.flights-sidebar__section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+/* Ligne séparatrice entre les sections de filtres */
+.flights-sidebar__divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin-bottom: 20px;
+}
+
+/* Label cliquable autour d'un radio button */
+.flights-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* Champ input prix maximum */
+.flights-price-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+/* Ligne min/max sous l'input prix */
+.flights-price-range {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--gray-400);
+  margin-top: 4px;
+}
+
+/* Bouton "Réinitialiser les filtres" */
+.flights-reset-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: var(--gray-600);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── Barre de tri au-dessus des résultats ────────────────── */
+
+.flights-sort-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.flights-sort-bar__count {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+.flights-sort-bar__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flights-sort-select {
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── État vide (aucun vol ne correspond aux filtres) ─────── */
+
+.flights-empty-state {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  border: 1px solid #f1f5f9;
+}
+
+.flights-empty-state p {
+  color: var(--gray-500);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.flights-empty-state__btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: var(--gray-600);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── Liste des cartes de vols ────────────────────────────── */
+
+.flights-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Badge "Meilleur prix" sur première offre ────────────── */
+
+/* Wrapper relatif pour positionner le badge sur la carte */
+.flights-best-price-wrapper {
+  position: relative;
+}
+
+/* Badge doré positionné en haut à gauche de la carte */
+.flights-best-price-badge {
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  z-index: 2;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ── Grille de fonctionnalités "Pourquoi nous" ───────────── */
+
+/* 3 colonnes de cartes d'arguments commerciaux */
+.flights-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+/* Une carte d'argument (icône + titre + description) */
+.flights-feature-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+/* Icône carrée colorée dans la carte */
+.flights-feature-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flights-feature-card h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0a2832;
+  margin-bottom: 6px;
+  margin-top: 0;
+}
+
+.flights-feature-card p {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Sections avec marge basse ───────────────────────────── */
+
+.flights-section {
+  margin-bottom: 64px;
+}
+
+/* ── FlightDetails — layout gauche + sidebar droite ──────── */
+
+/* Colonne gauche : liste des slices + conditions + bagages */
+.flights-details-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Carte d'un slice (aller ou retour) */
+.flights-slice-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  overflow: hidden;  /* les coins arrondis s'appliquent au header gradient */
+}
+
+/* Header gradient du slice : "Aller — TUN → CDG" */
+.flights-slice-header {
+  background: linear-gradient(135deg, var(--primary), #0f3460);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flights-slice-header__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.flights-slice-header__badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Badge durée et badge escales dans le header du slice */
+.flights-slice-badge {
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.flights-slice-badge--duration { background: rgba(255, 255, 255, 0.15); }
+.flights-slice-badge--direct   { background: rgba(26, 138, 74, 0.8); }    /* vert */
+.flights-slice-badge--stopover { background: rgba(176, 125, 0, 0.8); }    /* jaune */
+
+/* Corps du slice contenant les segments */
+.flights-slice-body {
+  padding: 20px;
+}
+
+/* Badge jaune de correspondance entre deux segments */
+.flights-connexion-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0;
+  padding: 8px 14px;
+  background: #fff8e1;
+  border-radius: 8px;
+  border: 1px solid #fde68a;
+  font-size: 12px;
+  font-weight: 600;
+  color: #b07d00;
+}
+
+/* Grid d'un segment : logo | trajet | classe */
+.flights-segment-grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+
+/* Colonne logo compagnie */
+.flights-segment-logo {
+  text-align: center;
+  min-width: 64px;
+}
+
+.flights-segment-logo img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+  padding: 4px;
+}
+
+/* Placeholder quand pas de logo */
+.flights-segment-logo__placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Numéro de vol sous le logo */
+.flights-segment-logo__number {
+  font-size: 10px;
+  color: var(--gray-400);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* Trajet : départ — ligne — arrivée */
+.flights-segment-path {
+  display: flex;
+  align-items: center;
+}
+
+/* Bloc heure + code IATA + nom aéroport + date */
+.flights-segment-airport {
+  text-align: center;
+  min-width: 80px;
+}
+
+.flights-segment-airport__time {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--gray-800);
+  margin: 0;
+  line-height: 1;
+}
+
+.flights-segment-airport__iata {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--secondary);
+  margin: 2px 0;
+}
+
+.flights-segment-airport__name {
+  font-size: 11px;
+  color: var(--gray-400);
+  margin: 0;
+}
+
+.flights-segment-airport__date {
+  font-size: 10px;
+  color: var(--gray-400);
+  margin: 0;
+}
+
+/* Ligne centrale avec icône avion et durée */
+.flights-segment-line {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.flights-segment-line__bar {
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.flights-segment-line__info {
+  padding: 0 8px;
+  color: var(--gray-400);
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;  /* la durée ne se coupe pas */
+}
+
+/* Infos de droite : badge classe cabine + type avion + compagnie */
+.flights-segment-info {
+  text-align: right;
+}
+
+.flights-segment-info__cabin {
+  display: inline-block;
+  background: #f0f9ff;
+  color: #0369a1;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.flights-segment-info__aircraft,
+.flights-segment-info__carrier {
+  font-size: 11px;
+  color: var(--gray-500);
+  margin: 2px 0 0;
+}
+
+.flights-segment-info__carrier { font-weight: 600; }
+
+/* ── Carte conditions tarifaires ─────────────────────────── */
+
+.flights-conditions-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.flights-conditions-card__title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--gray-700);
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Grid 2 colonnes pour changement + remboursement */
+.flights-conditions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Une condition tarifaire (autorisé / non autorisé / non précisé) */
+.flights-condition-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+}
+
+/* Variantes de couleur selon le statut */
+.flights-condition-item--ok  { background: #f0fdf4; border: 1px solid #bbf7d0; }
+.flights-condition-item--no  { background: #fef2f2; border: 1px solid #fecaca; }
+.flights-condition-item--na  { background: #f8fafc; border: 1px solid #e2e8f0; }
+
+.flights-condition-item__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin: 0 0 2px;
+}
+
+.flights-condition-item__val {
+  font-size: 11px;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+/* ── Carte bagages ────────────────────────────────────────── */
+
+.flights-baggage-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.flights-baggage-card__title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--gray-700);
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Label "PASSAGER 1 (adult)" */
+.flights-baggage__pax-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* Tag vert pour chaque bagage inclus */
+.flights-baggage-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+/* ── Sidebar prix (FlightDetails) ───────────────────────── */
+
+/* Carte principale de prix avec CTA */
+.flights-price-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 16px;
+}
+
+/* Résumé du vol (logo + route + compagnie) en haut de la sidebar */
+.flights-price-card__summary {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.flights-price-card__summary img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+  padding: 4px;
+  margin-bottom: 10px;
+}
+
+.flights-price-card__route {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--gray-800);
+  margin: 0 0 4px;
+}
+
+.flights-price-card__carrier {
+  font-size: 13px;
+  color: var(--gray-400);
+  margin: 0;
+}
+
+/* Décomposition du prix : passagers + taxes */
+.flights-price-breakdown {
+  margin-bottom: 16px;
+}
+
+/* Une ligne de décomposition */
+.flights-price-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed #f1f5f9;
+  font-size: 13px;
+}
+
+.flights-price-row__label { color: var(--gray-500); }
+.flights-price-row__value { font-weight: 700; color: var(--gray-700); }
+
+/* Ligne Total avec grand montant orange */
+.flights-price-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  margin-bottom: 16px;
+}
+
+.flights-price-total__label {
+  font-weight: 700;
+  color: var(--gray-700);
+}
+
+.flights-price-total__amount {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--secondary);
+}
+
+/* Avertissement d'expiration de l'offre */
+.flights-expiry-warning {
+  background: #fff8e1;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: #b07d00;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Bouton principal "Réserver ce vol" */
+.flights-book-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #e92f64, #c2185b);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Texte "Sans frais supplémentaires" sous le bouton */
+.flights-book-reassurance {
+  font-size: 11px;
+  color: var(--gray-400);
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* Carte d'aide téléphonique en bas de sidebar */
+.flights-help-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #f1f5f9;
+}
+
+.flights-help-card h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin-bottom: 12px;
+}
+
+.flights-help-card p {
+  font-size: 13px;
+  color: var(--gray-500);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+/* Lien téléphone cliquable */
+.flights-help-card__phone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--secondary);
+  text-decoration: none;
+}
+
+/* ── Guard page "aucun vol sélectionné" ─────────────────── */
+
+.flights-guard {
+  padding-top: 160px;
+  text-align: center;
+  min-height: 60vh;
+}
+
+.flights-guard__btn {
+  padding: 14px 32px;
+  background: var(--secondary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+
+/* Tablette : 2 colonnes pour grilles d'icônes, sidebar pleine largeur */
 @media (max-width: 1100px) {
-  .flights-destination-grid,
   .flights-feature-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
+  /* Sidebar passe au-dessus de la liste → grille 1 colonne */
   .flights-results-grid {
     grid-template-columns: 1fr !important;
   }
 
-  .flights-results-grid aside {
+  /* La sidebar ne colle plus, elle suit le flux normal */
+  .flights-sidebar {
     position: static !important;
   }
 }
 
+/* Mobile : tout en 1 colonne, paddings réduits */
 @media (max-width: 760px) {
   .flights-search-card {
     padding: 20px 16px !important;
     border-radius: 18px !important;
   }
 
-  .flights-destination-grid,
   .flights-feature-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .flights-form-row1--oneway,
+  .flights-form-row1--roundtrip {
+    grid-template-columns: 1fr !important;
+  }
+
+  .flights-form-row2 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .flights-conditions-grid {
     grid-template-columns: 1fr !important;
   }
 
