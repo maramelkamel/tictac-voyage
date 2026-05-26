@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
-const API = 'http://localhost:5000/api/auth';
+// This base URL keeps the password reset flow aligned with the frontend environment.
+const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth`;
 
+// This page submits the new password after the email and reset code are validated.
 const ResetPassword = () => {
   const [searchParams]              = useSearchParams();
   const navigate                    = useNavigate();
@@ -16,12 +18,18 @@ const ResetPassword = () => {
   const [message,   setMessage]     = useState('');
   const [success,   setSuccess]     = useState(false);
 
-  // Guard: if no email/code in URL, redirect
+  // This effect protects the page when the reset link is missing its required parameters.
+  useEffect(() => {
+    if (!email || !code) {
+      navigate('/ForgotPassword', { replace: true });
+    }
+  }, [code, email, navigate]);
+
   if (!email || !code) {
-    navigate('/forgot-password');
     return null;
   }
 
+  // This submit handler validates the new password and completes the reset request.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
@@ -49,6 +57,7 @@ const ResetPassword = () => {
     setLoading(false);
   };
 
+  // These shared input styles keep the reset form fields consistent.
   const inputStyle = {
     width: '100%', padding: '13px 44px 13px 16px', borderRadius: 10,
     border: '1.5px solid #e2e8f0', fontSize: 14, fontFamily: 'inherit',

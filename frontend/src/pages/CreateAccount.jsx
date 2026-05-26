@@ -4,8 +4,10 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import '../styles/createaccount.css';
 
-const API = 'http://localhost:5000/api/auth';
+// This base URL keeps the registration flow aligned with the frontend environment.
+const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth`;
 
+// This page collects the client registration form and creates the account.
 const CreateAccount = () => {
   const navigate = useNavigate();
 
@@ -30,6 +32,7 @@ const CreateAccount = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
 
+  // This handler updates the form state and clears local validation/server errors.
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -40,6 +43,7 @@ const CreateAccount = () => {
     if (serverError) setServerError('');
   };
 
+  // This validator checks the required registration fields before calling the API.
   const validate = () => {
     const newErrors = {};
     if (!formData.firstName.trim()) newErrors.firstName = 'Prénom requis';
@@ -56,6 +60,7 @@ const CreateAccount = () => {
     return newErrors;
   };
 
+  // This submit handler creates the client account and stores the returned session.
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
@@ -99,6 +104,7 @@ const CreateAccount = () => {
     }
   };
 
+  // This helper gives quick UI feedback about the password strength.
   const getPasswordStrength = () => {
     const p = formData.password;
     if (!p) return 0;

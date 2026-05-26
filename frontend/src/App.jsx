@@ -43,7 +43,6 @@ import FlightSearch from './pages/flight/FlightSearch';
 import FlightListPage from './pages/flight/FlightsListPage';
 import FlightDetails from './pages/flight/FlightDetailPage';
 import FlightReservations from './pages/admin/flight/FlightReservations';
-import FlightPricingAdmin from './pages/admin/flight/FlightPricingAdmin';
 
 import HotelsPage from './pages/hotels/HotelsPage';
 import HotelReservationPage from './pages/hotels/HotelReservationPage';
@@ -107,7 +106,7 @@ function App() {
       
       <Route path="/flights/details"     element={<FlightDetails />} />
       <Route path="/admin/flights/reservations"       element={<FlightReservations />} />
-      <Route path="/admin/flights/pricing"      element={<FlightPricingAdmin />} />
+   
 
 
       <Route path="/hotels" element={<HotelsPage />} />

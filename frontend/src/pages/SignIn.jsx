@@ -4,8 +4,10 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import '../styles/signin.css';
 
+// This base URL keeps the sign-in flow aligned with the frontend environment.
 const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth`;
 
+// This page handles client sign-in and stores the authenticated session locally.
 const SignIn = () => {
   const navigate = useNavigate();
 
@@ -21,12 +23,14 @@ const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
 
+  // This helper saves the authenticated client session and redirects to the hotel catalog.
   const persistSession = (payload) => {
     localStorage.setItem('token', payload.token);
     localStorage.setItem('client', JSON.stringify(payload.client));
     navigate('/hotels');
   };
 
+  // This handler keeps the form state, field errors, and server errors in sync while typing.
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -43,6 +47,7 @@ const SignIn = () => {
     }
   };
 
+  // This validator blocks empty or malformed credentials before the API request is sent.
   const validate = () => {
     const newErrors = {};
 
@@ -59,6 +64,7 @@ const SignIn = () => {
     return newErrors;
   };
 
+  // This submit handler authenticates the client and shows backend errors when login fails.
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
@@ -231,6 +237,8 @@ const SignIn = () => {
   <span style={{ fontSize: 12, color: '#9ca3af', whiteSpace: 'nowrap' }}>ou continuer avec</span>
   <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
 </div>
+
+
 
 {/* Bouton Google */}
 <button

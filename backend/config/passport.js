@@ -2,6 +2,7 @@ const passport       = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { upsertGoogleClient } = require('../models/authModel');
 
+// This strategy handles Google OAuth login and maps Google users to client accounts.
 passport.use(
   new GoogleStrategy(
     {
@@ -10,6 +11,7 @@ passport.use(
       callbackURL:  process.env.GOOGLE_CALLBACK_URL,
       scope: ['profile', 'email'],
     },
+    // This callback links the Google profile to an existing client or creates a new one.
     async (_accessToken, _refreshToken, profile, done) => {
       try {
         const email     = profile.emails?.[0]?.value;

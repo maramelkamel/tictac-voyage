@@ -105,7 +105,6 @@ const MODULES = [
     title: 'Billeterie / Vols', color: 'blue', status: 'active', desc: 'Vols & tarification',
     links: [
       { label: 'Réservations',     path: '/admin/flights/reservations', sk: 'flightsPending', badge: true  },
-      { label: 'Gestion des prix', path: '/admin/flights/pricing',      sk: null,             badge: false },
     ],
   },
   {

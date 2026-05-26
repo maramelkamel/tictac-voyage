@@ -36,6 +36,12 @@ const buildTravellerLabel = (adults = 0, children = 0, babies = 0) => {
   return parts.join(', ');
 };
 
+const sumRoomAllocations = (roomAllocations = []) => roomAllocations.reduce((acc, room) => ({
+  adults: acc.adults + Math.max(toNumber(room?.adults, 0), 0),
+  children: acc.children + Math.max(toNumber(room?.children, 0), 0),
+  babies: acc.babies + Math.max(toNumber(room?.babies, 0), 0),
+}), { adults: 0, children: 0, babies: 0 });
+
 const normalizeRoomAllocations = (reservation = {}, roomsFallback = 1) => {
   const roomCount = Math.max(toNumber(reservation.rooms, roomsFallback), 1);
   const rawAllocations = Array.isArray(reservation.room_allocations) ? reservation.room_allocations : [];
@@ -220,8 +226,40 @@ const bookHotel = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Hotel not found.' });
     }
 
-    const requestedRooms = toNumber(reservation.rooms, 1);
+    const requestedRooms = Number.parseInt(reservation.rooms, 10);
+    if (!Number.isInteger(requestedRooms) || requestedRooms < 1) {
+      return res.status(400).json({ success: false, message: 'Room count must be at least 1.' });
+    }
+
+    const checkInDate = new Date(reservation.check_in);
+    const checkOutDate = new Date(reservation.check_out);
+    if (
+      Number.isNaN(checkInDate.getTime())
+      || Number.isNaN(checkOutDate.getTime())
+      || checkOutDate <= checkInDate
+    ) {
+      return res.status(400).json({ success: false, message: 'Check-in and check-out dates are invalid.' });
+    }
+
     const normalizedRoomAllocations = normalizeRoomAllocations(reservation, requestedRooms);
+    const travellerTotals = {
+      adults: Math.max(toNumber(reservation.adults, 2), 0),
+      children: Math.max(toNumber(reservation.children, 0), 0),
+      babies: Math.max(toNumber(reservation.babies, 0), 0),
+    };
+    const allocationTotals = sumRoomAllocations(normalizedRoomAllocations);
+
+    if (
+      allocationTotals.adults !== travellerTotals.adults
+      || allocationTotals.children !== travellerTotals.children
+      || allocationTotals.babies !== travellerTotals.babies
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Room allocation totals must match the main traveller counts.',
+      });
+    }
+
     if (selectedHotel.available_rooms < requestedRooms) {
       return res.status(400).json({
         success: false,
@@ -242,9 +280,9 @@ const bookHotel = async (req, res) => {
       hotel_location: selectedHotel.address || reservation.city || 'Tunisia',
       check_in: reservation.check_in,
       check_out: reservation.check_out,
-      adults: toNumber(reservation.adults, 2),
-      children: toNumber(reservation.children, 0),
-      babies: toNumber(reservation.babies, 0),
+      adults: travellerTotals.adults,
+      children: travellerTotals.children,
+      babies: travellerTotals.babies,
       rooms: requestedRooms,
       room_type: reservation.room_type || null,
       meal_plan: reservation.meal_plan || null,
