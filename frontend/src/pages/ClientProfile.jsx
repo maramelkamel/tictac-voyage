@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { getFavoritePath } from '../utils/favorites';
+import '../styles/ClientProfile.css';
 
 // This base URL keeps the profile and reservation requests aligned with the frontend environment.
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -43,10 +44,9 @@ const isPromotionActive = (promotion) => {
   if (!promotion?.is_active) return false;
   const today = new Date();
   const start = promotion.date_debut ? new Date(promotion.date_debut) : null;
-  const end = promotion.date_fin ? new Date(promotion.date_fin) : null;
-
+  const end   = promotion.date_fin   ? new Date(promotion.date_fin)   : null;
   if (start && start > today) return false;
-  if (end && end < today) return false;
+  if (end   && end   < today) return false;
   return true;
 };
 
@@ -68,36 +68,57 @@ const fDT   = (d) => d ? new Date(d).toLocaleString('fr-FR')     : '—';
 // This badge renders a consistent visual state for reservations and contact messages.
 const StatusBadge = ({ status }) => {
   const map = {
-    pending:   { label:'En attente', bg:'#fff7ed', color:'#c2410c' },
-    confirmed: { label:'Confirmé',   bg:'#d1fae5', color:'#065f46' },
-    completed: { label:'Terminé',    bg:'#e0fbfc', color:'#0e7490' },
-    cancelled: { label:'Annulé',     bg:'#fee2e2', color:'#991b1b' },
-    lu:        { label:'Lu',         bg:'#eff6ff', color:'#1d4ed8' },
-    repondu:   { label:'Répondu',    bg:'#d1fae5', color:'#065f46' },
-    nouveau:   { label:'Nouveau',    bg:'#fff7ed', color:'#c2410c' },
-    archive:   { label:'Archivé',    bg:'#f1f5f9', color:'#64748b' },
+    pending:   'pending',
+    confirmed: 'confirmed',
+    completed: 'completed',
+    cancelled: 'cancelled',
+    lu:        'lu',
+    repondu:   'repondu',
+    nouveau:   'nouveau',
+    archive:   'archive',
   };
-  const m = map[status] || { label:status, bg:'#f1f5f9', color:'#64748b' };
-  return <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'3px 10px', borderRadius:999, fontSize:11, fontWeight:600, background:m.bg, color:m.color, whiteSpace:'nowrap' }}>{m.label}</span>;
+  const labels = {
+    pending:   'En attente',
+    confirmed: 'Confirmé',
+    completed: 'Terminé',
+    cancelled: 'Annulé',
+    lu:        'Lu',
+    repondu:   'Répondu',
+    nouveau:   'Nouveau',
+    archive:   'Archivé',
+  };
+  const key   = map[status] || null;
+  const label = labels[status] || status;
+  return (
+    <span className={`cp-badge${key ? ` cp-badge--${key}` : ''}`}>
+      {label}
+    </span>
+  );
 };
 
 // This tab button is reused across the profile sections.
 const Tab = ({ id, label, icon, active, onClick, count }) => (
-  <button onClick={() => onClick(id)}
-    style={{ display:'flex', alignItems:'center', gap:8, padding:'12px 20px', border:'none', fontFamily:'inherit', borderRadius:'10px 10px 0 0', background:active?'#fff':'transparent', color:active?'#0F4C5C':'#64748b', fontWeight:active?700:500, fontSize:14, cursor:'pointer', borderBottom:active?'2px solid #0F4C5C':'2px solid transparent', marginBottom:-2, transition:'all .2s' }}>
-    <i className={icon} style={{ fontSize:13 }} />
+  <button
+    onClick={() => onClick(id)}
+    className={`cp-tab${active ? ' cp-tab--active' : ''}`}
+  >
+    <i className={`${icon} cp-tab__icon`} />
     {label}
     {count !== undefined && count > 0 && (
-      <span style={{ background:active?'#0F4C5C':'#e2e8f0', color:active?'#fff':'#64748b', fontSize:11, fontWeight:700, padding:'1px 7px', borderRadius:999 }}>{count}</span>
+      <span className={`cp-tab__count ${active ? 'cp-tab__count--active' : 'cp-tab__count--inactive'}`}>
+        {count}
+      </span>
     )}
   </button>
 );
 
 // This section header standardizes titles for grouped reservation cards.
 const SectionHead = ({ emoji, label, count, color, bg }) => (
-  <h3 style={{ fontSize:13, fontWeight:700, color, textTransform:'uppercase', letterSpacing:'.08em', marginBottom:12, display:'flex', alignItems:'center', gap:8 }}>
+  <h3 className="cp-section-head" style={{ color }}>
     {emoji} {label}
-    <span style={{ background:bg, color, padding:'1px 8px', borderRadius:999, fontSize:11 }}>{count}</span>
+    <span className="cp-section-head__count" style={{ background: bg, color }}>
+      {count}
+    </span>
   </h3>
 );
 
@@ -111,17 +132,17 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
 
   // This local section wrapper keeps the modal layout consistent.
   const Section = ({ title, children }) => (
-    <div style={{ marginBottom:20 }}>
-      <p style={{ fontSize:10, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:10, borderBottom:'1px solid #f1f5f9', marginBottom:12 }}>{title}</p>
+    <div className="cp-msection">
+      <p className="cp-msection__title">{title}</p>
       {children}
     </div>
   );
 
   // This local row helper displays label/value pairs inside the modal.
   const Row = ({ label, value, accent }) => value ? (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:8, background:'#f8fafc', marginBottom:6 }}>
-      <span style={{ fontSize:12, color:'#64748b', fontWeight:500 }}>{label}</span>
-      <span style={{ fontSize:13, fontWeight:600, color:accent||'#1e293b' }}>{value}</span>
+    <div className="cp-mrow">
+      <span className="cp-mrow__label">{label}</span>
+      <span className="cp-mrow__value" style={accent ? { color: accent } : undefined}>{value}</span>
     </div>
   ) : null;
 
@@ -131,21 +152,21 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
     if (type === 'omra') return (
       <>
         <Section title="Forfait Omra">
-          <Row label="Forfait"     value={r.package_title || `Forfait #${r.package_id || r.id}`}/>
-          <Row label="Durée"       value={r.duration ? `${r.duration} jours` : null}/>
-          <Row label="Départ"      value={r.departure || null}/>
-          <Row label="Chambre"     value={r.chambre_type}/>
-          <Row label="Personnes"   value={`${r.number_of_persons} personne${r.number_of_persons>1?'s':''}`}/>
-          <Row label="Passeport"   value={r.passport_number || null}/>
+          <Row label="Forfait"          value={r.package_title || `Forfait #${r.package_id || r.id}`}/>
+          <Row label="Durée"            value={r.duration ? `${r.duration} jours` : null}/>
+          <Row label="Départ"           value={r.departure || null}/>
+          <Row label="Chambre"          value={r.chambre_type}/>
+          <Row label="Personnes"        value={`${r.number_of_persons} personne${r.number_of_persons>1?'s':''}`}/>
+          <Row label="Passeport"        value={r.passport_number || null}/>
         </Section>
         <Section title="Paiement">
-          <Row label="Méthode"     value={r.payment_method==='online'?'💳 Paiement en ligne':"🏪 Paiement à l'agence"}/>
-          <Row label="Statut paiement" value={r.payment_status==='paid'?'✅ Payé':'⏳ En attente'} accent={r.payment_status==='paid'?'#059669':'#c2410c'}/>
-          <Row label="Total"       value={r.total_price ? `${Number(r.total_price).toLocaleString('fr-TN')} TND` : null} accent="#0F4C5C"/>
+          <Row label="Méthode"          value={r.payment_method==='online'?'💳 Paiement en ligne':"🏪 Paiement à l'agence"}/>
+          <Row label="Statut paiement"  value={r.payment_status==='paid'?'✅ Payé':'⏳ En attente'} accent={r.payment_status==='paid'?'#059669':'#c2410c'}/>
+          <Row label="Total"            value={r.total_price ? `${Number(r.total_price).toLocaleString('fr-TN')} TND` : null} accent="#0F4C5C"/>
         </Section>
         {r.notes && (
           <Section title="Remarques">
-            <p style={{ fontSize:13, color:'#475569', background:'#f8fafc', padding:'12px 14px', borderRadius:8, lineHeight:1.6 }}>{r.notes}</p>
+            <p className="cp-mtext">{r.notes}</p>
           </Section>
         )}
       </>
@@ -162,12 +183,12 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
           <Row label="Personnes"   value={`${r.number_of_persons} personne${r.number_of_persons>1?'s':''}`}/>
         </Section>
         <Section title="Paiement">
-          <Row label="Méthode"     value={r.payment_method==='online'?'💳 En ligne':"🏪 Agence"}/>
-          <Row label="Total"       value={r.total_price ? `${Number(r.total_price).toLocaleString('fr-TN')} TND` : null} accent="#0F4C5C"/>
+          <Row label="Méthode" value={r.payment_method==='online'?'💳 En ligne':"🏪 Agence"}/>
+          <Row label="Total"   value={r.total_price ? `${Number(r.total_price).toLocaleString('fr-TN')} TND` : null} accent="#0F4C5C"/>
         </Section>
         {r.notes && (
           <Section title="Remarques">
-            <p style={{ fontSize:13, color:'#475569', background:'#f8fafc', padding:'12px 14px', borderRadius:8, lineHeight:1.6 }}>{r.notes}</p>
+            <p className="cp-mtext">{r.notes}</p>
           </Section>
         )}
       </>
@@ -176,21 +197,21 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
     if (type === 'circuit') return (
       <>
         <Section title="Circuit Tunisie">
-          <Row label="Circuit"     value={r.circuit_title || `Circuit #${r.circuit_id || r.id}`}/>
-          <Row label="Région"      value={r.region==='nord'?'🏛️ Circuit Nord':'🏜️ Circuit Sud'}/>
-          <Row label="Durée"       value={r.duration ? `${r.duration} jours` : null}/>
-          <Row label="Départ"      value={r.departure || null}/>
-          <Row label="Chambre"     value={r.chambre_type}/>
-          <Row label="Personnes"   value={`${r.number_of_persons} personne${r.number_of_persons>1?'s':''}`}/>
-          <Row label="Difficulté"  value={r.difficulty || null}/>
+          <Row label="Circuit"    value={r.circuit_title || `Circuit #${r.circuit_id || r.id}`}/>
+          <Row label="Région"     value={r.region==='nord'?'🏛️ Circuit Nord':'🏜️ Circuit Sud'}/>
+          <Row label="Durée"      value={r.duration ? `${r.duration} jours` : null}/>
+          <Row label="Départ"     value={r.departure || null}/>
+          <Row label="Chambre"    value={r.chambre_type}/>
+          <Row label="Personnes"  value={`${r.number_of_persons} personne${r.number_of_persons>1?'s':''}`}/>
+          <Row label="Difficulté" value={r.difficulty || null}/>
         </Section>
         <Section title="Paiement">
-          <Row label="Méthode"     value={r.payment_method==='online'?'💳 En ligne':"🏪 Agence"}/>
-          <Row label="Total"       value={r.total_price ? `${Number(r.total_price).toLocaleString('fr-TN')} DT` : null} accent="#0F4C5C"/>
+          <Row label="Méthode" value={r.payment_method==='online'?'💳 En ligne':"🏪 Agence"}/>
+          <Row label="Total"   value={r.total_price ? `${Number(r.total_price).toLocaleString('fr-TN')} DT` : null} accent="#0F4C5C"/>
         </Section>
         {r.notes && (
           <Section title="Remarques">
-            <p style={{ fontSize:13, color:'#475569', background:'#f8fafc', padding:'12px 14px', borderRadius:8, lineHeight:1.6 }}>{r.notes}</p>
+            <p className="cp-mtext">{r.notes}</p>
           </Section>
         )}
       </>
@@ -199,30 +220,34 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
     if (type === 'transport') return (
       <>
         <Section title="Détails du transfert">
-          <Row label="Type"        value={r.service_type==='transfert'?'🚗 Transfert':'⏱ Mise à disposition'}/>
-          <Row label="Véhicule"    value={r.vehicle_type}/>
-          <Row label="Passagers"   value={`${r.passengers} passager${r.passengers>1?'s':''}`}/>
-          <Row label="Bagages"     value={r.luggage > 0 ? `${r.luggage} bagage${r.luggage>1?'s':''}` : null}/>
-          {r.child_seat     && <Row label="Siège enfant" value="✅ Oui" accent="#059669"/>}
-          {r.accessibility  && <Row label="PMR"          value="✅ Oui" accent="#059669"/>}
+          <Row label="Type"      value={r.service_type==='transfert'?'🚗 Transfert':'⏱ Mise à disposition'}/>
+          <Row label="Véhicule"  value={r.vehicle_type}/>
+          <Row label="Passagers" value={`${r.passengers} passager${r.passengers>1?'s':''}`}/>
+          <Row label="Bagages"   value={r.luggage > 0 ? `${r.luggage} bagage${r.luggage>1?'s':''}` : null}/>
+          {r.child_seat    && <Row label="Siège enfant" value="✅ Oui" accent="#059669"/>}
+          {r.accessibility && <Row label="PMR"          value="✅ Oui" accent="#059669"/>}
         </Section>
         <Section title="Itinéraire">
-          <div style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:10, padding:'14px 16px' }}>
-            <div style={{ display:'flex', alignItems:'flex-start', gap:10, marginBottom:12 }}>
-              <div style={{ width:10, height:10, borderRadius:'50%', background:'#10b981', flexShrink:0, marginTop:3 }}/>
+          <div className="cp-itinerary">
+            <div className="cp-itinerary__stop">
+              <div className="cp-itinerary__dot cp-itinerary__dot--depart"/>
               <div>
-                <p style={{ fontSize:11, color:'#64748b', fontWeight:600, marginBottom:2 }}>DÉPART</p>
-                <p style={{ fontSize:14, fontWeight:700, color:'#0f172a' }}>{r.departure_location}</p>
-                <p style={{ fontSize:12, color:'#475569' }}>{fDate(r.departure_date)} à {r.departure_time?.slice(0,5)}</p>
+                <p className="cp-itinerary__type">DÉPART</p>
+                <p className="cp-itinerary__place">{r.departure_location}</p>
+                <p className="cp-itinerary__time">{fDate(r.departure_date)} à {r.departure_time?.slice(0,5)}</p>
               </div>
             </div>
             {r.arrival_location && (
-              <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
-                <div style={{ width:10, height:10, borderRadius:'50%', background:'#e92f64', flexShrink:0, marginTop:3 }}/>
+              <div className="cp-itinerary__stop">
+                <div className="cp-itinerary__dot cp-itinerary__dot--arrivee"/>
                 <div>
-                  <p style={{ fontSize:11, color:'#64748b', fontWeight:600, marginBottom:2 }}>ARRIVÉE</p>
-                  <p style={{ fontSize:14, fontWeight:700, color:'#0f172a' }}>{r.arrival_location}</p>
-                  {r.return_date && <p style={{ fontSize:12, color:'#475569' }}>{fDate(r.return_date)} {r.return_time ? `à ${r.return_time?.slice(0,5)}` : ''}</p>}
+                  <p className="cp-itinerary__type">ARRIVÉE</p>
+                  <p className="cp-itinerary__place">{r.arrival_location}</p>
+                  {r.return_date && (
+                    <p className="cp-itinerary__time">
+                      {fDate(r.return_date)} {r.return_time ? `à ${r.return_time?.slice(0,5)}` : ''}
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -231,7 +256,7 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
         </Section>
         {r.free_text && (
           <Section title="Remarques">
-            <p style={{ fontSize:13, color:'#475569', background:'#f8fafc', padding:'12px 14px', borderRadius:8, lineHeight:1.6 }}>{r.free_text}</p>
+            <p className="cp-mtext">{r.free_text}</p>
           </Section>
         )}
       </>
@@ -239,23 +264,23 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
 
     if (type === 'flight') return (
       <>
-        <Section title="Vol reserve">
-          <Row label="Trajet" value={r.origin_iata && r.destination_iata ? `${r.origin_iata} → ${r.destination_iata}` : null}/>
+        <Section title="Vol reservé">
+          <Row label="Trajet"    value={r.origin_iata && r.destination_iata ? `${r.origin_iata} → ${r.destination_iata}` : null}/>
           <Row label="Compagnie" value={r.airline_name || null}/>
-          <Row label="Numero de vol" value={r.flight_number || null}/>
-          <Row label="Depart" value={fDT(r.departing_at)}/>
-          <Row label="Arrivee" value={fDT(r.arriving_at)}/>
-          <Row label="Cabine" value={r.cabin_class || null}/>
+          <Row label="N° de vol" value={r.flight_number || null}/>
+          <Row label="Départ"    value={fDT(r.departing_at)}/>
+          <Row label="Arrivée"   value={fDT(r.arriving_at)}/>
+          <Row label="Cabine"    value={r.cabin_class || null}/>
           <Row label="Passagers" value={r.passengers ? `${r.passengers.length} passager${r.passengers.length > 1 ? 's' : ''}` : null}/>
         </Section>
         <Section title="Paiement">
-          <Row label="Methode" value={r.payment_method === 'online' ? '💳 En ligne' : "🏪 A l'agence"}/>
-          <Row label="Statut paiement" value={r.payment_status === 'paid' ? '✅ Paye' : '⏳ En attente'} accent={r.payment_status === 'paid' ? '#059669' : '#c2410c'}/>
-          <Row label="Total" value={r.total_price ? `${Number(r.total_price).toLocaleString('fr-FR')} ${r.currency || ''}`.trim() : null} accent="#0F4C5C"/>
+          <Row label="Méthode"         value={r.payment_method === 'online' ? '💳 En ligne' : "🏪 À l'agence"}/>
+          <Row label="Statut paiement" value={r.payment_status === 'paid' ? '✅ Payé' : '⏳ En attente'} accent={r.payment_status === 'paid' ? '#059669' : '#c2410c'}/>
+          <Row label="Total"           value={r.total_price ? `${Number(r.total_price).toLocaleString('fr-FR')} ${r.currency || ''}`.trim() : null} accent="#0F4C5C"/>
         </Section>
         {r.notes && (
           <Section title="Remarques">
-            <p style={{ fontSize:13, color:'#475569', background:'#f8fafc', padding:'12px 14px', borderRadius:8, lineHeight:1.6 }}>{r.notes}</p>
+            <p className="cp-mtext">{r.notes}</p>
           </Section>
         )}
       </>
@@ -263,30 +288,30 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
 
     if (type === 'hotel') return (
       <>
-        <Section title="Hotel reserve">
-          <Row label="Hotel" value={r.hotel_name || null}/>
-          <Row label="Ville" value={r.hotel_city || null}/>
-          <Row label="Adresse" value={r.hotel_location || null}/>
-          <Row label="Check-in" value={fDate(r.check_in)}/>
-          <Row label="Check-out" value={fDate(r.check_out)}/>
-          <Row label="Voyageurs" value={r.adults ? `${r.adults} adulte${r.adults > 1 ? 's' : ''}${Number(r.children || 0) > 0 ? ` + ${r.children} enfant${Number(r.children) > 1 ? 's' : ''}` : ''}` : null}/>
-          <Row label="Chambres" value={r.rooms ? `${r.rooms} chambre${r.rooms > 1 ? 's' : ''}` : null}/>
-          <Row label="Type de chambre" value={r.room_type || null}/>
-          <Row label="Formule repas" value={r.meal_plan || null}/>
-          <Row label="Vue chambre" value={r.room_view || null}/>
-          <Row label="Preference de lit" value={r.bed_preference || null}/>
-          <Row label="Heure d'arrivee" value={r.arrival_time || null}/>
-          <Row label="Transfert aeroport" value={r.airport_transfer ? 'Oui' : 'Non'} accent={r.airport_transfer ? '#059669' : undefined}/>
-          <Row label="Extras" value={Array.isArray(r.selected_extras) && r.selected_extras.length ? r.selected_extras.join(', ') : null}/>
+        <Section title="Hôtel réservé">
+          <Row label="Hôtel"              value={r.hotel_name || null}/>
+          <Row label="Ville"              value={r.hotel_city || null}/>
+          <Row label="Adresse"            value={r.hotel_location || null}/>
+          <Row label="Check-in"           value={fDate(r.check_in)}/>
+          <Row label="Check-out"          value={fDate(r.check_out)}/>
+          <Row label="Voyageurs"          value={r.adults ? `${r.adults} adulte${r.adults > 1 ? 's' : ''}${Number(r.children || 0) > 0 ? ` + ${r.children} enfant${Number(r.children) > 1 ? 's' : ''}` : ''}` : null}/>
+          <Row label="Chambres"           value={r.rooms ? `${r.rooms} chambre${r.rooms > 1 ? 's' : ''}` : null}/>
+          <Row label="Type de chambre"    value={r.room_type || null}/>
+          <Row label="Formule repas"      value={r.meal_plan || null}/>
+          <Row label="Vue chambre"        value={r.room_view || null}/>
+          <Row label="Préférence de lit"  value={r.bed_preference || null}/>
+          <Row label="Heure d'arrivée"    value={r.arrival_time || null}/>
+          <Row label="Transfert aéroport" value={r.airport_transfer ? 'Oui' : 'Non'} accent={r.airport_transfer ? '#059669' : undefined}/>
+          <Row label="Extras"             value={Array.isArray(r.selected_extras) && r.selected_extras.length ? r.selected_extras.join(', ') : null}/>
         </Section>
         <Section title="Paiement">
-          <Row label="Methode" value={r.payment_method === 'online' ? '💳 En ligne' : "🏪 A l'agence"}/>
-          <Row label="Statut paiement" value={r.payment_status === 'paid' ? '✅ Paye' : '⏳ En attente'} accent={r.payment_status === 'paid' ? '#059669' : '#c2410c'}/>
-          <Row label="Total" value={r.total_price ? `${Number(r.total_price).toLocaleString('fr-FR')} ${r.currency || ''}`.trim() : null} accent="#0F4C5C"/>
+          <Row label="Méthode"         value={r.payment_method === 'online' ? '💳 En ligne' : "🏪 À l'agence"}/>
+          <Row label="Statut paiement" value={r.payment_status === 'paid' ? '✅ Payé' : '⏳ En attente'} accent={r.payment_status === 'paid' ? '#059669' : '#c2410c'}/>
+          <Row label="Total"           value={r.total_price ? `${Number(r.total_price).toLocaleString('fr-FR')} ${r.currency || ''}`.trim() : null} accent="#0F4C5C"/>
         </Section>
         {r.special_requests && (
-          <Section title="Demandes speciales">
-            <p style={{ fontSize:13, color:'#475569', background:'#f8fafc', padding:'12px 14px', borderRadius:8, lineHeight:1.6 }}>{r.special_requests}</p>
+          <Section title="Demandes spéciales">
+            <p className="cp-mtext">{r.special_requests}</p>
           </Section>
         )}
       </>
@@ -300,42 +325,38 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
         <>
           {/* Admin quote banner */}
           {(r.quoted_price || r.admin_message) && (
-            <div style={{ marginBottom:20, padding:'16px 18px', background:'linear-gradient(135deg,#d1fae5,#ecfdf5)', border:'1.5px solid #a7f3d0', borderRadius:12 }}>
-              <p style={{ fontSize:12, fontWeight:700, color:'#065f46', marginBottom:8, display:'flex', alignItems:'center', gap:6 }}>
-                <span>💰</span> Offre de Tictac Voyages
-              </p>
+            <div className="cp-modal-quote">
+              <p className="cp-modal-quote__label"><span>💰</span> Offre de Tictac Voyages</p>
               {r.quoted_price && (
-                <p style={{ fontSize:22, fontWeight:800, color:'#065f46', marginBottom:r.admin_message?6:0 }}>
-                  {Number(r.quoted_price).toLocaleString('fr-TN')} TND
-                </p>
+                <p className="cp-modal-quote__price">{Number(r.quoted_price).toLocaleString('fr-TN')} TND</p>
               )}
               {r.admin_message && (
-                <p style={{ fontSize:13, color:'#065f46', lineHeight:1.6, fontStyle:'italic' }}>"{r.admin_message}"</p>
+                <p className="cp-modal-quote__msg">"{r.admin_message}"</p>
               )}
             </div>
           )}
 
           <Section title="Voyage sur mesure">
-            <Row label="Destination"  value={r.destination}/>
-            <Row label="Voyageurs"    value={`${r.number_of_persons} personne${r.number_of_persons>1?'s':''}`}/>
-            <Row label="Départ"       value={fDate(r.departure_date)}/>
-            <Row label="Retour"       value={fDate(r.return_date)}/>
-            <Row label="Durée"        value={`${nights} nuit${nights>1?'s':''}`}/>
-            {r.max_budget && <Row label="Budget max"  value={`${Number(r.max_budget).toLocaleString('fr-FR')} €`} accent="#0F4C5C"/>}
+            <Row label="Destination" value={r.destination}/>
+            <Row label="Voyageurs"   value={`${r.number_of_persons} personne${r.number_of_persons>1?'s':''}`}/>
+            <Row label="Départ"      value={fDate(r.departure_date)}/>
+            <Row label="Retour"      value={fDate(r.return_date)}/>
+            <Row label="Durée"       value={`${nights} nuit${nights>1?'s':''}`}/>
+            {r.max_budget && <Row label="Budget max" value={`${Number(r.max_budget).toLocaleString('fr-FR')} €`} accent="#0F4C5C"/>}
           </Section>
 
           {r.include_hotel && (
             <Section title="🏨 Hébergement souhaité">
-              <Row label="Catégorie"  value={r.hotel_category ? `${r.hotel_category} ★` : null}/>
-              <Row label="Chambre"    value={r.room_type}/>
-              <Row label="Pension"    value={r.pension}/>
+              <Row label="Catégorie" value={r.hotel_category ? `${r.hotel_category} ★` : null}/>
+              <Row label="Chambre"   value={r.room_type}/>
+              <Row label="Pension"   value={r.pension}/>
             </Section>
           )}
           {r.include_transport && (
             <Section title="✈️ Transport souhaité">
-              <Row label="Type"          value={r.transport_type}/>
-              <Row label="Ville départ"  value={r.departure_city}/>
-              <Row label="Bagages"       value={r.luggage}/>
+              <Row label="Type"         value={r.transport_type}/>
+              <Row label="Ville départ" value={r.departure_city}/>
+              <Row label="Bagages"      value={r.luggage}/>
             </Section>
           )}
           {r.include_guide && (
@@ -353,66 +374,64 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
 
   // ── Type meta ─────────────────────────────────────────────────
   const typeMeta = {
-    omra:      { emoji:'🕌', label:'Omra',              color:'#7c3aed', bg:'linear-gradient(135deg,#7c3aed,#6d28d9)' },
-    voyage:    { emoji:'🏖️', label:'Voyage Organisé',   color:'#4338ca', bg:'linear-gradient(135deg,#4338ca,#6366f1)' },
-    circuit:   { emoji:'🗺️', label:'Circuit Tunisie',   color:'#059669', bg:'linear-gradient(135deg,#059669,#10b981)' },
-    flight:    { emoji:'✈️', label:'Vol',               color:'#0F4C5C', bg:'linear-gradient(135deg,#0F4C5C,#1ECAD3)' },
-    transport: { emoji:'🚌', label:'Transport',          color:'#0e7490', bg:'linear-gradient(135deg,#0F4C5C,#1a6b80)' },
-    custom:    { emoji:'✈️', label:'Voyage sur Mesure',  color:'#c2410c', bg:'linear-gradient(135deg,#c2410c,#f97316)' },
+    omra:      { emoji:'🕌', label:'Omra',              bg:'linear-gradient(135deg,#7c3aed,#6d28d9)' },
+    voyage:    { emoji:'🏖️', label:'Voyage Organisé',   bg:'linear-gradient(135deg,#4338ca,#6366f1)' },
+    circuit:   { emoji:'🗺️', label:'Circuit Tunisie',   bg:'linear-gradient(135deg,#059669,#10b981)' },
+    flight:    { emoji:'✈️', label:'Vol',               bg:'linear-gradient(135deg,#0F4C5C,#1ECAD3)' },
+    transport: { emoji:'🚌', label:'Transport',          bg:'linear-gradient(135deg,#0F4C5C,#1a6b80)' },
+    hotel:     { emoji:'🏨', label:'Hôtel',             bg:'linear-gradient(135deg,#8a1538,#e8306a)' },
+    custom:    { emoji:'✈️', label:'Voyage sur Mesure',  bg:'linear-gradient(135deg,#c2410c,#f97316)' },
   };
-  const meta = typeMeta[type] || { emoji:'📋', label:'Réservation', color:'#0F4C5C', bg:'linear-gradient(135deg,#0F4C5C,#1ECAD3)' };
+  const meta = typeMeta[type] || { emoji:'📋', label:'Réservation', bg:'linear-gradient(135deg,#0F4C5C,#1ECAD3)' };
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,.5)', backdropFilter:'blur(4px)', padding:16 }}
-      onClick={onClose}>
-      <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:520, maxHeight:'90vh', overflow:'hidden', display:'flex', flexDirection:'column', boxShadow:'0 32px 80px rgba(0,0,0,.25)', animation:'slideUp .3s ease' }}
-        onClick={e => e.stopPropagation()}>
+    <div className="cp-modal-overlay" onClick={onClose}>
+      <div className="cp-modal" onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div style={{ background:meta.bg, padding:'24px 24px 20px', flexShrink:0 }}>
-          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12 }}>
+        <div className="cp-modal__header" style={{ background: meta.bg }}>
+          <div className="cp-modal__header-inner">
             <div>
-              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
-                <span style={{ fontSize:24 }}>{meta.emoji}</span>
-                <span style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,.8)', textTransform:'uppercase', letterSpacing:'.08em' }}>{meta.label}</span>
+              <div className="cp-modal__header-top">
+                <span className="cp-modal__type-emoji">{meta.emoji}</span>
+                <span className="cp-modal__type-label">{meta.label}</span>
               </div>
-              <p style={{ fontSize:18, fontWeight:800, color:'#fff', lineHeight:1.3, marginBottom:6 }}>
+              <p className="cp-modal__title">
                 {type==='omra'    && (r.package_title  || `Forfait Omra #${r.id}`)}
                 {type==='voyage'  && (r.voyage_title   || `Voyage #${r.id}`)}
                 {type==='circuit' && (r.circuit_title  || `Circuit #${r.id}`)}
-                {type==='hotel'   && (r.hotel_name || `Hotel #${r.id}`)}
-                {type==='flight' && `${r.origin_iata || '—'} → ${r.destination_iata || '—'}`}
+                {type==='hotel'   && (r.hotel_name     || `Hotel #${r.id}`)}
+                {type==='flight'  && `${r.origin_iata || '—'} → ${r.destination_iata || '—'}`}
                 {type==='transport' && `${r.departure_location} → ${r.arrival_location || '...'}`}
                 {type==='custom'  && r.destination}
               </p>
-              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <span style={{ fontSize:11, color:'rgba(255,255,255,.75)' }}>Réservation #{r.id}</span>
-                <span style={{ width:4, height:4, borderRadius:'50%', background:'rgba(255,255,255,.4)' }}/>
-                <span style={{ fontSize:11, color:'rgba(255,255,255,.75)' }}>Le {fDate(r.created_at)}</span>
+              <div className="cp-modal__meta">
+                <span className="cp-modal__meta-text">Réservation #{r.id}</span>
+                <span className="cp-modal__meta-dot"/>
+                <span className="cp-modal__meta-text">Le {fDate(r.created_at)}</span>
               </div>
             </div>
-            <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8, flexShrink:0 }}>
-              <button onClick={onClose} style={{ width:32, height:32, borderRadius:'50%', border:'none', background:'rgba(255,255,255,.2)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:16 }}>✕</button>
+            <div className="cp-modal__header-right">
+              <button onClick={onClose} className="cp-modal__close-btn">✕</button>
               <StatusBadge status={r.status}/>
             </div>
           </div>
         </div>
 
         {/* Body */}
-        <div style={{ flex:1, overflowY:'auto', padding:'20px 24px' }}>
+        <div className="cp-modal__body">
           {renderContent()}
-          <div style={{ padding:'12px 14px', background:'#f8fafc', borderRadius:8, fontSize:11, color:'#94a3b8', marginTop:8 }}>
+          <div className="cp-modal-timestamps">
             <p>Créée le {fDT(r.created_at)}</p>
-            {r.updated_at && r.updated_at !== r.created_at && <p style={{ marginTop:2 }}>Mise à jour le {fDT(r.updated_at)}</p>}
+            {r.updated_at && r.updated_at !== r.created_at && (
+              <p>Mise à jour le {fDT(r.updated_at)}</p>
+            )}
           </div>
         </div>
 
         {/* Footer */}
-        <div style={{ padding:'16px 24px', borderTop:'1px solid #f1f5f9', flexShrink:0 }}>
-          <button onClick={onClose}
-            style={{ width:'100%', padding:'12px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#0F4C5C,#1a6b80)', color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
-            Fermer
-          </button>
+        <div className="cp-modal__footer">
+          <button onClick={onClose} className="cp-modal__close-footer-btn">Fermer</button>
         </div>
       </div>
     </div>
@@ -422,14 +441,11 @@ const ReservationDetailModal = ({ reservation, type, onClose }) => {
 // ── Clickable reservation card ────────────────────────────────────
 // This card wrapper is reused across the reservation grids in the profile.
 const ResCard = ({ children, right, onClick }) => (
-  <div onClick={onClick}
-    style={{ background:'#fff', borderRadius:12, border:'1px solid #e2e8f0', padding:'18px 22px', marginBottom:10, display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap', cursor:'pointer', transition:'all .2s', boxShadow:'0 1px 4px rgba(0,0,0,.04)' }}
-    onMouseEnter={e => { e.currentTarget.style.borderColor='#1ECAD3'; e.currentTarget.style.boxShadow='0 4px 16px rgba(15,76,92,.1)'; e.currentTarget.style.transform='translateY(-2px)'; }}
-    onMouseLeave={e => { e.currentTarget.style.borderColor='#e2e8f0'; e.currentTarget.style.boxShadow='0 1px 4px rgba(0,0,0,.04)'; e.currentTarget.style.transform='translateY(0)'; }}>
-    <div style={{ flex:1 }}>{children}</div>
-    <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+  <div onClick={onClick} className="cp-res-card">
+    <div className="cp-res-card__left">{children}</div>
+    <div className="cp-res-card__right">
       {right}
-      <span style={{ fontSize:16, color:'#94a3b8' }}>›</span>
+      <span className="cp-res-card__arrow">›</span>
     </div>
   </div>
 );
@@ -458,16 +474,19 @@ const ClientProfile = () => {
   const [favorites,  setFavorites]  = useState([]);
   const [promotions, setPromotions] = useState([]);
 
-  const [editMode,   setEditMode]   = useState(false);
-  const [editForm,   setEditForm]   = useState({});
-  const [saving,     setSaving]     = useState(false);
+  const [editMode,  setEditMode]  = useState(false);
+  const [editForm,  setEditForm]  = useState({});
+  const [saving,    setSaving]    = useState(false);
 
   // ── Detail modal state ────────────────────────────────────────
   const [detailModal, setDetailModal] = useState(null); // { reservation, type }
 
   const token = localStorage.getItem('token');
   // This helper shows short success or error messages in the profile view.
-  const notify = (msg, type='success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
+  const notify = (msg, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   // This effect restores the stored client session and triggers the initial data load.
   useEffect(() => {
@@ -508,7 +527,7 @@ const ClientProfile = () => {
       setVoyageRes( (voyage.data  || []).filter(r => r.email?.toLowerCase() === e));
       setCircuitRes((circuit.data || []).filter(r => r.email?.toLowerCase() === e));
       setFlightRes( flights.data || []);
-      setHotelRes(  hotels.data || []);
+      setHotelRes(  hotels.data  || []);
       setTransRes(  (trans.data   || []).filter(r => r.email?.toLowerCase() === e));
       setCustomRes( (custom.data  || []).filter(r => r.email?.toLowerCase() === e));
       setMessages(  (msgs.data    || []).filter(r => r.email?.toLowerCase() === e));
@@ -541,14 +560,20 @@ const ClientProfile = () => {
     setSaving(true);
     try {
       const res = await fetch(`${API}/clients/${client.id}`, {
-        method:'PUT', headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` }, body:JSON.stringify(editForm),
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(editForm),
       });
       const json = await res.json();
       if (json.success) {
-        const updated = { ...client, ...editForm, firstName:editForm.first_name, lastName:editForm.last_name };
+        const updated = { ...client, ...editForm, firstName: editForm.first_name, lastName: editForm.last_name };
         localStorage.setItem('client', JSON.stringify(updated));
-        setClient(updated); setEditMode(false); notify('Profil mis à jour ✅');
-      } else notify(json.message || 'Erreur', 'error');
+        setClient(updated);
+        setEditMode(false);
+        notify('Profil mis à jour ✅');
+      } else {
+        notify(json.message || 'Erreur', 'error');
+      }
     } catch { notify('Erreur réseau', 'error'); }
     finally { setSaving(false); }
   };
@@ -572,8 +597,8 @@ const ClientProfile = () => {
 
       {/* Toast */}
       {toast && (
-        <div style={{ position:'fixed', top:20, right:20, zIndex:9999, display:'flex', alignItems:'center', gap:10, padding:'13px 18px', borderRadius:10, fontSize:13, fontWeight:600, boxShadow:'0 16px 48px rgba(0,0,0,.15)', background:toast.type==='success'?'#10b981':'#e92f64', color:'#fff', animation:'fadeIn .3s ease' }}>
-          <i className={toast.type==='success'?'fas fa-check-circle':'fas fa-exclamation-circle'} />
+        <div className={`cp-toast cp-toast--${toast.type}`}>
+          <i className={toast.type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'} />
           {toast.msg}
         </div>
       )}
@@ -587,24 +612,24 @@ const ClientProfile = () => {
         />
       )}
 
-      <main style={{ paddingTop:120, minHeight:'100vh', background:'#f8fafc', fontFamily:"'Plus Jakarta Sans', system-ui, sans-serif" }}>
-        <div style={{ maxWidth:1100, margin:'0 auto', padding:'0 24px 60px' }}>
+      <main className="cp-main">
+        <div className="cp-container">
 
           {/* Profile Header */}
-          <div style={{ background:'linear-gradient(135deg,#0F4C5C 0%,#1a6b80 55%,#1ECAD3 100%)', borderRadius:20, padding:'32px 36px', marginBottom:28, display:'flex', alignItems:'center', justifyContent:'space-between', gap:24, flexWrap:'wrap', boxShadow:'0 8px 32px rgba(15,76,92,.28)' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:20 }}>
-              <div style={{ width:72, height:72, borderRadius:'50%', background:'rgba(255,255,255,0.2)', border:'3px solid rgba(255,255,255,0.4)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:26, fontWeight:800, color:'#fff', flexShrink:0 }}>
+          <div className="cp-header">
+            <div className="cp-header__left">
+              <div className="cp-header__avatar">
                 {initials || <i className="fas fa-user" />}
               </div>
               <div>
-                <p style={{ fontSize:22, fontWeight:800, color:'#fff', marginBottom:4 }}>{firstName} {lastName}</p>
-                <p style={{ fontSize:13, color:'rgba(255,255,255,0.75)', marginBottom:8 }}>{client.email}</p>
-                <span style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 14px', borderRadius:999, background:loyalty.bg, color:loyalty.color, fontSize:12, fontWeight:700 }}>
+                <p className="cp-header__name">{firstName} {lastName}</p>
+                <p className="cp-header__email">{client.email}</p>
+                <span className="cp-header__loyalty-badge" style={{ background: loyalty.bg, color: loyalty.color }}>
                   {loyalty.icon} {loyalty.label}
                 </span>
               </div>
             </div>
-            <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+            <div className="cp-header__stats">
               {[
                 { label:'Réservations', value:totalRes },
                 { label:'Omra',         value:omraRes.length },
@@ -615,46 +640,45 @@ const ClientProfile = () => {
                 { label:'Transport',    value:transRes.length },
                 { label:'Sur Mesure',   value:customRes.length },
               ].map(s => (
-                <div key={s.label} style={{ background:'rgba(255,255,255,0.15)', borderRadius:12, padding:'12px 16px', textAlign:'center', minWidth:64 }}>
-                  <p style={{ fontSize:22, fontWeight:800, color:'#fff', lineHeight:1 }}>{s.value}</p>
-                  <p style={{ fontSize:10, color:'rgba(255,255,255,0.75)', marginTop:4 }}>{s.label}</p>
+                <div key={s.label} className="cp-stat-card">
+                  <p className="cp-stat-card__value">{s.value}</p>
+                  <p className="cp-stat-card__label">{s.label}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Tabs */}
-          <div style={{ display:'flex', gap:4, borderBottom:'2px solid #e2e8f0', marginBottom:24, flexWrap:'wrap' }}>
-            <Tab id="profil"       label="Mon Profil"   icon="fas fa-user-circle" active={activeTab==='profil'}       onClick={handleTabChange} />
-            <Tab id="reservations" label="Réservations" icon="fas fa-suitcase"    active={activeTab==='reservations'} onClick={handleTabChange} count={totalRes} />
-            <Tab id="messages"     label="Messages"     icon="fas fa-envelope"    active={activeTab==='messages'}     onClick={handleTabChange} count={messages.length} />
-            <Tab id="favoris"      label="Favoris"      icon="fas fa-heart"       active={activeTab==='favoris'}      onClick={handleTabChange} count={favorites.length} />
-            <Tab id="fidelite"     label="Fidélité"     icon="fas fa-crown"       active={activeTab==='fidelite'}     onClick={handleTabChange} />
-            <Tab id="promotions"   label="Nos promotions" icon="fas fa-percent"   active={activeTab==='promotions'}   onClick={handleTabChange} count={promotions.length} />
+          <div className="cp-tabs">
+            <Tab id="profil"       label="Mon Profil"     icon="fas fa-user-circle" active={activeTab==='profil'}       onClick={handleTabChange} />
+            <Tab id="reservations" label="Réservations"   icon="fas fa-suitcase"    active={activeTab==='reservations'} onClick={handleTabChange} count={totalRes} />
+            <Tab id="messages"     label="Messages"       icon="fas fa-envelope"    active={activeTab==='messages'}     onClick={handleTabChange} count={messages.length} />
+            <Tab id="favoris"      label="Favoris"        icon="fas fa-heart"       active={activeTab==='favoris'}      onClick={handleTabChange} count={favorites.length} />
+            <Tab id="fidelite"     label="Fidélité"       icon="fas fa-crown"       active={activeTab==='fidelite'}     onClick={handleTabChange} />
+            <Tab id="promotions"   label="Nos promotions" icon="fas fa-percent"     active={activeTab==='promotions'}   onClick={handleTabChange} count={promotions.length} />
           </div>
 
           {loading ? (
-            <div style={{ textAlign:'center', padding:'80px 0' }}>
-              <div style={{ width:44, height:44, border:'3px solid #e2e8f0', borderTopColor:'#0F4C5C', borderRadius:'50%', animation:'spin .7s linear infinite', margin:'0 auto 16px' }} />
-              <p style={{ color:'#94a3b8', fontSize:14 }}>Chargement...</p>
+            <div className="cp-loading">
+              <div className="cp-spinner" />
+              <p className="cp-loading__text">Chargement...</p>
             </div>
           ) : (
             <>
               {/* ═══ PROFIL ═══ */}
               {activeTab === 'profil' && (
-                <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e2e8f0', boxShadow:'0 2px 12px rgba(0,0,0,.04)', overflow:'hidden' }}>
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'20px 28px', borderBottom:'1px solid #f1f5f9' }}>
-                    <h2 style={{ fontSize:16, fontWeight:700, color:'#0f172a' }}>Informations personnelles</h2>
+                <div className="cp-profile-card">
+                  <div className="cp-profile-card__header">
+                    <h2 className="cp-profile-card__title">Informations personnelles</h2>
                     {!editMode && (
-                      <button onClick={() => setEditMode(true)}
-                        style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 16px', borderRadius:9, border:'1.5px solid #e2e8f0', background:'#fff', color:'#0F4C5C', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
-                        <i className="fas fa-pen" style={{ fontSize:11 }} /> Modifier
+                      <button onClick={() => setEditMode(true)} className="cp-btn-edit">
+                        <i className="fas fa-pen" /> Modifier
                       </button>
                     )}
                   </div>
-                  <div style={{ padding:'24px 28px' }}>
+                  <div className="cp-profile-card__body">
                     {editMode ? (
-                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
+                      <div className="cp-edit-grid">
                         {[
                           { key:'first_name',         label:'Prénom',           type:'text'   },
                           { key:'last_name',          label:'Nom',              type:'text'   },
@@ -663,17 +687,22 @@ const ClientProfile = () => {
                           { key:'number_of_children', label:"Nombre d'enfants", type:'number' },
                         ].map(f => (
                           <div key={f.key}>
-                            <label style={{ fontSize:12, fontWeight:600, color:'#475569', display:'block', marginBottom:6 }}>{f.label}</label>
-                            <input type={f.type} value={editForm[f.key]||''} onChange={e => setEditForm(p => ({ ...p, [f.key]:e.target.value }))}
-                              style={{ width:'100%', padding:'10px 14px', borderRadius:9, border:'1.5px solid #e2e8f0', fontSize:13, color:'#1e293b', outline:'none', fontFamily:'inherit', boxSizing:'border-box' }}
-                              onFocus={e=>e.target.style.borderColor='#1ECAD3'}
-                              onBlur={e=>e.target.style.borderColor='#e2e8f0'}/>
+                            <label className="cp-edit-label">{f.label}</label>
+                            <input
+                              type={f.type}
+                              value={editForm[f.key] || ''}
+                              onChange={e => setEditForm(p => ({ ...p, [f.key]: e.target.value }))}
+                              className="cp-input"
+                            />
                           </div>
                         ))}
                         <div>
-                          <label style={{ fontSize:12, fontWeight:600, color:'#475569', display:'block', marginBottom:6 }}>Situation matrimoniale</label>
-                          <select value={editForm.marital_status||''} onChange={e => setEditForm(p => ({ ...p, marital_status:e.target.value }))}
-                            style={{ width:'100%', padding:'10px 14px', borderRadius:9, border:'1.5px solid #e2e8f0', fontSize:13, color:'#1e293b', outline:'none', fontFamily:'inherit', boxSizing:'border-box', background:'#fff' }}>
+                          <label className="cp-edit-label">Situation matrimoniale</label>
+                          <select
+                            value={editForm.marital_status || ''}
+                            onChange={e => setEditForm(p => ({ ...p, marital_status: e.target.value }))}
+                            className="cp-select"
+                          >
                             <option value="">—</option>
                             <option value="celibataire">Célibataire</option>
                             <option value="marie">Marié(e)</option>
@@ -681,19 +710,15 @@ const ClientProfile = () => {
                             <option value="veuf">Veuf / Veuve</option>
                           </select>
                         </div>
-                        <div style={{ gridColumn:'1 / -1', display:'flex', gap:10, justifyContent:'flex-end', paddingTop:8, borderTop:'1px solid #f1f5f9' }}>
-                          <button onClick={() => setEditMode(false)}
-                            style={{ padding:'9px 20px', borderRadius:9, border:'1.5px solid #e2e8f0', background:'#fff', color:'#64748b', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
-                            Annuler
-                          </button>
-                          <button onClick={handleSaveProfile} disabled={saving}
-                            style={{ padding:'9px 20px', borderRadius:9, border:'none', background:'linear-gradient(135deg,#0F4C5C,#1a6b80)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+                        <div className="cp-edit-actions">
+                          <button onClick={() => setEditMode(false)} className="cp-btn-cancel">Annuler</button>
+                          <button onClick={handleSaveProfile} disabled={saving} className="cp-btn-save">
                             {saving ? 'Enregistrement...' : '✅ Sauvegarder'}
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
+                      <div className="cp-info-grid">
                         {[
                           { label:'Prénom',           value:firstName },
                           { label:'Nom',              value:lastName },
@@ -705,8 +730,8 @@ const ClientProfile = () => {
                           { label:'Membre depuis',    value:fDate(client.created_at) },
                         ].map(item => (
                           <div key={item.label}>
-                            <p style={{ fontSize:11, fontWeight:600, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:4 }}>{item.label}</p>
-                            <p style={{ fontSize:14, fontWeight:500, color:'#1e293b' }}>{item.value}</p>
+                            <p className="cp-info-field__label">{item.label}</p>
+                            <p className="cp-info-field__value">{item.value}</p>
                           </div>
                         ))}
                       </div>
@@ -718,23 +743,22 @@ const ClientProfile = () => {
               {/* ═══ RÉSERVATIONS ═══ */}
               {activeTab === 'reservations' && (
                 <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-                  {/* Click hint */}
                   {allReservations.length > 0 && (
-                    <div style={{ padding:'10px 16px', background:'#e0fbfc', border:'1px solid #a5f3fc', borderRadius:10, fontSize:12, color:'#0e7490', display:'flex', alignItems:'center', gap:8 }}>
-                      <i className="fas fa-hand-pointer" style={{ fontSize:13 }}/> Cliquez sur une réservation pour voir tous ses détails
+                    <div className="cp-click-hint">
+                      <i className="fas fa-hand-pointer" /> Cliquez sur une réservation pour voir tous ses détails
                     </div>
                   )}
 
                   {allReservations.length === 0 ? (
-                    <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e2e8f0', padding:'60px 24px', textAlign:'center' }}>
-                      <i className="fas fa-suitcase" style={{ fontSize:48, color:'#cbd5e1', marginBottom:16, display:'block' }} />
-                      <p style={{ fontSize:16, fontWeight:600, color:'#475569', marginBottom:8 }}>Aucune réservation pour l'instant</p>
-                      <p style={{ fontSize:13, color:'#94a3b8', marginBottom:20 }}>Explorez nos offres et faites votre première réservation !</p>
-                      <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-                        <button onClick={() => navigate('/Omra/Omra')} style={{ padding:'10px 24px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#7c3aed,#6d28d9)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Forfaits Omra</button>
-                        <button onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')} style={{ padding:'10px 24px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#4338ca,#6366f1)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Voyages Organisés</button>
-                        <button onClick={() => navigate('/circuits/circuit')} style={{ padding:'10px 24px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#059669,#10b981)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Circuits Tunisie</button>
-                        <button onClick={() => navigate('/hotels')} style={{ padding:'10px 24px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#8a1538,#e8306a)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Hotels</button>
+                    <div className="cp-empty">
+                      <i className="fas fa-suitcase cp-empty__icon" />
+                      <p className="cp-empty__title">Aucune réservation pour l'instant</p>
+                      <p className="cp-empty__sub">Explorez nos offres et faites votre première réservation !</p>
+                      <div className="cp-empty__actions">
+                        <button onClick={() => navigate('/Omra/Omra')}               className="cp-btn-explore" style={{ background:'linear-gradient(135deg,#7c3aed,#6d28d9)' }}>Forfaits Omra</button>
+                        <button onClick={() => navigate('/VoyagesOrganise/VoyagesOrganise')} className="cp-btn-explore" style={{ background:'linear-gradient(135deg,#4338ca,#6366f1)' }}>Voyages Organisés</button>
+                        <button onClick={() => navigate('/circuits/circuit')}         className="cp-btn-explore" style={{ background:'linear-gradient(135deg,#059669,#10b981)' }}>Circuits Tunisie</button>
+                        <button onClick={() => navigate('/hotels')}                   className="cp-btn-explore" style={{ background:'linear-gradient(135deg,#8a1538,#e8306a)' }}>Hotels</button>
                       </div>
                     </div>
                   ) : (
@@ -746,12 +770,12 @@ const ClientProfile = () => {
                           {omraRes.map(r => (
                             <ResCard key={r.id} onClick={() => setDetailModal({ reservation:r, type:'omra' })}
                               right={<>
-                                {r.total_price && <span style={{ fontWeight:800, fontSize:16, color:'#0F4C5C' }}>{Number(r.total_price).toLocaleString('fr-TN')} TND</span>}
+                                {r.total_price && <span className="cp-res-card__price">{Number(r.total_price).toLocaleString('fr-TN')} TND</span>}
                                 <StatusBadge status={r.status}/>
                               </>}>
-                              <p style={{ fontWeight:700, fontSize:14, color:'#0f172a', marginBottom:4 }}>{r.package_title || `Forfait Omra #${r.package_id||r.id}`}</p>
-                              <p style={{ fontSize:12, color:'#64748b' }}>{r.number_of_persons} pers. · Chambre {r.chambre_type} · {r.payment_method==='online'?'💳 En ligne':'🏪 Agence'}</p>
-                              <p style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>Réservé le {fDate(r.created_at)}</p>
+                              <p className="cp-res-card__title">{r.package_title || `Forfait Omra #${r.package_id||r.id}`}</p>
+                              <p className="cp-res-card__sub">{r.number_of_persons} pers. · Chambre {r.chambre_type} · {r.payment_method==='online'?'💳 En ligne':'🏪 Agence'}</p>
+                              <p className="cp-res-card__date">Réservé le {fDate(r.created_at)}</p>
                             </ResCard>
                           ))}
                         </div>
@@ -764,15 +788,15 @@ const ClientProfile = () => {
                           {voyageRes.map(r => (
                             <ResCard key={r.id} onClick={() => setDetailModal({ reservation:r, type:'voyage' })}
                               right={<>
-                                {r.total_price && <span style={{ fontWeight:800, fontSize:16, color:'#0F4C5C' }}>{Number(r.total_price).toLocaleString('fr-TN')} TND</span>}
+                                {r.total_price && <span className="cp-res-card__price">{Number(r.total_price).toLocaleString('fr-TN')} TND</span>}
                                 <StatusBadge status={r.status}/>
                               </>}>
-                              <p style={{ fontWeight:700, fontSize:14, color:'#0f172a', marginBottom:4 }}>{r.voyage_title || `Voyage #${r.voyage_id||r.id}`}</p>
-                              <p style={{ fontSize:12, color:'#64748b' }}>
+                              <p className="cp-res-card__title">{r.voyage_title || `Voyage #${r.voyage_id||r.id}`}</p>
+                              <p className="cp-res-card__sub">
                                 {r.pays && `${r.pays}${r.destination?` · ${r.destination}`:''} · `}
                                 {r.number_of_persons} pers. · Chambre {r.chambre_type} · {r.payment_method==='online'?'💳 En ligne':'🏪 Agence'}
                               </p>
-                              <p style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>Réservé le {fDate(r.created_at)}</p>
+                              <p className="cp-res-card__date">Réservé le {fDate(r.created_at)}</p>
                             </ResCard>
                           ))}
                         </div>
@@ -785,64 +809,64 @@ const ClientProfile = () => {
                           {circuitRes.map(r => (
                             <ResCard key={r.id} onClick={() => setDetailModal({ reservation:r, type:'circuit' })}
                               right={<>
-                                {r.total_price && <span style={{ fontWeight:800, fontSize:16, color:'#0F4C5C' }}>{Number(r.total_price).toLocaleString('fr-TN')} DT</span>}
+                                {r.total_price && <span className="cp-res-card__price">{Number(r.total_price).toLocaleString('fr-TN')} DT</span>}
                                 <StatusBadge status={r.status}/>
                               </>}>
-                              <p style={{ fontWeight:700, fontSize:14, color:'#0f172a', marginBottom:4 }}>{r.circuit_title || `Circuit #${r.circuit_id||r.id}`}</p>
-                              <p style={{ fontSize:12, color:'#64748b' }}>{r.region==='nord'?'🏛️ Circuit Nord':'🏜️ Circuit Sud'} · {r.number_of_persons} pers. · {r.payment_method==='online'?'💳 En ligne':'🏪 Agence'}</p>
-                              <p style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>Réservé le {fDate(r.created_at)}</p>
+                              <p className="cp-res-card__title">{r.circuit_title || `Circuit #${r.circuit_id||r.id}`}</p>
+                              <p className="cp-res-card__sub">{r.region==='nord'?'🏛️ Circuit Nord':'🏜️ Circuit Sud'} · {r.number_of_persons} pers. · {r.payment_method==='online'?'💳 En ligne':'🏪 Agence'}</p>
+                              <p className="cp-res-card__date">Réservé le {fDate(r.created_at)}</p>
+                            </ResCard>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* ── Hôtels ── */}
+                      {hotelRes.length > 0 && (
+                        <div>
+                          <SectionHead emoji="🏨" label="Hotels" count={hotelRes.length} color="#be185d" bg="#fff1f5"/>
+                          {hotelRes.map(r => (
+                            <ResCard key={r.id} onClick={() => setDetailModal({ reservation:r, type:'hotel' })}
+                              right={<>
+                                {r.total_price && <span className="cp-res-card__price">{Number(r.total_price).toLocaleString('fr-FR')} {r.currency || 'TND'}</span>}
+                                <StatusBadge status={r.status}/>
+                              </>}>
+                              <p className="cp-res-card__title">{r.hotel_name || `Hotel #${r.hotel_id||r.id}`}</p>
+                              <p className="cp-res-card__sub">{r.hotel_city || 'Tunisie'} · {fDate(r.check_in)} → {fDate(r.check_out)} · {r.rooms} chambre(s)</p>
+                              <p className="cp-res-card__date">{r.room_type || 'Chambre'} · {r.meal_plan || 'Formule non précisée'} · {r.payment_method==='online'?'💳 En ligne':'🏪 Agence'}</p>
+                            </ResCard>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* ── Vols ── */}
+                      {flightRes.length > 0 && (
+                        <div>
+                          <SectionHead emoji="✈️" label="Vols" count={flightRes.length} color="#0F4C5C" bg="#e0fbfc"/>
+                          {flightRes.map(r => (
+                            <ResCard key={r.id} onClick={() => setDetailModal({ reservation:r, type:'flight' })}
+                              right={<>
+                                {r.total_price && <span className="cp-res-card__price">{Number(r.total_price).toLocaleString('fr-FR')} {r.currency || ''}</span>}
+                                <StatusBadge status={r.status}/>
+                              </>}>
+                              <p className="cp-res-card__title">{r.origin_iata || '—'} → {r.destination_iata || '—'}</p>
+                              <p className="cp-res-card__sub">
+                                {r.airline_name || 'Vol'}{r.flight_number ? ` · ${r.flight_number}` : ''} · {r.payment_method==='online'?'💳 En ligne':'🏪 Agence'}
+                              </p>
+                              <p className="cp-res-card__date">Départ le {fDT(r.departing_at)}</p>
                             </ResCard>
                           ))}
                         </div>
                       )}
 
                       {/* ── Transport ── */}
-                      {hotelRes.length > 0 && (
-                        <div>
-                          <SectionHead emoji="ðŸ¨" label="Hotels" count={hotelRes.length} color="#be185d" bg="#fff1f5"/>
-                          {hotelRes.map(r => (
-                            <ResCard key={r.id} onClick={() => setDetailModal({ reservation:r, type:'hotel' })}
-                              right={<>
-                                {r.total_price && <span style={{ fontWeight:800, fontSize:16, color:'#0F4C5C' }}>{Number(r.total_price).toLocaleString('fr-FR')} {r.currency || 'TND'}</span>}
-                                <StatusBadge status={r.status}/>
-                              </>}>
-                              <p style={{ fontWeight:700, fontSize:14, color:'#0f172a', marginBottom:4 }}>{r.hotel_name || `Hotel #${r.hotel_id||r.id}`}</p>
-                              <p style={{ fontSize:12, color:'#64748b' }}>{r.hotel_city || 'Tunisie'} Â· {fDate(r.check_in)} â†’ {fDate(r.check_out)} Â· {r.rooms} chambre(s)</p>
-                              <p style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>{r.room_type || 'Chambre'} Â· {r.meal_plan || 'Formule non precisee'} Â· {r.payment_method==='online'?'ðŸ’³ En ligne':"ðŸª Agence"}</p>
-                            </ResCard>
-                          ))}
-                        </div>
-                      )}
-
-                      {flightRes.length > 0 && (
-                        <div>
-                          <SectionHead emoji="✈️" label="Vols" count={flightRes.length} color="#0F4C5C" bg="#e0fbfc"/>
-                          {flightRes.map(r => (
-                            <ResCard key={r.id} onClick={() => setDetailModal({ reservation:r, type:'flight' })}
-                              right={
-                                <>
-                                  {r.total_price && <span style={{ fontWeight:800, fontSize:16, color:'#0F4C5C' }}>{Number(r.total_price).toLocaleString('fr-FR')} {r.currency || ''}</span>}
-                                  <StatusBadge status={r.status}/>
-                                </>
-                              }>
-                              <p style={{ fontWeight:700, fontSize:14, color:'#0f172a', marginBottom:4 }}>{r.origin_iata || '—'} → {r.destination_iata || '—'}</p>
-                              <p style={{ fontSize:12, color:'#64748b' }}>
-                                {r.airline_name || 'Vol'}{r.flight_number ? ` · ${r.flight_number}` : ''} · {r.payment_method==='online'?'💳 En ligne':"🏪 Agence"}
-                              </p>
-                              <p style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>Départ le {fDT(r.departing_at)}</p>
-                            </ResCard>
-                          ))}
-                        </div>
-                      )}
-
                       {transRes.length > 0 && (
                         <div>
                           <SectionHead emoji="🚌" label="Transport" count={transRes.length} color="#0e7490" bg="#e0fbfc"/>
                           {transRes.map(r => (
                             <ResCard key={r.id} onClick={() => setDetailModal({ reservation:r, type:'transport' })}
                               right={<StatusBadge status={r.status}/>}>
-                              <p style={{ fontWeight:700, fontSize:14, color:'#0f172a', marginBottom:4 }}>{r.departure_location||'—'} → {r.arrival_location||'—'}</p>
-                              <p style={{ fontSize:12, color:'#64748b' }}>{r.vehicle_type} · {r.passengers} pers. · {fDate(r.departure_date)}</p>
+                              <p className="cp-res-card__title">{r.departure_location||'—'} → {r.arrival_location||'—'}</p>
+                              <p className="cp-res-card__sub">{r.vehicle_type} · {r.passengers} pers. · {fDate(r.departure_date)}</p>
                             </ResCard>
                           ))}
                         </div>
@@ -855,19 +879,21 @@ const ClientProfile = () => {
                           {customRes.map(r => (
                             <ResCard key={r.id} onClick={() => setDetailModal({ reservation:r, type:'custom' })}
                               right={
-                                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                                <div className="cp-res-card__right">
                                   {r.quoted_price && (
-                                    <span style={{ fontWeight:800, fontSize:15, color:'#065f46', background:'#d1fae5', padding:'3px 10px', borderRadius:999 }}>
+                                    <span className="cp-res-card__quoted-price">
                                       💰 {Number(r.quoted_price).toLocaleString('fr-TN')} TND
                                     </span>
                                   )}
                                   <StatusBadge status={r.status}/>
                                 </div>
                               }>
-                              <p style={{ fontWeight:700, fontSize:14, color:'#0f172a', marginBottom:4 }}>{r.destination||'—'}</p>
-                              <p style={{ fontSize:12, color:'#64748b' }}>{fDate(r.departure_date)} → {fDate(r.return_date)} · {r.number_of_persons} pers.</p>
+                              <p className="cp-res-card__title">{r.destination||'—'}</p>
+                              <p className="cp-res-card__sub">{fDate(r.departure_date)} → {fDate(r.return_date)} · {r.number_of_persons} pers.</p>
                               {r.admin_message && (
-                                <p style={{ fontSize:12, color:'#059669', marginTop:4, fontStyle:'italic' }}>💬 "{r.admin_message.length > 60 ? r.admin_message.slice(0,60)+'...' : r.admin_message}"</p>
+                                <p className="cp-res-card__admin-msg">
+                                  💬 "{r.admin_message.length > 60 ? r.admin_message.slice(0, 60)+'...' : r.admin_message}"
+                                </p>
                               )}
                             </ResCard>
                           ))}
@@ -880,40 +906,40 @@ const ClientProfile = () => {
 
               {/* ═══ MESSAGES ═══ */}
               {activeTab === 'messages' && (
-                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                <div className="cp-messages">
                   {messages.length === 0 ? (
-                    <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e2e8f0', padding:'60px 24px', textAlign:'center' }}>
-                      <i className="fas fa-envelope-open" style={{ fontSize:48, color:'#cbd5e1', marginBottom:16, display:'block' }} />
-                      <p style={{ fontSize:16, fontWeight:600, color:'#475569' }}>Aucun message envoyé</p>
-                      <button onClick={() => navigate('/Contact')} style={{ marginTop:16, padding:'10px 24px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#0F4C5C,#1ECAD3)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+                    <div className="cp-empty">
+                      <i className="fas fa-envelope-open cp-empty__icon" />
+                      <p className="cp-empty__title">Aucun message envoyé</p>
+                      <button onClick={() => navigate('/Contact')} className="cp-btn-contact">
                         Nous contacter
                       </button>
                     </div>
                   ) : messages.map(msg => (
-                    <div key={msg.id} style={{ background:'#fff', borderRadius:14, border:'1px solid #e2e8f0', overflow:'hidden' }}>
-                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', background:'#f8fafc', borderBottom:'1px solid #f1f5f9', flexWrap:'wrap', gap:8 }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                          <span style={{ fontSize:14, fontWeight:700, color:'#0f172a', textTransform:'capitalize' }}>{msg.sujet}</span>
+                    <div key={msg.id} className="cp-msg-card">
+                      <div className="cp-msg-card__header">
+                        <div className="cp-msg-card__title-row">
+                          <span className="cp-msg-card__subject">{msg.sujet}</span>
                           <StatusBadge status={msg.status}/>
                         </div>
-                        <span style={{ fontSize:11, color:'#94a3b8' }}>{fDate(msg.created_at)}</span>
+                        <span className="cp-msg-card__date">{fDate(msg.created_at)}</span>
                       </div>
-                      <div style={{ padding:'16px 20px' }}>
-                        <div style={{ display:'flex', gap:12, marginBottom:msg.admin_notes?16:0 }}>
-                          <div style={{ width:34, height:34, borderRadius:'50%', background:'linear-gradient(135deg,#0F4C5C,#1ECAD3)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:12, fontWeight:700, flexShrink:0 }}>{initials}</div>
-                          <div style={{ background:'#f8fafc', borderRadius:'0 12px 12px 12px', padding:'10px 14px', flex:1 }}>
-                            <p style={{ fontSize:11, fontWeight:600, color:'#94a3b8', marginBottom:4 }}>Vous</p>
-                            <p style={{ fontSize:13, color:'#334155', lineHeight:1.6 }}>{msg.message}</p>
+                      <div className="cp-msg-card__body">
+                        <div className="cp-msg-bubble-row">
+                          <div className="cp-msg-avatar cp-msg-avatar--client">{initials}</div>
+                          <div className="cp-msg-bubble cp-msg-bubble--client">
+                            <p className="cp-msg-bubble__from cp-msg-bubble__from--client">Vous</p>
+                            <p className="cp-msg-bubble__text">{msg.message}</p>
                           </div>
                         </div>
                         {msg.admin_notes && (
-                          <div style={{ display:'flex', gap:12, marginTop:12, flexDirection:'row-reverse' }}>
-                            <div style={{ width:34, height:34, borderRadius:'50%', background:'linear-gradient(135deg,#e92f64,#f43f5e)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:12, flexShrink:0 }}>
+                          <div className="cp-msg-bubble-row cp-msg-bubble-row--right">
+                            <div className="cp-msg-avatar cp-msg-avatar--support">
                               <i className="fas fa-headset"/>
                             </div>
-                            <div style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:'12px 0 12px 12px', padding:'10px 14px', flex:1 }}>
-                              <p style={{ fontSize:11, fontWeight:600, color:'#16a34a', marginBottom:4 }}>Réponse de Tictac Voyages</p>
-                              <p style={{ fontSize:13, color:'#334155', lineHeight:1.6 }}>{msg.admin_notes}</p>
+                            <div className="cp-msg-bubble cp-msg-bubble--support">
+                              <p className="cp-msg-bubble__from cp-msg-bubble__from--support">Réponse de Tictac Voyages</p>
+                              <p className="cp-msg-bubble__text">{msg.admin_notes}</p>
                             </div>
                           </div>
                         )}
@@ -927,13 +953,13 @@ const ClientProfile = () => {
               {activeTab === 'favoris' && (
                 <div>
                   {favorites.length === 0 ? (
-                    <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e2e8f0', padding:'60px 24px', textAlign:'center' }}>
-                      <i className="fas fa-heart" style={{ fontSize:48, color:'#fca5a5', marginBottom:16, display:'block' }} />
-                      <p style={{ fontSize:16, fontWeight:600, color:'#475569', marginBottom:8 }}>Aucun favori pour l'instant</p>
-                      <p style={{ fontSize:13, color:'#94a3b8' }}>Cliquez sur le ❤️ dans les cartes pour sauvegarder vos préférés</p>
+                    <div className="cp-empty">
+                      <i className="fas fa-heart cp-empty__icon" style={{ color:'#fca5a5' }}/>
+                      <p className="cp-empty__title">Aucun favori pour l'instant</p>
+                      <p className="cp-empty__sub">Cliquez sur le ❤️ dans les cartes pour sauvegarder vos préférés</p>
                     </div>
                   ) : (
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(260px, 1fr))', gap:16 }}>
+                    <div className="cp-fav-grid">
                       {favorites.map(fav => {
                         const data = fav.item_data || {};
                         const typeMap = {
@@ -943,24 +969,21 @@ const ClientProfile = () => {
                         };
                         const tm = typeMap[fav.item_type] || { label:fav.item_type, bg:'#f1f5f9', color:'#64748b' };
                         return (
-                          <div key={fav.id} style={{ background:'#fff', borderRadius:14, border:'1px solid #e2e8f0', overflow:'hidden', boxShadow:'0 2px 8px rgba(0,0,0,.04)', transition:'transform .2s', cursor:'pointer' }}
-                            onClick={() => handleFavoriteOpen(fav)}
-                            onMouseEnter={e=>e.currentTarget.style.transform='translateY(-4px)'}
-                            onMouseLeave={e=>e.currentTarget.style.transform='translateY(0)'}>
-                            {data.image && <img src={data.image} alt={data.title} style={{ width:'100%', height:140, objectFit:'cover' }}/>}
-                            <div style={{ padding:'14px 16px' }}>
-                              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-                                <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:999, background:tm.bg, color:tm.color, textTransform:'uppercase', letterSpacing:'.06em' }}>{tm.label}</span>
-                                <i className="fas fa-heart" style={{ color:'#e92f64', fontSize:14 }}/>
+                          <div key={fav.id} className="cp-fav-card" onClick={() => handleFavoriteOpen(fav)}>
+                            {data.image && <img src={data.image} alt={data.title} className="cp-fav-card__img"/>}
+                            <div className="cp-fav-card__body">
+                              <div className="cp-fav-card__top">
+                                <span className="cp-fav-card__type-badge" style={{ background:tm.bg, color:tm.color }}>{tm.label}</span>
+                                <i className="fas fa-heart cp-fav-card__heart"/>
                               </div>
-                              <p style={{ fontWeight:700, fontSize:14, color:'#0f172a', marginBottom:4 }}>{data.title||'—'}</p>
+                              <p className="cp-fav-card__title">{data.title||'—'}</p>
                               {(data.pays || data.destination || data.subtitle || data.region) && (
-                                <p style={{ fontSize:12, color:'#64748b', marginBottom:4 }}>
+                                <p className="cp-fav-card__sub">
                                   {[data.pays, data.destination, data.subtitle, data.region].filter(Boolean).join(' • ')}
                                 </p>
                               )}
-                              {data.price && <p style={{ fontSize:13, fontWeight:700, color:'#0F4C5C' }}>{Number(data.price).toLocaleString('fr-TN')} TND</p>}
-                              <p style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>Ajouté le {fDate(fav.created_at)}</p>
+                              {data.price && <p className="cp-fav-card__price">{Number(data.price).toLocaleString('fr-TN')} TND</p>}
+                              <p className="cp-fav-card__date">Ajouté le {fDate(fav.created_at)}</p>
                             </div>
                           </div>
                         );
@@ -970,28 +993,29 @@ const ClientProfile = () => {
                 </div>
               )}
 
+              {/* ═══ PROMOTIONS ═══ */}
               {activeTab === 'promotions' && (
-                <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
-                  <div style={{ background:'linear-gradient(135deg,#0F4C5C,#1ECAD3)', borderRadius:16, padding:'26px 28px', color:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', gap:18, flexWrap:'wrap' }}>
+                <div className="cp-promo-tab">
+                  <div className="cp-promo-banner">
                     <div>
-                      <p style={{ fontSize:13, opacity:.8, marginBottom:6, fontWeight:600 }}>Promotions actives</p>
-                      <p style={{ fontSize:28, fontWeight:800, marginBottom:8 }}>Nos promotions</p>
-                      <p style={{ fontSize:13, opacity:.88 }}>{promotions.length} promotion{promotions.length!==1?'s':''} disponible{promotions.length!==1?'s':''} pour votre compte</p>
+                      <p className="cp-promo-banner__label">Promotions actives</p>
+                      <p className="cp-promo-banner__title">Nos promotions</p>
+                      <p className="cp-promo-banner__sub">{promotions.length} promotion{promotions.length!==1?'s':''} disponible{promotions.length!==1?'s':''} pour votre compte</p>
                     </div>
-                    <div style={{ display:'flex', alignItems:'center', gap:10, background:'rgba(255,255,255,.14)', padding:'14px 18px', borderRadius:12 }}>
+                    <div className="cp-promo-banner__badge">
                       <i className="fas fa-ticket-alt" style={{ fontSize:18 }} />
-                      <span style={{ fontSize:13, fontWeight:700 }}>Codes promo visibles ici</span>
+                      <span>Codes promo visibles ici</span>
                     </div>
                   </div>
 
                   {promotions.length === 0 ? (
-                    <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e2e8f0', padding:'52px 24px', textAlign:'center' }}>
-                      <i className="fas fa-percent" style={{ fontSize:42, color:'#cbd5e1', marginBottom:14, display:'block' }} />
-                      <p style={{ fontSize:16, fontWeight:700, color:'#475569', marginBottom:8 }}>Aucune promotion active pour le moment</p>
-                      <p style={{ fontSize:13, color:'#94a3b8' }}>Les nouvelles offres et leurs codes promo apparaîtront ici automatiquement.</p>
+                    <div className="cp-empty">
+                      <i className="fas fa-percent cp-empty__icon" />
+                      <p className="cp-empty__title">Aucune promotion active pour le moment</p>
+                      <p className="cp-empty__sub">Les nouvelles offres et leurs codes promo apparaîtront ici automatiquement.</p>
                     </div>
                   ) : (
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))', gap:16 }}>
+                    <div className="cp-promo-grid">
                       {promotions.map((promotion) => {
                         const isPercent = promotion.type_reduction === 'pourcentage';
                         const discountLabel = isPercent
@@ -999,46 +1023,34 @@ const ClientProfile = () => {
                           : `${Number(promotion.valeur_reduction || 0).toLocaleString('fr-FR')} TND`;
 
                         return (
-                          <div key={promotion.id} style={{ background:'#fff', borderRadius:16, border:'1px solid #e2e8f0', overflow:'hidden', boxShadow:'0 8px 24px rgba(15,76,92,.06)' }}>
-                            <div style={{ padding:'18px 20px', background:'linear-gradient(135deg,#0F4C5C,#1a6b80)', color:'#fff' }}>
-                              <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12 }}>
+                          <div key={promotion.id} className="cp-promo-card">
+                            <div className="cp-promo-card__header">
+                              <div className="cp-promo-card__header-inner">
                                 <div>
-                                  <p style={{ fontSize:11, fontWeight:700, opacity:.72, textTransform:'uppercase', letterSpacing:'.08em', marginBottom:6 }}>
-                                    {formatPromotionCategory(promotion.categorie)}
-                                  </p>
-                                  <p style={{ fontSize:18, fontWeight:800, lineHeight:1.3 }}>{promotion.titre}</p>
+                                  <p className="cp-promo-card__cat">{formatPromotionCategory(promotion.categorie)}</p>
+                                  <p className="cp-promo-card__title">{promotion.titre}</p>
                                 </div>
-                                <span style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', minWidth:72, padding:'8px 12px', borderRadius:999, background:'rgba(255,255,255,.16)', fontSize:14, fontWeight:800 }}>
-                                  -{discountLabel}
-                                </span>
+                                <span className="cp-promo-card__discount">-{discountLabel}</span>
                               </div>
                             </div>
-
-                            <div style={{ padding:'18px 20px' }}>
+                            <div className="cp-promo-card__body">
                               {promotion.description && (
-                                <p style={{ fontSize:13, color:'#475569', lineHeight:1.7, marginBottom:16 }}>{promotion.description}</p>
+                                <p className="cp-promo-card__desc">{promotion.description}</p>
                               )}
-
-                              <div style={{ padding:'14px 16px', borderRadius:12, background:'#f8fafc', border:'1px dashed #94a3b8', marginBottom:16 }}>
-                                <p style={{ fontSize:11, fontWeight:700, color:'#64748b', marginBottom:6, textTransform:'uppercase', letterSpacing:'.08em' }}>
-                                  Code promo
-                                </p>
-                                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
-                                  <span style={{ fontSize:22, fontWeight:900, color:'#0F4C5C', letterSpacing:'0.08em' }}>
+                              <div className="cp-promo-code-box">
+                                <p className="cp-promo-code-box__label">Code promo</p>
+                                <div className="cp-promo-code-box__row">
+                                  <span className="cp-promo-code-box__code">
                                     {promotion.code_promo || 'Aucun code requis'}
                                   </span>
                                   {promotion.code_promo && (
-                                    <button
-                                      onClick={() => handleCopyPromo(promotion.code_promo)}
-                                      style={{ padding:'8px 12px', borderRadius:9, border:'1px solid #cbd5e1', background:'#fff', color:'#0F4C5C', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}
-                                    >
+                                    <button onClick={() => handleCopyPromo(promotion.code_promo)} className="cp-btn-copy-promo">
                                       Copier
                                     </button>
                                   )}
                                 </div>
                               </div>
-
-                              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap', fontSize:12, color:'#64748b' }}>
+                              <div className="cp-promo-card__dates">
                                 <span>Du {fDate(promotion.date_debut)}</span>
                                 <span>Au {fDate(promotion.date_fin)}</span>
                               </div>
@@ -1053,80 +1065,82 @@ const ClientProfile = () => {
 
               {/* ═══ FIDÉLITÉ ═══ */}
               {activeTab === 'fidelite' && (
-                <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-                  <div style={{ background:`linear-gradient(135deg,${loyalty.color},${loyalty.color}cc)`, borderRadius:16, padding:'28px 32px', color:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', gap:20, flexWrap:'wrap' }}>
+                <div className="cp-fidelite">
+                  <div className="cp-loyalty-hero" style={{ background:`linear-gradient(135deg,${loyalty.color},${loyalty.color}cc)` }}>
                     <div>
-                      <p style={{ fontSize:13, opacity:.75, marginBottom:6, fontWeight:600 }}>Votre niveau actuel</p>
-                      <p style={{ fontSize:28, fontWeight:800, marginBottom:8 }}>{loyalty.icon} {loyalty.label}</p>
-                      <p style={{ fontSize:13, opacity:.85 }}>{totalRes} réservation{totalRes!==1?'s':''} au total</p>
+                      <p className="cp-loyalty-hero__label">Votre niveau actuel</p>
+                      <p className="cp-loyalty-hero__level">{loyalty.icon} {loyalty.label}</p>
+                      <p className="cp-loyalty-hero__total">{totalRes} réservation{totalRes!==1?'s':''} au total</p>
                     </div>
                     {loyalty.next && (
-                      <div style={{ background:'rgba(255,255,255,.15)', borderRadius:12, padding:'16px 24px', minWidth:200 }}>
-                        <p style={{ fontSize:12, opacity:.85, marginBottom:8 }}>Progression vers le niveau suivant</p>
-                        <div style={{ height:8, background:'rgba(255,255,255,.25)', borderRadius:999, overflow:'hidden', marginBottom:6 }}>
-                          <div style={{ height:'100%', width:`${progressPct}%`, background:'#fff', borderRadius:999, transition:'width .5s ease' }}/>
+                      <div className="cp-loyalty-progress">
+                        <p className="cp-loyalty-progress__label">Progression vers le niveau suivant</p>
+                        <div className="cp-loyalty-progress__track">
+                          <div className="cp-loyalty-progress__fill" style={{ width:`${progressPct}%` }}/>
                         </div>
-                        <p style={{ fontSize:12, opacity:.85 }}>{loyalty.nextLabel}</p>
+                        <p className="cp-loyalty-progress__next">{loyalty.nextLabel}</p>
                       </div>
                     )}
                   </div>
 
-                  <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e2e8f0', padding:'20px 24px', display:'flex', alignItems:'center', gap:16 }}>
-                    <div style={{ width:52, height:52, borderRadius:14, background:'linear-gradient(135deg,#D4A017,#f59e0b)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <i className="fas fa-tag" style={{ color:'#fff', fontSize:20 }}/>
+                  <div className="cp-discount-card">
+                    <div className="cp-discount-card__icon">
+                      <i className="fas fa-tag"/>
                     </div>
                     <div>
-                      <p style={{ fontWeight:700, fontSize:15, color:'#0f172a', marginBottom:4 }}>Prochaine réduction : <span style={{ color:'#D4A017' }}>{nextDiscount.pct}%</span></p>
-                      <p style={{ fontSize:13, color:'#64748b' }}>Plus que <strong>{nextDiscount.remaining}</strong> réservation{nextDiscount.remaining>1?'s':''} pour débloquer votre réduction à la réservation n°{nextDiscount.at}</p>
+                      <p className="cp-discount-card__title">
+                        Prochaine réduction : <span className="cp-discount-card__pct">{nextDiscount.pct}%</span>
+                      </p>
+                      <p className="cp-discount-card__sub">
+                        Plus que <strong>{nextDiscount.remaining}</strong> réservation{nextDiscount.remaining>1?'s':''} pour débloquer votre réduction à la réservation n°{nextDiscount.at}
+                      </p>
                     </div>
                   </div>
 
-                  <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e2e8f0', padding:'20px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
+                  <div className="cp-promo-link-card">
                     <div>
-                      <p style={{ fontWeight:700, fontSize:15, color:'#0f172a', marginBottom:4 }}>Nos promotions</p>
-                      <p style={{ fontSize:13, color:'#64748b' }}>
+                      <p className="cp-promo-link-card__title">Nos promotions</p>
+                      <p className="cp-promo-link-card__sub">
                         Retrouvez toutes les promotions actives et leurs codes promo dans votre espace client.
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleTabChange('promotions')}
-                      style={{ padding:'11px 20px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#0F4C5C,#1ECAD3)', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}
-                    >
+                    <button onClick={() => handleTabChange('promotions')} className="cp-btn-promo-link">
                       Nos promotions
                     </button>
                   </div>
 
-                  <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e2e8f0', overflow:'hidden' }}>
-                    <div style={{ padding:'18px 24px', borderBottom:'1px solid #f1f5f9' }}>
-                      <h3 style={{ fontSize:15, fontWeight:700, color:'#0f172a' }}>📋 Règles du programme de fidélité</h3>
+                  <div className="cp-rules-card">
+                    <div className="cp-rules-card__header">
+                      <h3 className="cp-rules-card__title">📋 Règles du programme de fidélité</h3>
                     </div>
-                    <div style={{ padding:'20px 24px', display:'flex', flexDirection:'column', gap:14 }}>
+                    <div className="cp-rules-card__body">
                       {[
-                        { icon:'🌱',   level:'Niveau 0', rule:'Nouveau client jusqu à 2 réservations' },
-                        { icon:'⭐',   level:'Niveau 1', rule:'À partir de 3 réservations' },
-                        { icon:'⭐⭐', level:'Niveau 2', rule:'Après 5 réservations, dès la 6ème réservation' },
-                        { icon:'⭐⭐⭐', level:'Niveau 3', rule:'À partir de 10 réservations' },
+                        { icon:'🌱',    level:'Niveau 0',    rule:"Nouveau client jusqu'à 2 réservations" },
+                        { icon:'⭐',    level:'Niveau 1 ⭐',  rule:'À partir de 3 réservations' },
+                        { icon:'⭐⭐',  level:'Niveau 2 ⭐⭐', rule:'Après 5 réservations, dès la 6ème réservation' },
+                        { icon:'⭐⭐⭐', level:'Niveau 3 ⭐⭐⭐', rule:'À partir de 10 réservations' },
                       ].map(item => (
-                        <div key={item.level} style={{ display:'flex', alignItems:'center', gap:14, padding:'12px 16px', borderRadius:10, background:loyalty.label.includes(item.level)?'#f0fdf4':'#f8fafc', border:`1px solid ${loyalty.label.includes(item.level)?'#bbf7d0':'#f1f5f9'}` }}>
-                          <span style={{ fontSize:20, flexShrink:0 }}>{item.icon}</span>
+                        <div key={item.level} className={`cp-rule-row ${loyalty.label.includes(item.level) ? 'cp-rule-row--active' : 'cp-rule-row--default'}`}>
+                          <span className="cp-rule-row__icon">{item.icon}</span>
                           <div>
-                            <p style={{ fontWeight:700, fontSize:13, color:'#0f172a' }}>{item.level}</p>
-                            <p style={{ fontSize:12, color:'#64748b', marginTop:2 }}>{item.rule}</p>
+                            <p className="cp-rule-row__level">{item.level}</p>
+                            <p className="cp-rule-row__rule">{item.rule}</p>
                           </div>
                         </div>
                       ))}
-                      <div style={{ marginTop:8, padding:'16px', background:'#fffbeb', borderRadius:12, border:'1px solid #fed7aa' }}>
-                        <p style={{ fontWeight:700, fontSize:13, color:'#92400e', marginBottom:10 }}>🎁 Réductions automatiques</p>
+
+                      <div className="cp-auto-discounts">
+                        <p className="cp-auto-discounts__title">🎁 Réductions automatiques</p>
                         {[
                           { at:'5ème réservation',     pct:'10%', desc:'Réduction de 10% sur la 6ème réservation' },
                           { at:'10ème réservation',    pct:'20%', desc:'Réduction de 20% sur la 11ème réservation' },
                           { at:'Toutes les 3 ensuite', pct:'5%',  desc:'Réduction de 5% toutes les 3 réservations après la 10ème' },
                         ].map(r => (
-                          <div key={r.at} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:8 }}>
-                            <span style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:40, height:40, borderRadius:10, background:'#fff', border:'1.5px solid #fed7aa', fontWeight:800, fontSize:13, color:'#d97706', flexShrink:0 }}>{r.pct}</span>
+                          <div key={r.at} className="cp-auto-discount-row">
+                            <span className="cp-auto-discount-row__badge">{r.pct}</span>
                             <div>
-                              <p style={{ fontWeight:600, fontSize:12, color:'#92400e' }}>{r.at}</p>
-                              <p style={{ fontSize:11, color:'#b45309' }}>{r.desc}</p>
+                              <p className="cp-auto-discount-row__at">{r.at}</p>
+                              <p className="cp-auto-discount-row__desc">{r.desc}</p>
                             </div>
                           </div>
                         ))}
@@ -1141,11 +1155,6 @@ const ClientProfile = () => {
       </main>
 
       <Footer />
-      <style>{`
-        @keyframes spin    { to { transform: rotate(360deg); } }
-        @keyframes fadeIn  { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
-        @keyframes slideUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
-      `}</style>
     </>
   );
 };
