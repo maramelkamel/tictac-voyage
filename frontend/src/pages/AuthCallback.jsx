@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// This page receives the Google OAuth response and stores the client session.
+// recoit google OAuth response stores client session
 const AuthCallback = () => {
   const navigate = useNavigate();
 
-  // This effect reads the OAuth query params, saves the session, and redirects the client.
+  // lire OAuth query params, saves the session, and redirects  client.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token  = params.get('token');
@@ -16,7 +16,7 @@ const AuthCallback = () => {
         const client = JSON.parse(clientRaw);
         localStorage.setItem('token', token);
         localStorage.setItem('client', JSON.stringify(client));
-        navigate('/hotels', { replace: true });
+        navigate('/hotels', { replace: true });//si sucssé redirection page hotels
       } catch {
         navigate('/SignIn?error=parse', { replace: true });
       }
