@@ -1,7 +1,4 @@
-// backend/models/clientModel.js
-//
-// Modèle "clients" (auth + CRUD admin).
-// ⚠️ Ce fichier avait été écrasé par erreur par le modèle circuits, ce qui cassait /api/clients.
+
 
 const pool = require('../config/db');
 const bcrypt = require('bcryptjs');

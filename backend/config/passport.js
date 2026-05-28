@@ -11,7 +11,7 @@ passport.use(
       callbackURL:  process.env.GOOGLE_CALLBACK_URL,
       scope: ['profile', 'email'],
     },
-    // This callback links the Google profile to an existing client or creates a new one.
+    //  callback relie profile  google  par existing client or creates a new one.
     async (_accessToken, _refreshToken, profile, done) => {
       try {
         const email     = profile.emails?.[0]?.value;

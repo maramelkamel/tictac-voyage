@@ -203,7 +203,7 @@ const LocationInput = ({
         </div>
       )}
 
-      {/* msg error */}
+      {/* msg */}
       {error && <span className="transport-field-error">{error}</span>}
     </div>
   );

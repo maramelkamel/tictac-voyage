@@ -4,11 +4,11 @@ import Footer from '../../components/Footer';
 import '../../styles/Transport.css';
 import { usePromotions } from '../../hooks/usePromotions';
 import PromotionsSection from '../admin/promotions/PromotionsSection';
-import LocationInput from './LocationInput'; // ← nouveau composant
+import LocationInput from './LocationInput'; 
 
 const API_URL = 'http://localhost:5000/api/requests';
 
-// Aucune clé API requise — autocomplete via OpenStreetMap (Nominatim)
+
 
 const Transport = () => {
   const clientData  = (() => { try { return JSON.parse(localStorage.getItem('client') || '{}'); } catch { return {}; } })();

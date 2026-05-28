@@ -38,7 +38,8 @@ const findById = async (id) => {
 };
 
 const SAFE_FIELDS = 'id, first_name, last_name, email, phone, city, avatar_url, auth_provider, created_at';
-// This model helper links or creates a client account during Google OAuth login.
+
+//  creates a client account during Google OAuth login.
 const upsertGoogleClient = async ({ google_id, email, first_name, last_name, avatar_url }) => {
   // This step reuses an existing Google-linked account when it already exists.
   const byGoogle = await pool.query(
