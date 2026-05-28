@@ -1,6 +1,10 @@
 // backend/controllers/omraController.js
 const omraModel = require('../models/omraModel');
+
+// The key used to store hero-cover
 const KEY='omra-covers'
+
+// Default hero content
 const DEFAULT = {
   hero: {
     bg_image:     '',
@@ -10,9 +14,13 @@ const DEFAULT = {
     sub:          'Accomplissez votre Omra en toute serenite avec nos forfaits tout compris, concus pour une experience spirituelle inoubliable. ',
   },};
 
+
+   //Returns the hero section appearance settings for the public Omra page
   const getOmraCovers = async (req, res) => {
     try {
+      // loads teh existing cover from db
       const data = await omraModel.getSetting(KEY);
+      // Send either the stored data or the hardcoded defaults.
       res.json({ success: true, data: data ?? DEFAULT });
     } catch (err) {
       console.error('[settings] getOmraCovers:', err.message);
@@ -20,6 +28,8 @@ const DEFAULT = {
     }
   };
   
+
+  // Called by the admin
   const updateOmraCovers = async (req, res) => {
     try {
       const { hero, nord, sud } = req.body;
@@ -37,7 +47,9 @@ const DEFAULT = {
 /* GET /api/omra/packages — admin: all | public: active only */
 const getAll = async (req, res) => {
   try {
+    // Disable HTTP caching so the admin always sees the latest data.
     res.set('Cache-Control', 'no-store');
+     // Determine which model method to call based on the query string.
     const publicOnly = req.query.public === 'true';
     const packages   = publicOnly
       ? await omraModel.getActivePackages()
@@ -50,6 +62,7 @@ const getAll = async (req, res) => {
 };
 
 /* GET /api/omra/packages/:id */
+// Used by the Details page when navigating directly to a URL
 const getOne = async (req, res) => {
   try {
     res.set('Cache-Control', 'no-store');
@@ -110,3 +123,5 @@ const remove = async (req, res) => {
 };
 
 module.exports = { getAll, getOne, create, update, remove , getOmraCovers,updateOmraCovers};
+
+
