@@ -1,10 +1,5 @@
 const pool = require('../config/db');
 
-/**
- * Flight Reservation Model
- * Table: public.flight_reservations
- */
-
 const create = async (data) => {
   const {
     user_id,

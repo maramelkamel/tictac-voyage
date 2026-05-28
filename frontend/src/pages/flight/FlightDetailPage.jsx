@@ -1,19 +1,15 @@
-// src/pages/flights/FlightDetails.jsx
+
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import '../../styles/omrastyle.css';
-import '../../styles/FlightsPage.css'; // tous les styles dans FlightsPage.css
+import '../../styles/FlightsPage.css'; 
 
-// ─────────────────────────────────────────────────────────────────
-//  FONCTIONS DE FORMATAGE
-//  Définies hors composant — pas d'état React, réutilisables.
-// ─────────────────────────────────────────────────────────────────
 
-// Formate une date ISO en date+heure lisible en français
-// Ex: "2026-06-04T10:30:00Z" → "mer. 04 juin, 10:30"
+
+// affichee date forme lisible
 const fmt = (isoStr) => {
-  if (!isoStr) return '---'; // évite d'afficher "Invalid Date"
+  if (!isoStr) return '---'; 
   return new Date(isoStr).toLocaleString('fr-FR', {
     weekday: 'short',  // "mer."
     day:     '2-digit',
@@ -24,7 +20,6 @@ const fmt = (isoStr) => {
 };
 
 // Formate une date ISO en date longue
-// Ex: "2026-06-04T10:30:00Z" → "04 juin 2026"
 const fmtDate = (isoStr) => {
   if (!isoStr) return '---';
   return new Date(isoStr).toLocaleDateString('fr-FR', {
@@ -36,31 +31,18 @@ const fmtDate = (isoStr) => {
 
 // Convertit une durée ISO 8601 en texte lisible
 // Ex: "PT2H35M" → "2h 35min"
-// Ex: "PT45M"   → "45min"
-// Ex: "PT3H"    → "3h"
 const fmtDuration = (dur) => {
   if (!dur) return '---';
 
-  // .match(/(\d+)H/) cherche un ou plusieurs chiffres suivis de H
-  // ?.[1] = groupe de capture (le nombre seul, sans le H)
-  // ex: "PT2H35M".match(/(\d+)H/) → ["2H", "2"] → ?.[1] = "2"
+  
   const h = dur.match(/(\d+)H/)?.[1];
   const m = dur.match(/(\d+)M/)?.[1];
-
-  // filter(Boolean) supprime les chaînes vides ('') du tableau
-  // join(' ') assemble avec un espace → "2h 35min"
   return [h ? `${h}h` : '', m ? `${m}min` : '']
     .filter(Boolean)
     .join(' ')
-    || dur; // fallback : affiche la valeur brute si le format ne correspond pas
+    || dur; 
 };
 
-// ─────────────────────────────────────────────────────────────────
-//  COMPOSANT FlightDetails
-//  Page de détail d'une offre de vol.
-//  Affiche : slices (trajets), segments (vols), correspondances,
-//  conditions tarifaires, bagages, et sidebar avec prix + CTA.
-// ─────────────────────────────────────────────────────────────────
 const FlightDetails = () => {
   const navigate  = useNavigate();
   const { state } = useLocation(); // lit les données passées par navigate(..., { state })
@@ -69,8 +51,6 @@ const FlightDetails = () => {
   const offer        = state?.offer;
   const searchParams = state?.searchParams || {};
 
-  // ── Guard clause : accès direct à l'URL sans offer ──────────────
-  // Affiche une page d'erreur propre plutôt qu'un crash React
   if (!offer) {
     return (
       <>
@@ -93,39 +73,36 @@ const FlightDetails = () => {
   }
 
   // ── Extraction des données de l'offre ───────────────────────────
-  const totalAmount = parseFloat(offer.total_amount || 0); // prix TND (avec marge)
+  const totalAmount = parseFloat(offer.total_amount || 0);
   const currency    = offer.total_currency || 'EUR';
   const cabinClass  = offer.cabin_class || 'economy';
 
-  // Traduction du code cabine en label lisible (même dictionnaire que FlightListPage)
+
   const cabinLabel = {
     economy:         'Économique',
     premium_economy: 'Premium Éco',
     business:        'Affaires',
     first:           'Première',
-  }[cabinClass] || cabinClass; // fallback : affiche la valeur brute si inconnue
+  }[cabinClass] || cabinClass; 
 
-  // Date d'expiration de l'offre — null si non fournie
+  //date exp
   const expireAt = offer.expires_at ? new Date(offer.expires_at) : null;
 
-  // ── Navigation vers la réservation ─────────────────────────────
-  // Passe l'offre complète à FlightReservation via React Router state
+  //Navigation vers la réservation via react router 
+  
   const handleBook = () => {
     navigate('/flights/reserve', { state: { offer } });
   };
 
-  // ─────────────────────────────────────────────────────────────────
-  //  RENDU PRINCIPAL
-  // ─────────────────────────────────────────────────────────────────
+ 
   return (
     <>
       <Navbar />
 
-      {/* ── Header gradient bleu ─────────────────────────────── */}
+      
       <div className="flights-page-header" style={{ paddingBottom: 28 }}>
         <div className="container">
 
-          {/* Fil d'Ariane : Recherche > Résultats > Détail */}
           <div className="omra-page-breadcrumb" style={{ paddingTop: 0, marginBottom: 14 }}>
             <button
               onClick={() => navigate('/flights/search')}
@@ -146,95 +123,82 @@ const FlightDetails = () => {
         </div>
       </div>
 
-      {/* ── Contenu principal ────────────────────────────────── */}
+      
       <div className="container" style={{ padding: '28px 0 60px' }}>
-        {/* Layout 2 colonnes : omra-reserve__layout défini dans omrastyle.css */}
+        
         <div className="omra-reserve__layout">
 
-          {/* ════════════════════════════════════════════════════
-              COLONNE GAUCHE — Détail des trajets (slices)
-              + Conditions tarifaires + Bagages
-          ════════════════════════════════════════════════════ */}
+          
           <div className="flights-details-left">
 
-            {/* Itération sur chaque slice (aller, retour si aller-retour) */}
+           
             {offer.slices?.map((slice, si) => {
-              // Premier segment du slice → aéroport de départ du trajet
+              
               const firstSeg = slice.segments?.[0];
-              // Dernier segment → aéroport d'arrivée final du trajet
               const lastSeg  = slice.segments?.[slice.segments.length - 1];
-              // Nombre d'escales = nombre de segments - 1
               const stops    = slice.segments?.length - 1;
 
               return (
                 <div key={si} className="flights-slice-card">
 
-                  {/* ── Header du slice : "Aller — TUN → CDG" ─ */}
                   <div className="flights-slice-header">
                     <div className="flights-slice-header__title">
                       <i className="fas fa-plane" style={{ color: 'var(--secondary)', fontSize: 16 }} />
-                      {/* si === 0 = aller, si === 1 = retour */}
                       {si === 0 ? 'Aller' : 'Retour'} — {firstSeg?.origin?.iata_code} → {lastSeg?.destination?.iata_code}
                     </div>
 
                     <div className="flights-slice-header__badges">
-                      {/* Badge durée totale du slice */}
+                     
                       <span className="flights-slice-badge flights-slice-badge--duration">
                         <i className="fas fa-clock" style={{ marginRight: 4 }} />
                         {fmtDuration(slice.duration)}
                       </span>
-                      {/* Badge escales : vert si direct, jaune si escale(s) */}
                       <span className={`flights-slice-badge ${stops === 0 ? 'flights-slice-badge--direct' : 'flights-slice-badge--stopover'}`}>
                         {stops === 0 ? 'Direct' : `${stops} escale${stops > 1 ? 's' : ''}`}
                       </span>
                     </div>
                   </div>
 
-                  {/* ── Corps du slice : liste des segments ──── */}
                   <div className="flights-slice-body">
                     {slice.segments?.map((seg, idx) => {
                       const carrier = seg.marketing_carrier; // compagnie commerciale
-                      // Essaie le logo carré en priorité, puis le logo horizontal
+                      
                       const logoUrl = carrier?.logo_symbol_url || carrier?.logo_lockup_url;
 
                       return (
                         <div key={idx}>
 
-                          {/* Badge de correspondance — affiché entre les segments */}
-                          {/* idx > 0 : ne s'affiche pas avant le premier segment */}
                           {idx > 0 && (
                             <div className="flights-connexion-badge">
                               <i className="fas fa-exchange-alt" style={{ color: '#b07d00', fontSize: 12 }} />
                               <span>
                                 Correspondance à {seg.origin?.name || seg.origin?.iata_code}
-                                {/* Préfère le nom complet, fallback sur le code IATA */}
+                               
                               </span>
                             </div>
                           )}
 
-                          {/* Grid 3 colonnes : logo | trajet | classe */}
                           <div className="flights-segment-grid">
 
-                            {/* ── Colonne 1 : logo + numéro de vol ─── */}
                             <div className="flights-segment-logo">
                               {logoUrl ? (
                                 <img src={logoUrl} alt={carrier?.name} />
                               ) : (
-                                // Placeholder si pas de logo disponible
+                               
                                 <div className="flights-segment-logo__placeholder">
                                   <i className="fas fa-plane" style={{ color: 'var(--secondary)' }} />
                                 </div>
                               )}
-                              {/* Numéro de vol : code IATA + numéro (ex: "TK512") */}
+                              
                               <p className="flights-segment-logo__number">
                                 {carrier?.iata_code}{seg.marketing_carrier_flight_number}
                               </p>
                             </div>
 
-                            {/* ── Colonne 2 : trajet (départ — ligne — arrivée) ─── */}
+                            
                             <div className="flights-segment-path">
 
-                              {/* Départ */}
+                          
                               <div className="flights-segment-airport">
                                 <p className="flights-segment-airport__time">
                                   {new Date(seg.departing_at).toLocaleTimeString('fr-FR', {
@@ -252,10 +216,10 @@ const FlightDetails = () => {
                                 </p>
                               </div>
 
-                              {/* Ligne centrale avec icône avion et durée du segment */}
+                              
                               <div className="flights-segment-line">
                                 <div className="flights-segment-line__bar" />
-                                {/* whiteSpace: nowrap évite que "2h 35min" se coupe en 2 lignes */}
+                             
                                 <div className="flights-segment-line__info">
                                   <i className="fas fa-plane" style={{ fontSize: 10 }} /><br />
                                   {fmtDuration(seg.duration)}
@@ -263,7 +227,6 @@ const FlightDetails = () => {
                                 <div className="flights-segment-line__bar" />
                               </div>
 
-                              {/* Arrivée */}
                               <div className="flights-segment-airport">
                                 <p className="flights-segment-airport__time">
                                   {new Date(seg.arriving_at).toLocaleTimeString('fr-FR', {
@@ -282,17 +245,13 @@ const FlightDetails = () => {
                               </div>
                             </div>
 
-                            {/* ── Colonne 3 : classe cabine + avion + compagnie ─── */}
                             <div className="flights-segment-info">
-                              {/* Badge bleu classe cabine */}
                               <span className="flights-segment-info__cabin">{cabinLabel}</span>
-                              {/* Nom de l'avion — affiché seulement si disponible */}
                               {seg.aircraft?.name && (
                                 <p className="flights-segment-info__aircraft">
                                   {seg.aircraft.name}
                                 </p>
                               )}
-                              {/* Nom de la compagnie */}
                               {carrier?.name && (
                                 <p className="flights-segment-info__carrier">
                                   {carrier.name}
@@ -308,8 +267,6 @@ const FlightDetails = () => {
               );
             })}
 
-            {/* ── Carte Conditions tarifaires ─────────────── */}
-            {/* Affichée seulement si l'offre a des conditions */}
             {offer.conditions && (
               <div className="flights-conditions-card">
                 <h3 className="flights-conditions-card__title">
@@ -317,7 +274,6 @@ const FlightDetails = () => {
                   Conditions tarifaires
                 </h3>
 
-                {/* Grid 2 colonnes : changement + remboursement */}
                 <div className="flights-conditions-grid">
                   {[
                     {
@@ -332,9 +288,9 @@ const FlightDetails = () => {
                                   : '' // pas de pénalité
                               }`
                             : 'Non autorisé')
-                        : 'Non précisé', // champ absent dans l'offre
+                        : 'Non précisé', 
                       ok: offer.conditions.change_before_departure?.allowed,
-                      // ok peut être : true (autorisé), false (refusé), undefined (non précisé)
+                    
                     },
                     {
                       icon:  'fa-times-circle',
@@ -381,8 +337,6 @@ const FlightDetails = () => {
               </div>
             )}
 
-            {/* ── Carte Bagages par passager ───────────────── */}
-            {/* Affichée seulement si des passagers sont définis dans l'offre */}
             {offer.passengers?.length > 0 && (
               <div className="flights-baggage-card">
                 <h3 className="flights-baggage-card__title">
@@ -426,13 +380,10 @@ const FlightDetails = () => {
             )}
           </div>
 
-          {/* ════════════════════════════════════════════════════
-              COLONNE DROITE — Sidebar prix + CTA
-              omra-details__sidebar défini dans omrastyle.css
-          ════════════════════════════════════════════════════ */}
+
           <div className="omra-details__sidebar">
 
-            {/* ── Carte prix principale ────────────────────── */}
+        
             <div className="flights-price-card">
 
               {/* Résumé du vol : logo + route + compagnie */}
@@ -448,8 +399,7 @@ const FlightDetails = () => {
                   {/* Aéroport de départ du premier segment */}
                   {offer.slices?.[0]?.segments?.[0]?.origin?.iata_code}
                   {' → '}
-                  {/* Aéroport d'arrivée du dernier segment du dernier slice
-                      .slice(-1)[0] = dernier élément du tableau segments */}
+                  {/* Aéroport d'arrivée du dernier segment du dernier slice */}
                   {offer.slices?.[offer.slices.length - 1]?.segments?.slice(-1)[0]?.destination?.iata_code}
                 </p>
                 <p className="flights-price-card__carrier">
@@ -457,7 +407,6 @@ const FlightDetails = () => {
                 </p>
               </div>
 
-              {/* Décomposition du prix */}
               <div className="flights-price-breakdown">
                 {[
                   {
@@ -474,7 +423,6 @@ const FlightDetails = () => {
                 ))}
               </div>
 
-              {/* Total mis en valeur */}
               <div className="flights-price-total">
                 <span className="flights-price-total__label">Total</span>
                 <span className="flights-price-total__amount">
@@ -496,27 +444,25 @@ const FlightDetails = () => {
                 </div>
               )}
 
-              {/* CTA principal "Réserver ce vol" */}
               <button onClick={handleBook} className="flights-book-btn">
                 <i className="fas fa-ticket-alt" />
                 Réserver ce vol
               </button>
 
-              {/* Mention rassurante sous le bouton */}
               <p className="flights-book-reassurance">
                 <i className="fas fa-lock" style={{ marginRight: 4 }} />
                 Sans frais supplémentaires
               </p>
             </div>
 
-            {/* ── Carte d'aide téléphonique ─────────────────── */}
+
             <div className="flights-help-card">
               <h4>
                 <i className="fas fa-headset" style={{ color: 'var(--secondary)', marginRight: 8 }} />
                 Besoin d'aide ?
               </h4>
               <p>Notre équipe est disponible du lundi au samedi de 09h à 18h.</p>
-              {/* href="tel:" = lien cliquable sur mobile pour appeler directement */}
+
               <a href="tel:+21636149885" className="flights-help-card__phone">
                 <i className="fas fa-phone" /> +216 36 149 885
               </a>

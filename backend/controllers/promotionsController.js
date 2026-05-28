@@ -1,5 +1,5 @@
 // backend/controllers/promotionsController.js
-const pool                   = require('../config/db');   // ← BUG FIX: was require('../db')
+const pool                   = require('../config/db');   
 const { sendPromotionEmail } = require('../utils/mailer');
 
 const VALID_CATEGORIES = [
@@ -111,7 +111,7 @@ const create = async (req, res) => {
 
     const promotion = rows[0];
 
-    // 🔔 Auto-blast all clients when the promotion is active ────────
+    // mail envoyé dés la création promo
     if (isActive) {
       _blastPromotion(promotion).catch(err =>
         console.error('❌ Auto-blast on create failed:', err.message)
