@@ -1,5 +1,13 @@
+
+//   Handles every HTTP request for Omra *reservations*.
 const resModel = require('../models/omraReservationModel');
 const { sendReservationStatusEmail, sendAgencyReservationEmail } = require('../utils/mailer');
+
+
+
+ // Returns aggregate counts (total, pending, confirmed, completed,
+// cancelled, online vs agency payments, paid count) from a single
+ // SQL aggregation query.
 
 const getStats = async (req, res) => {
   try {
@@ -11,6 +19,10 @@ const getStats = async (req, res) => {
   }
 };
 
+
+// GET /api/omra/reservations
+ // Returns a filtered list of reservations.
+
 const getAll = async (req, res) => {
   try {
     const { status, payment_method, search, email } = req.query;
@@ -21,6 +33,11 @@ const getAll = async (req, res) => {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
+
+
+ //GET /api/omra/reservations/:id
+ // Fetches a single reservation by its primary key, joined with the
+ // package title for display purposes.
 
 const getOne = async (req, res) => {
   try {
@@ -35,6 +52,12 @@ const getOne = async (req, res) => {
   }
 };
 
+
+
+/**
+ * POST /api/omra/reservations
+ *   Both calls use .catch() so email failures never break the response.
+ */
 const create = async (req, res) => {
   try {
     const {
@@ -52,6 +75,7 @@ const create = async (req, res) => {
       reservation_title,
     } = req.body;
 
+     //Validation 
     if (!first_name || !last_name || !email || !phone || !gender || !passport_number || !total_price || !payment_method) {
       return res.status(400).json({ success: false, message: 'Champs obligatoires manquants' });
     }
@@ -59,7 +83,10 @@ const create = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Mode de paiement invalide' });
     }
 
+     //Derive status from payment method
     const isOnline = payment_method === 'online';
+
+    // Insert into the DB
     const reservation = await resModel.createReservation({
       ...req.body,
       status: isOnline ? 'confirmed' : 'pending',
@@ -67,6 +94,7 @@ const create = async (req, res) => {
     });
 
     if (isOnline) {
+       //Send confirmation email online directly confirmed
       sendReservationStatusEmail({
         email,
         firstName: first_name,
@@ -82,6 +110,7 @@ const create = async (req, res) => {
         },
       }).catch((error) => console.error('Omra create email failed:', error.message));
     } else {
+      // agency payement 
       sendAgencyReservationEmail({
         email,
         firstName: first_name,
@@ -94,6 +123,9 @@ const create = async (req, res) => {
           Total: total_price ? `${Number(total_price).toLocaleString('fr-TN')} TND` : null,
           'Code promo': applied_promotion?.code_promo || null,
         },
+
+        // If a promo was applied, remind the client when it expires so
+        // they visit the agency before the code becomes invalid.
         promotionReminder: applied_promotion?.date_fin ? {
           code: applied_promotion.code_promo,
           date_fin: applied_promotion.date_fin,
@@ -112,6 +144,18 @@ const create = async (req, res) => {
   }
 };
 
+
+
+
+
+
+//PATCH /api/omra/reservations/:id/status
+// Updates the status and automatically updates payment_status to keep them in sync:
+ //  confirmed → payment_status = 'paid'
+ //  cancelled → payment_status = 'refunded'
+ //   (other statuses leave payment_status unchanged)
+ // Also sends a status notification email for confirmed, cancelled, completed.
+
 const updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -120,7 +164,8 @@ const updateStatus = async (req, res) => {
     if (!['pending', 'confirmed', 'cancelled', 'completed'].includes(status)) {
       return res.status(400).json({ success: false, message: 'Statut invalide' });
     }
-
+     // Determine the matching payment_status, if applicable.
+    // 'pending' and 'completed' don't change payment_status 
     const paymentStatus = status === 'confirmed'
       ? 'paid'
       : status === 'cancelled'
@@ -132,6 +177,7 @@ const updateStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Réservation introuvable' });
     }
 
+    // Send an email only for statuses that the client cares about.
     if (['confirmed', 'cancelled', 'completed'].includes(status)) {
       sendReservationStatusEmail({
         email: reservation.email,
@@ -155,6 +201,8 @@ const updateStatus = async (req, res) => {
   }
 };
 
+
+//DELETE /api/omra/reservations/:id
 const remove = async (req, res) => {
   try {
     const deleted = await resModel.deleteReservation(req.params.id);
@@ -169,3 +217,4 @@ const remove = async (req, res) => {
 };
 
 module.exports = { getStats, getAll, getOne, create, updateStatus, remove };
+
