@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-
+// Tous les styles sont dans Transport.css — aucun style inline ici
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 
@@ -21,7 +21,8 @@ const LocationInput = ({
   const wrapperRef  = useRef(null);
   const debounceRef = useRef(null);
   const abortRef    = useRef(null);
-//fermer dropdown si on clique outside
+
+  /* ── Fermer dropdown si clic dehors ─────────────────────────────── */
   useEffect(() => {
     const handler = (e) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -32,7 +33,7 @@ const LocationInput = ({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
- //chercher suggestion en utilisant nomination avec fct debount 400ms(attend 400 pour chaque caractére)
+  /* ── Appel Nominatim avec debounce 400ms ─────────────────────────── */
   const fetchSuggestions = useCallback((query) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!query || query.trim().length < 3) {
@@ -68,13 +69,13 @@ const LocationInput = ({
     }, 400);
   }, []);
 
-  //fct change la valeeur
+  /* ── Changement de valeur ────────────────────────────────────────── */
   const handleChange = (e) => {
     onChange(e);
     fetchSuggestions(e.target.value);
   };
 
-  //seletionner la suggestion
+  /* ── Sélection d'une suggestion ──────────────────────────────────── */
   const selectSuggestion = (place) => {
     const a    = place.address || {};
     const main = a.amenity || a.tourism || a.road || a.aeroway
@@ -87,7 +88,7 @@ const LocationInput = ({
     setOpen(false);
   };
 
- //les differents click et navigation
+  /* ── Navigation clavier ──────────────────────────────────────────── */
   const handleKeyDown = (e) => {
     if (!open) return;
     if (e.key === 'ArrowDown') {
@@ -104,7 +105,7 @@ const LocationInput = ({
     }
   };
 
-  //le format d affichage de la resultat
+  /* ── Formater les données d'une suggestion ───────────────────────── */
   const formatSuggestion = (place) => {
     const a    = place.address || {};
     const main = a.amenity || a.tourism || a.road || a.aeroway
@@ -117,13 +118,14 @@ const LocationInput = ({
   return (
     <div className="loc-wrapper" ref={wrapperRef}>
 
-      
+      {/* ── Label ── */}
       {label && (
         <label className="transport-label" htmlFor={id}>
           {icon}{label}
         </label>
       )}
 
+      {/* ── Champ texte + icône ── */}
       <div className="loc-input-wrapper">
         <input
           type="text"
@@ -140,9 +142,10 @@ const LocationInput = ({
           aria-expanded={open}
         />
 
+        {/* Icône pin ou spinner */}
         <span className="loc-icon">
           {loading ? (
-            // Spinner pendant le chargement 
+            /* Spinner pendant le chargement */
             <svg
               className="loc-spinner"
               width="15" height="15"
@@ -152,6 +155,7 @@ const LocationInput = ({
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
             </svg>
           ) : (
+            /* Icône pin statique */
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
               <circle cx="12" cy="10" r="3"/>
@@ -160,7 +164,7 @@ const LocationInput = ({
         </span>
       </div>
 
-      {/* les sugestion de dropdown*/}
+      {/* ── Dropdown suggestions ── */}
       {open && suggestions.length > 0 && (
         <div className="loc-dropdown" role="listbox">
 
@@ -175,6 +179,7 @@ const LocationInput = ({
                 onMouseDown={() => selectSuggestion(place)}
                 onMouseEnter={() => setHighlighted(i)}
               >
+                {/* Icône pin verte */}
                 <svg
                   className="loc-item__icon"
                   width="13" height="13"
@@ -185,6 +190,7 @@ const LocationInput = ({
                   <circle cx="12" cy="10" r="3"/>
                 </svg>
 
+                {/* Texte */}
                 <div>
                   <div className="loc-item__main">{main}</div>
                   {sub && <div className="loc-item__sub">{sub}</div>}
@@ -193,6 +199,7 @@ const LocationInput = ({
             );
           })}
 
+          {/* Crédit OpenStreetMap — obligatoire selon conditions d'utilisation */}
           <div className="loc-footer">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10"/>
@@ -203,7 +210,7 @@ const LocationInput = ({
         </div>
       )}
 
-      {/* msg */}
+      {/* ── Message d'erreur ── */}
       {error && <span className="transport-field-error">{error}</span>}
     </div>
   );
