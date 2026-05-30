@@ -1338,3 +1338,205 @@
     width: min(100% - 24px, 1200px);
   }
 }
+/* ── Hero background ─────────────────────────────────────────────── */
+.flights-hero {
+  background: linear-gradient(135deg, var(--primary) 0%, #0f3460 100%);
+  padding-top: 130px;
+  padding-bottom: 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Titre hero ──────────────────────────────────────────────────── */
+.flights-hero__title-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.flights-hero__plane-icon {
+  font-size: 28px;
+  color: var(--secondary);
+}
+
+/* ── Icônes labels formulaire ────────────────────────────────────── */
+.flights-field-icon {
+  color: var(--secondary);
+  margin-right: 6px;
+}
+
+/* ── Bouton swap ─────────────────────────────────────────────────── */
+.flights-swap-btn .fa-exchange-alt {
+  color: var(--secondary);
+  font-size: 14px;
+}
+
+/* ── Checkbox vols directs ───────────────────────────────────────── */
+.flights-direct-checkbox {
+  accent-color: var(--secondary);
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Stat cards animation delay ──────────────────────────────────── */
+.stat-card:nth-child(1) { animation-delay: 0s;   }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.2s; }
+.stat-card:nth-child(4) { animation-delay: 0.3s; }
+
+.stat-card__icon {
+  font-size: 10px;
+}
+
+/* ── Section promotions ──────────────────────────────────────────── */
+.flights-promos-wrapper {
+  padding-top: 24px;
+}
+/* ============================================================
+   ADDITIONS FlightsPage.css
+   Styles extraits des styles inline de FlightDetails.jsx
+   À coller à la fin de votre fichier FlightsPage.css
+   ============================================================ */
+
+/* ── Guard : page "Aucun vol sélectionné" ────────────────────────── */
+
+/* Icône d'avertissement centrale */
+.flights-guard__icon {
+  font-size: 48px;
+  color: var(--gray-300);
+  margin-bottom: 20px;
+  display: block;
+}
+
+/* Titre du guard */
+.flights-guard__title {
+  color: var(--gray-600);
+  margin-bottom: 12px;
+}
+
+/* Sous-titre / description du guard */
+.flights-guard__desc {
+  color: var(--gray-400);
+  margin-bottom: 28px;
+}
+
+/* ── Page header (barre gradient en haut) ────────────────────────── */
+
+/* Padding bas du header sur FlightDetails */
+.flights-details-header {
+  padding-bottom: 28px;
+}
+
+/* ── Breadcrumb (fil d'ariane) ───────────────────────────────────── */
+
+/* Pas de padding top + marge basse sur FlightDetails */
+.flights-details-breadcrumb {
+  padding-top: 0;
+  margin-bottom: 14px;
+}
+
+/* Boutons du breadcrumb (Recherche, Résultats) */
+.flights-breadcrumb-btn {
+  color: rgba(255, 255, 255, 0.7);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Séparateur chevron entre les étapes du breadcrumb */
+.flights-breadcrumb-sep {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Étape active du breadcrumb (page courante) */
+.flights-breadcrumb-current {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ── Body principal ──────────────────────────────────────────────── */
+
+/* Padding vertical du conteneur principal */
+.flights-details-body {
+  padding: 28px 0 60px;
+}
+
+/* ── Slice header : icône avion ──────────────────────────────────── */
+
+/* Icône avion dans le titre du slice (Aller / Retour) */
+.flights-slice-icon {
+  color: var(--secondary);
+  font-size: 16px;
+}
+
+/* ── Segment : badge correspondance ─────────────────────────────── */
+
+/* Icône échange dans le badge de correspondance */
+.flights-connexion-icon {
+  color: #b07d00;
+  font-size: 12px;
+}
+
+/* ── Segment : icônes conditions tarifaires ─────────────────────── */
+
+/* Icône verte = autorisé */
+.flights-condition-icon--ok {
+  color: #16a34a;
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+/* Icône rouge = non autorisé */
+.flights-condition-icon--no {
+  color: #dc2626;
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+/* Icône grise = non précisé */
+.flights-condition-icon--na {
+  color: var(--gray-400);
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+/* ── Bagages ─────────────────────────────────────────────────────── */
+
+/* Texte "Aucun bagage inclus" */
+.flights-baggage-empty {
+  font-size: 13px;
+  color: var(--gray-400);
+}
+
+/* Conteneur flex des tags bagages */
+.flights-baggage-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Marge entre passagers (sauf le dernier) */
+.flights-baggage-pax {
+  margin-bottom: 12px;
+}
+
+.flights-baggage-pax:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Sidebar : icône cadenas "Sans frais supplémentaires" ────────── */
+
+.flights-lock-icon {
+  margin-right: 4px;
+}
+
+/* ── Sidebar : icône headset "Besoin d'aide" ─────────────────────── */
+
+.flights-help-icon {
+  color: var(--secondary);
+  margin-right: 8px;
+}

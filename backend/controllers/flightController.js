@@ -48,7 +48,7 @@ const searchFlights = async (req, res) => {
     if (!passengers?.length)
       return res.status(400).json({ success: false, message: 'passengers is required.' });
  
-    // Appel au service Duffel — retourne les offres déjà normalisées en TND
+    // Appel au service Duffel, retourne les offres déjà normalisées en TND
     const result = await duffelService.searchFlights({
       slices,
       passengers,
@@ -73,13 +73,12 @@ const searchFlights = async (req, res) => {
   }
 };
 
+//utilise pour flight details, verif expiration, affiche info fraiche
 
-// Utilise dans flightdetails pour vérifier que l'offre n'a pas expiré
-// afficher les information fraîche avant réservation
 const getOffer = async (req, res) => {
   try {
-    // getOffer normalise aussi l'offre (TND + marge) via normaliseOffer()
-    const offer = await duffelService.getOffer(req.params.offerId);
+    
+    const offer = await duffelService.getOffer(req.params.offerId);// appel service duffel
 
     return res.json({ success: true, offer });
 

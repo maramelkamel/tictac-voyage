@@ -1,8 +1,8 @@
 // services/duffelService.js
 require('dotenv').config();
-const { Duffel } = require('@duffel/api');
+const { Duffel } = require('@duffel/api'); //package npm off pour duffel
 
-const duffel = new Duffel({ token: process.env.DUFFEL_API_KEY });
+const duffel = new Duffel({ token: process.env.DUFFEL_API_KEY });//instance authentifiee avec clé api
 
 
 const EUR_TO_TND = parseFloat(process.env.EUR_TO_TND_RATE || '3.38');
@@ -92,7 +92,7 @@ const searchFlights = async ({ slices, passengers, cabin_class = 'economy', max_
   if (max_connections !== undefined && max_connections !== null) {
     body.max_connections = max_connections;
   }
-  const response = await duffel.offerRequests.create(body);
+  const response = await duffel.offerRequests.create(body); //envoie req a duffel pour créer des offres
   const data     = response.data;
   return {
     id:     data.id,
