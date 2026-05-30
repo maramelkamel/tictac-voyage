@@ -46,7 +46,7 @@ const Reserver = () => {
     );
   }
 
-  // Données récapitulatives utilisées pour la vue et pour le calcul local du total.
+  
   const { titre, image, pays, destination, prix, duree, depart, places } = state.voyage;
   const totalPrix = prix * parseInt(form.personnes || 1, 10);
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });

@@ -16,8 +16,7 @@ import { FILTERS }           from '../../data/VoyagesOrganiseData';
 
 const API = 'http://localhost:5000/api/voyages-organises?public=true';
 const COVERS_API = 'http://localhost:5000/api/voyages-organises/voyage-covers';
-// Transforme la forme brute renvoyée par le backend/SQL
-// vers la forme attendue par les composants UI du module voyage organisé.
+
 const normalize = (v) => ({
   id:             v.id,
   titre:          v.title,
@@ -50,15 +49,12 @@ const normalize = (v) => ({
 const VoyagesOrganise = () => {
   const navigate = useNavigate();
 
-  // État principal de la page liste :
-  // - voyages : données prêtes à afficher
-  // - loading/error : gestion d'expérience utilisateur pendant le fetch
+  
   const [voyages,  setVoyages]  = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState('');
 
-  // Champs manipulés par la barre de recherche côté frontend.
-  // Ils filtrent localement les voyages déjà récupérés depuis l'API.
+  
   const [search, setSearch] = useState({
     destination: '',
     dateDepart:  '',
@@ -66,8 +62,7 @@ const VoyagesOrganise = () => {
     duree:       '',
   });
 
-  // États d'affichage supplémentaires :
-  // catégorie active, tri, filtres avancés et pagination locale.
+  
   const [activeFilter,  setFilter]       = useState('Tous');
   const [sortBy,        setSortBy]        = useState('populaire');
   const [showFilters,   setShowFilters]   = useState(false);
@@ -80,9 +75,6 @@ const [cover, setCover] = useState(null);
   const { favoriteIds, isAuthenticated, toggleFavorite } = useFavorites('voyage');
   const activeFilterCount = [continent, budget, saison].filter(Boolean).length;
 
-  // Au chargement de la page, on récupère la liste publique des voyages organisés.
-  // Le backend calcule déjà des informations utiles comme reservation_count
-  // et available_spots, puis cette page normalise le résultat pour la carte.
   useEffect(() => {
     const fetchVoyages = async () => {
       try {
@@ -117,12 +109,6 @@ const [cover, setCover] = useState(null);
     setVisibleCount(6);
   };
 
-  // Pipeline principal de préparation de l'affichage :
-  // 1. filtrage par recherche
-  // 2. filtrage par onglet/catégorie
-  // 3. filtres avancés
-  // 4. tri final
-  // useMemo évite de recalculer la liste à chaque rendu inutile.
   const displayed = useMemo(() => {
     let filtered = voyages.filter((v) => {
 
@@ -317,7 +303,6 @@ const [cover, setCover] = useState(null);
             </div>
           )}
 
-          {/* Erreur réseau/API affichée proprement à l'utilisateur. */}
           {error && !loading && (
             <div style={{ textAlign:'center', padding:'60px 20px', color:'#e92f64' }}>
               <p style={{ fontSize:16, fontWeight:600 }}>{error}</p>
