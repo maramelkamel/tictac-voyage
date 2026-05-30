@@ -60,6 +60,13 @@ const ForgotPassword = () => {
     setLoading(false);
   };
 
+
+
+
+
+
+
+  
   // These shared styles keep both recovery steps visually consistent.
   const inputStyle = {
     padding: '13px 16px', borderRadius: 10, border: '1.5px solid #e2e8f0',
