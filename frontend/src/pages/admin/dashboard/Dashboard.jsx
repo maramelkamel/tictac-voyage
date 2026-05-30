@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../layout/AdminLayout';
 import { useAdminStats } from '../../../hooks/useAdminStats';
 
-/* ─────────────────────────────────────────────────────────────────
-   Barre de stat horizontale
-───────────────────────────────────────────────────────────────── */
+//BARE HORIZENTAL
 const StatBar = ({ label, value, max, color, suffix = '', loading }) => {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
@@ -24,9 +22,7 @@ const StatBar = ({ label, value, max, color, suffix = '', loading }) => {
   );
 };
 
-/* ─────────────────────────────────────────────────────────────────
-   Mini donut inline
-───────────────────────────────────────────────────────────────── */
+//MINI DONUT
 const MiniDonut = ({ slices, size = 52, stroke = 9 }) => {
   const r     = (size - stroke) / 2;
   const circ  = 2 * Math.PI * r;
@@ -55,9 +51,7 @@ const MiniDonut = ({ slices, size = 52, stroke = 9 }) => {
   );
 };
 
-/* ─────────────────────────────────────────────────────────────────
-   Icônes modules
-───────────────────────────────────────────────────────────────── */
+//ICONE MODULE
 const MODULE_ICONS = {
   teal:   <><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M8 9v5M13 9v5M18 9v5"/><circle cx="7" cy="21" r="1.5"/><circle cx="17" cy="21" r="1.5"/></>,
   indigo: <><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></>,
@@ -69,9 +63,7 @@ const MODULE_ICONS = {
   gray:   <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></>,
 };
 
-/* ─────────────────────────────────────────────────────────────────
-   Modules
-───────────────────────────────────────────────────────────────── */
+//MODULES
 const MODULES = [
   {
     title: 'Transport', color: 'teal', status: 'active', desc: 'Véhicules & transferts',
@@ -134,9 +126,7 @@ const MODULES = [
   },
 ];
 
-/* ─────────────────────────────────────────────────────────────────
-   ModuleCard
-───────────────────────────────────────────────────────────────── */
+//MODULE CARD
 const ModuleCard = ({ mod, st, navigate }) => {
   const firstSk = mod.links.find(l => l.sk)?.sk;
   const total   = firstSk ? st[firstSk] : null;
