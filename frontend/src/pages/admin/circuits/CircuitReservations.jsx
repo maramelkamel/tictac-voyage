@@ -13,11 +13,13 @@ const fDate  = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
 const fDT    = (d) => d ? new Date(d).toLocaleString('fr-FR') : '—';
 const fPrice = (p) => p ? Number(p).toLocaleString('fr-TN') + ' DT' : '—';
 
+// Compact status badge shared by reservation table rows.
 const StatusBadge = ({ s }) => {
   const m = STATUS_MAP[s] || { label:s, bg:'var(--g100)', color:'var(--g600)', dot:'var(--g400)' };
   return <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 9px', borderRadius:999, fontSize:11, fontWeight:600, background:m.bg, color:m.color, whiteSpace:'nowrap' }}><span style={{ width:6, height:6, borderRadius:'50%', background:m.dot, flexShrink:0 }}/>{m.label}</span>;
 };
 
+// Shows whether the client pays online or in agency, plus completed payment state.
 const PaymentCell = ({ method, status }) => (
   <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
     <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:999, fontSize:11, fontWeight:600, background:method==='online'?'#eff6ff':'#fff7ed', color:method==='online'?'#1d4ed8':'#c2410c' }}>
@@ -40,6 +42,7 @@ const ResDetail = ({ res, onClose, onStatusChange, isMain }) => {
 
   const isAgencyPending = res.payment_method==='agency' && res.status==='pending';
 
+  // Detail sections group client, circuit, payment, and status information.
   const Section = ({ title, children }) => (
     <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
       <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:8, borderBottom:'1px solid var(--g100)' }}>{title}</p>
@@ -176,6 +179,7 @@ const CircuitReservations = () => {
 
   const notify = (msg, type='success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
 
+  // Loads circuit reservations from the backend and refreshes table state.
   const fetchReservations = async () => {
     try { setLoading(true); const r = await fetch(API_RES); const j = await r.json(); setReservations(j.data || []); }
     catch { notify('Impossible de charger', 'error'); }
@@ -185,6 +189,7 @@ const CircuitReservations = () => {
   useEffect(() => { fetchReservations(); }, []);
 
   // ── Status change guarded for cancel ──────────────────────────
+  // Updates status while keeping cancellation restricted to the main admin.
   const handleStatusChange = async (id, status) => {
     if (status === 'cancelled' && !isMain) {
       notify('❌ Seul l\'administrateur principal peut annuler une réservation', 'error');
@@ -201,6 +206,7 @@ const CircuitReservations = () => {
     } catch { notify('Erreur réseau', 'error'); }
   };
 
+  // Applies search, payment method, and status filters together.
   const filtered = reservations.filter(r => {
     const q = search.toLowerCase();
     return (!search || (r.first_name||'').toLowerCase().includes(q) || (r.last_name||'').toLowerCase().includes(q) || (r.email||'').toLowerCase().includes(q))
@@ -208,6 +214,7 @@ const CircuitReservations = () => {
       && (filterPayment==='all' || r.payment_method===filterPayment);
   });
 
+  // Stats cards are based on all reservations, before table filters.
   const stats = {
     total:         reservations.length,
     pending:       reservations.filter(r => r.status==='pending').length,

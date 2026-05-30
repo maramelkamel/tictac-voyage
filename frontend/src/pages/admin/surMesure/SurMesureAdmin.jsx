@@ -18,6 +18,7 @@ const nights = (dep, ret) => {
   return Math.ceil(Math.abs(new Date(ret) - new Date(dep)) / 86400000);
 };
 
+// Compact status badge shared by the table and selected request header.
 const Badge = ({ s }) => {
   const m = STATUS[s] || { label:s, bg:'var(--g100)', color:'var(--g600)', dot:'var(--g400)' };
   return (
@@ -27,6 +28,7 @@ const Badge = ({ s }) => {
   );
 };
 
+// Detail section wrapper used to group the custom-trip request fields.
 const Section = ({ title, children }) => (
   <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
     <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', paddingBottom:8, borderBottom:'1px solid var(--g100)' }}>{title}</p>
@@ -45,6 +47,7 @@ const Item = ({ label, value, full, accent }) => value ? (
   </div>
 ) : null;
 
+// Small visual tag for optional services requested by the client.
 const OptionTag = ({ label, icon }) => (
   <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:8, background:'rgba(15,76,92,.07)', color:'var(--primary)', fontSize:12, fontWeight:600 }}>
     {icon} {label}
@@ -78,6 +81,7 @@ const DetailPanel = ({
   const n             = nights(req.departure_date, req.return_date);
   const quoteAlreadySent = !!(req.quoted_price || req.admin_message);
 
+  // Sends only when the admin entered a price or a message for the client.
   const handleSend = async () => {
     if (!quotePrice && !quoteMsg) return;
     await onSendQuote(req.id, quotePrice, quoteMsg);
@@ -273,6 +277,7 @@ const SurMesureAdmin = () => {
 
   const notify = (msg, type='success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
 
+  // Loads custom-trip requests and refreshes the admin table.
   const fetchTrips = async () => {
     try {
       setLoading(true);
@@ -290,6 +295,7 @@ const SurMesureAdmin = () => {
     setQuoteMsg(selected?.admin_message || '');
   }, [selected?.id]);
 
+  // Updates request status while keeping cancellation restricted to the main admin.
   const handleStatusChange = async (id, status) => {
     if (status==='cancelled' && !isMain) {
       notify('❌ Seul l\'administrateur principal peut annuler une demande', 'error'); return;
@@ -315,6 +321,7 @@ const SurMesureAdmin = () => {
     } catch { notify('Erreur réseau', 'error'); }
   };
 
+  // Persists the proposed price/message that the client will see in their profile.
   const handleSendQuote = async (id, quoted_price, admin_message) => {
     try {
       setSendingQuote(true);
@@ -333,11 +340,13 @@ const SurMesureAdmin = () => {
     finally { setSendingQuote(false); }
   };
 
+  // Filters requests by destination text and current status tab.
   const filtered = trips.filter(r => {
     const q = search.toLowerCase();
     return ((r.destination||'').toLowerCase().includes(q)) && (filterStatus==='all' || r.status===filterStatus);
   });
 
+  // Summary cards are calculated from all requests, before filters.
   const stats = {
     total:     trips.length,
     pending:   trips.filter(r => r.status==='pending').length,
@@ -346,6 +355,7 @@ const SurMesureAdmin = () => {
     cancelled: trips.filter(r => r.status==='cancelled').length,
   };
 
+  // Condensed option display for the table rows.
   const OptionIcons = ({ trip }) => (
     <div style={{ display:'flex', gap:4 }}>
       {trip.include_hotel     && <span title="Hôtel"     style={{ fontSize:14 }}>🏨</span>}

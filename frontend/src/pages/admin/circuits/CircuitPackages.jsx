@@ -354,6 +354,7 @@ const EMPTY = {
   highlights:[], programme:[], inclus:[], non_inclus:[], gallery:[],
 };
 
+// Default public-page cover content for the hero, north circuit card, and south circuit card.
 const DEFAULT_COVERS = {
   hero: {
     bg_image:     '',
@@ -380,6 +381,7 @@ const DEFAULT_COVERS = {
   },
 };
 
+// Shared modal field layout for labels, required markers, and form controls.
 const ModalField = ({ label, req, children }) => (
   <div className="al-field">
     <label className="al-label">{label} {req && <span className="al-required">*</span>}</label>
@@ -673,6 +675,7 @@ const PkgModal = ({ pkg, onClose, onSaved, notify }) => {
     { key: 'advanced', label: 'Avancé',      icon: '⚙️' },
   ];
 
+  // Builds the API payload from the form, preserving arrays for programme, highlights, and inclusions.
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.title || !form.price || !form.duration) {
@@ -1097,6 +1100,7 @@ const CoversModal = ({ covers, onClose, onSaved, notify }) => {
   const setHero   = (key, val) => setForm(p => ({ ...p, hero: { ...p.hero, [key]: val } }));
   const setRegion = (reg, key, val) => setForm(p => ({ ...p, [reg]: { ...p[reg], [key]: val } }));
 
+  // Saves hero and regional cover content used by the public circuits page.
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -1437,6 +1441,7 @@ const CircuitPackages = () => {
 
   const notify = (msg, type='success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
 
+  // Loads the catalogue rows and refreshes the admin table.
   const fetchCircuits = async () => {
     try { setLoading(true); const r = await fetch(API); const j = await r.json(); setCircuits(j.data || []); }
     catch { notify('Impossible de charger les circuits', 'error'); }
@@ -1481,6 +1486,7 @@ const CircuitPackages = () => {
     finally { setSeeding(false); }
   };
 
+  // Header stats are calculated from the complete catalogue list.
   const stats = {
     total:    circuits.length,
     nord:     circuits.filter(c => c.region==='nord').length,
