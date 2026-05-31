@@ -183,14 +183,6 @@ const CoversModal = ({ covers, onClose, onSaved, notify }) => {
 
         <div className="omra-admin-009">
           <div className="omra-admin-010">
-
-
-
-
-
-
-
-
             
             {form.hero.bg_image &&
             <img
@@ -205,17 +197,6 @@ const CoversModal = ({ covers, onClose, onSaved, notify }) => {
             <div className="omra-admin-012" />
             <div className="omra-admin-013">
               <span className="omra-admin-014">
-
-
-
-
-
-
-
-
-
-
-
                 
                 {form.hero.tag || DEFAULT_COVERS.hero.tag}
               </span>
