@@ -1,4 +1,3 @@
-// src/pages/Contact.jsx
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Navbar from '../components/Navbar';
@@ -43,42 +42,42 @@ const ContactPage = () => {
   const tags = ['voyages','omra','transport','hotels','sur_mesure','billetterie'];
 
   return (
-    <div className="ct-page">
+    <div className="ct-page min-h-screen bg-[#F2F7F9] text-[#172D36]">
       <Navbar />
 
-      <section className="ct-hero">
-        <div className="ct-hero__bg"/>
-        <div className="ct-hero__overlay"/>
-        <div className="ct-hero__content">
-          <span className="ct-hero__tag">
+      <section className="ct-hero relative flex items-center justify-center overflow-hidden">
+        <div className="ct-hero__bg absolute inset-0 bg-cover"/>
+        <div className="ct-hero__overlay absolute inset-0"/>
+        <div className="ct-hero__content relative z-[2] mx-auto flex w-full flex-col items-center text-center">
+          <span className="ct-hero__tag inline-flex items-center">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
             {t('hero_tag')}
           </span>
-          <h1 className="ct-hero__title">
+          <h1 className="ct-hero__title font-black text-white">
             {t('hero_title_line1')}<br/>
-            <span className="ct-hero__accent">{t('hero_title_accent')}</span>
+            <span className="ct-hero__accent text-[#1ECAD3]">{t('hero_title_accent')}</span>
           </h1>
           <p className="ct-hero__sub">{t('hero_sub')}</p>
         </div>
       </section>
 
       <section className="ct-section ct-section--cards">
-        <div className="ct-container">
-          <div className="ct-section__head">
-            <span className="ct-badge">{t('section_cards_badge')}</span>
-            <h2 className="ct-section__title">{t('section_cards_title')}</h2>
+        <div className="ct-container mx-auto">
+          <div className="ct-section__head flex flex-col items-center text-center">
+            <span className="ct-badge inline-block rounded-full uppercase">{t('section_cards_badge')}</span>
+            <h2 className="ct-section__title font-extrabold">{t('section_cards_title')}</h2>
             <p className="ct-section__sub">{t('section_cards_sub')}</p>
           </div>
-          <div className="ct-cards">
+          <div className="ct-cards grid">
             {contactCards.map((c, i) => (
-              <a key={i} href={c.href} target={c.href.startsWith('http')?'_blank':undefined} rel={c.href.startsWith('http')?'noopener noreferrer':undefined} className={`ct-card ct-card--${c.color}`}>
-                <div className="ct-card__icon">{c.icon}</div>
-                <div className="ct-card__body">
-                  <p className="ct-card__label">{c.title}</p>
-                  <p className="ct-card__value">{c.value}</p>
+              <a key={i} href={c.href} target={c.href.startsWith('http')?'_blank':undefined} rel={c.href.startsWith('http')?'noopener noreferrer':undefined} className={`ct-card ct-card--${c.color} flex flex-col bg-white no-underline transition`}>
+                <div className="ct-card__icon flex items-center justify-center">{c.icon}</div>
+                <div className="ct-card__body flex-1">
+                  <p className="ct-card__label uppercase">{c.title}</p>
+                  <p className="ct-card__value font-bold">{c.value}</p>
                   <p className="ct-card__sub">{c.sub}</p>
                 </div>
-                <span className="ct-card__cta">
+                <span className="ct-card__cta flex items-center">
                   {c.cta}
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </span>
@@ -89,40 +88,40 @@ const ContactPage = () => {
       </section>
 
       <section className="ct-section ct-section--form">
-        <div className="ct-container">
-          <div className="ct-layout">
-            <div className="ct-form-wrap">
+        <div className="ct-container mx-auto">
+          <div className="ct-layout grid">
+            <div className="ct-form-wrap bg-white">
               {submitted ? (
-                <div className="ct-success">
-                  <div className="ct-success__icon">✓</div>
-                  <h2>{t('success_title')}</h2>
+                <div className="ct-success flex flex-col items-center text-center">
+                  <div className="ct-success__icon flex items-center justify-center rounded-full">✓</div>
+                  <h2 className="font-extrabold">{t('success_title')}</h2>
                   <p>{t('success_desc')}</p>
-                  <button className="ct-btn ct-btn--outline" onClick={() => setSubmitted(false)}>{t('send_another')}</button>
+                  <button className="ct-btn ct-btn--outline inline-flex items-center justify-center" onClick={() => setSubmitted(false)}>{t('send_another')}</button>
                 </div>
               ) : (
                 <>
                   <div className="ct-form-head">
-                    <h2>{t('form_title')}</h2>
+                    <h2 className="font-extrabold">{t('form_title')}</h2>
                     <p>{t('form_sub')}</p>
                   </div>
-                  <form onSubmit={handleSubmit} className="ct-form">
-                    <div className="ct-form__row">
-                      <div className="ct-field">
-                        <label>{t('field_name')} <span>*</span></label>
+                  <form onSubmit={handleSubmit} className="ct-form flex flex-col">
+                    <div className="ct-form__row grid">
+                      <div className="ct-field flex flex-col">
+                        <label className="uppercase">{t('field_name')} <span>*</span></label>
                         <input name="nom" type="text" placeholder={t('field_name')} required value={form.nom} onChange={handleChange}/>
                       </div>
-                      <div className="ct-field">
-                        <label>{t('field_email')} <span>*</span></label>
+                      <div className="ct-field flex flex-col">
+                        <label className="uppercase">{t('field_email')} <span>*</span></label>
                         <input name="email" type="email" placeholder="votre@email.com" required value={form.email} onChange={handleChange}/>
                       </div>
                     </div>
-                    <div className="ct-form__row">
-                      <div className="ct-field">
-                        <label>{t('field_phone')}</label>
+                    <div className="ct-form__row grid">
+                      <div className="ct-field flex flex-col">
+                        <label className="uppercase">{t('field_phone')}</label>
                         <input name="telephone" type="tel" placeholder="+216 XX XXX XXX" value={form.telephone} onChange={handleChange}/>
                       </div>
-                      <div className="ct-field">
-                        <label>{t('field_subject')} <span>*</span></label>
+                      <div className="ct-field flex flex-col">
+                        <label className="uppercase">{t('field_subject')} <span>*</span></label>
                         <select name="sujet" required value={form.sujet} onChange={handleChange}>
                           <option value="">{t('subject_placeholder')}</option>
                           <option value="omra">{t('subject_omra')}</option>
@@ -134,57 +133,57 @@ const ContactPage = () => {
                         </select>
                       </div>
                     </div>
-                    <div className="ct-field">
-                      <label>{t('field_message')} <span>*</span></label>
+                    <div className="ct-field flex flex-col">
+                      <label className="uppercase">{t('field_message')} <span>*</span></label>
                       <textarea name="message" rows={5} placeholder={t('message_placeholder')} required value={form.message} onChange={handleChange}/>
                     </div>
-                    <button type="submit" className="ct-btn ct-btn--primary" disabled={loading}>
+                    <button type="submit" className="ct-btn ct-btn--primary inline-flex w-full items-center justify-center" disabled={loading}>
                       {loading
-                        ? <><span className="ct-spinner"/> {t('submitting')}</>
+                        ? <><span className="ct-spinner shrink-0 rounded-full"/> {t('submitting')}</>
                         : <>{t('submit_btn')} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></>
                       }
                     </button>
-                    <p className="ct-form__note">{t('data_confidential', { ns: 'common' })}</p>
+                    <p className="ct-form__note text-center">{t('data_confidential', { ns: 'common' })}</p>
                   </form>
                 </>
               )}
             </div>
 
-            <div className="ct-sidebar">
-              <div className="ct-about">
-                <div className="ct-about__deco" aria-hidden="true">✈</div>
-                <span className="ct-about__badge">{t('about_badge')}</span>
-                <h3>{t('about_title_line1')}<br/><strong>{t('about_title_strong')}</strong></h3>
+            <div className="ct-sidebar flex flex-col">
+              <div className="ct-about relative overflow-hidden text-white">
+                <div className="ct-about__deco absolute select-none" aria-hidden="true">✈</div>
+                <span className="ct-about__badge inline-flex items-center">{t('about_badge')}</span>
+                <h3 className="font-extrabold text-white">{t('about_title_line1')}<br/><strong>{t('about_title_strong')}</strong></h3>
                 <p>{t('about_desc')}</p>
-                <div className="ct-about__tags">
-                  {tags.map((tag, i) => <span key={i} className="ct-about__tag">{t(`tags.${tag}`)}</span>)}
+                <div className="ct-about__tags flex flex-wrap">
+                  {tags.map((tag, i) => <span key={i} className="ct-about__tag rounded-full">{t(`tags.${tag}`)}</span>)}
                 </div>
               </div>
 
-              <div className="ct-hours">
-                <h3>
+              <div className="ct-hours bg-white">
+                <h3 className="flex items-center">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                   {t('hours_title')}
                 </h3>
-                <div className="ct-hours__list">
+                <div className="ct-hours__list flex flex-col">
                   {[
                     { day: t('hours_weekdays'), hours: t('hours_weekdays_val'), open:true  },
                     { day: t('hours_saturday'), hours: t('hours_saturday_val'), open:true  },
                     { day: t('hours_sunday'),   hours: t('hours_sunday_val'),   open:false },
                   ].map((r, i) => (
-                    <div key={i} className="ct-hours__row">
+                    <div key={i} className="ct-hours__row flex items-center justify-between">
                       <span className="ct-hours__day">{r.day}</span>
-                      <span className={`ct-hours__pill ${r.open?'ct-hours__pill--open':'ct-hours__pill--closed'}`}>{r.hours}</span>
+                      <span className={`ct-hours__pill rounded-full ${r.open?'ct-hours__pill--open':'ct-hours__pill--closed'}`}>{r.hours}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="ct-map">
+              <div className="ct-map overflow-hidden bg-white">
                 <iframe title="Tictac Voyages Tunis" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3194.5!2d10.1815!3d36.8065!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzbCsDQ4JzIzLjQiTiAxMMKwMTAnNTMuNCJF!5e0!3m2!1sfr!2stn!4v1600000000000!5m2!1sfr!2stn" width="100%" height="170" style={{ border:0, display:'block' }} allowFullScreen="" loading="lazy"/>
-                <div className="ct-map__footer">
+                <div className="ct-map__footer flex items-center">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  <div><p>{t('address_value')}</p><span>{t('address_sub')}</span></div>
+                  <div><p className="font-bold">{t('address_value')}</p><span>{t('address_sub')}</span></div>
                 </div>
               </div>
             </div>
@@ -193,16 +192,16 @@ const ContactPage = () => {
       </section>
 
       <section className="ct-section ct-section--values">
-        <div className="ct-container">
-          <div className="ct-section__head">
-            <span className="ct-badge ct-badge--light">{t('values_badge')}</span>
-            <h2 className="ct-section__title ct-section__title--light">{t('values_title')}</h2>
+        <div className="ct-container mx-auto">
+          <div className="ct-section__head flex flex-col items-center text-center">
+            <span className="ct-badge ct-badge--light inline-block rounded-full uppercase">{t('values_badge')}</span>
+            <h2 className="ct-section__title ct-section__title--light font-extrabold text-white">{t('values_title')}</h2>
           </div>
-          <div className="ct-values">
+          <div className="ct-values grid">
             {values.map((v, i) => (
-              <div key={i} className="ct-value">
-                <div className="ct-value__icon">{v.icon}</div>
-                <h3>{v.title}</h3>
+              <div key={i} className="ct-value transition">
+                <div className="ct-value__icon flex items-center justify-center">{v.icon}</div>
+                <h3 className="font-extrabold text-white">{v.title}</h3>
                 <p>{v.desc}</p>
               </div>
             ))}

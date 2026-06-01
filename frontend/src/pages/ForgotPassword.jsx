@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // This base URL keeps the password recovery flow aligned with the frontend environment.
 const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth`;
@@ -7,6 +8,7 @@ const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth
 // This page sends the reset code and verifies it before the new password step.
 const ForgotPassword = () => {
   const navigate          = useNavigate();
+  const { t }             = useTranslation('auth');
   const [email,   setEmail]   = useState('');
   const [code,    setCode]    = useState('');
   const [step,    setStep]    = useState('email'); // 'email' | 'verify'
@@ -28,10 +30,10 @@ const ForgotPassword = () => {
       if (json.success) {
         setStep('verify');
       } else {
-        setError(json.message || 'Erreur lors de l\'envoi');
+        setError(json.message || t('forgot.send_error'));
       }
     } catch {
-      setError('Erreur réseau. Vérifiez votre connexion.');
+      setError(t('forgot.network_error'));
     }
     setLoading(false);
   };
@@ -40,7 +42,7 @@ const ForgotPassword = () => {
   const handleVerifyCode = async (e) => {
     e.preventDefault();
     setError('');
-    if (code.length !== 6) { setError('Le code doit contenir 6 chiffres'); return; }
+    if (code.length !== 6) { setError(t('forgot.code_length')); return; }
     setLoading(true);
     try {
       const res  = await fetch(`${API}/verify-reset-code`, {
@@ -52,10 +54,10 @@ const ForgotPassword = () => {
       if (json.success) {
         navigate(`/ResetPassword?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`);
       } else {
-        setError(json.message || 'Code invalide ou expiré');
+        setError(json.message || t('forgot.code_invalid'));
       }
     } catch {
-      setError('Erreur réseau. Vérifiez votre connexion.');
+      setError(t('forgot.network_error'));
     }
     setLoading(false);
   };
@@ -98,12 +100,12 @@ const ForgotPassword = () => {
             <span style={{ fontSize: 26 }}>{step === 'email' ? '🔐' : '📧'}</span>
           </div>
           <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F4C5C', margin: '0 0 6px' }}>
-            {step === 'email' ? 'Mot de passe oublié' : 'Vérification du code'}
+            {step === 'email' ? t('forgot.title_email') : t('forgot.title_verify')}
           </h2>
           <p style={{ fontSize: 13, color: '#64748b', margin: 0, lineHeight: 1.6 }}>
             {step === 'email'
-              ? 'Entrez votre email pour recevoir un code à 6 chiffres.'
-              : `Un code a été envoyé à ${email}. Entrez-le ci-dessous.`}
+              ? t('forgot.subtitle_email')
+              : t('forgot.subtitle_verify', { email })}
           </p>
         </div>
 
@@ -119,11 +121,11 @@ const ForgotPassword = () => {
           <form onSubmit={handleSendEmail} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
               <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                Adresse email
+                {t('forgot.email_label')}
               </label>
               <input
                 type="email"
-                placeholder="votre@email.com"
+                placeholder={t('email_placeholder')}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 style={inputStyle}
@@ -134,10 +136,10 @@ const ForgotPassword = () => {
               />
             </div>
             <button type="submit" disabled={loading} style={btnStyle}>
-              {loading ? '⏳ Envoi en cours...' : 'Envoyer le code →'}
+              {loading ? t('forgot.sending') : t('forgot.send_code')}
             </button>
             <button type="button" onClick={() => navigate('/SignIn')} style={ghostBtn}>
-              ← Retour à la connexion
+              {t('forgot.back_login')}
             </button>
           </form>
         )}
@@ -147,12 +149,12 @@ const ForgotPassword = () => {
           <form onSubmit={handleVerifyCode} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
               <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                Code à 6 chiffres
+                {t('forgot.code_label')}
               </label>
               <input
                 type="text"
                 inputMode="numeric"
-                placeholder="Ex : 482915"
+                placeholder={t('forgot.code_placeholder')}
                 value={code}
                 onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 style={{ ...inputStyle, fontSize: 24, fontWeight: 800, letterSpacing: 8, textAlign: 'center', color: '#0F4C5C' }}
@@ -162,13 +164,13 @@ const ForgotPassword = () => {
                 maxLength={6}
                 autoComplete="one-time-code"
               />
-              <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>⏱ Ce code expire dans 30 minutes.</p>
+              <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>{t('forgot.code_expiry')}</p>
             </div>
             <button type="submit" disabled={loading || code.length !== 6} style={{ ...btnStyle, opacity: (loading || code.length !== 6) ? 0.6 : 1 }}>
-              {loading ? '⏳ Vérification...' : 'Vérifier le code →'}
+              {loading ? t('forgot.verifying') : t('forgot.verify_code')}
             </button>
             <button type="button" onClick={() => { setStep('email'); setCode(''); setError(''); }} style={ghostBtn}>
-              ← Renvoyer un nouveau code
+              {t('forgot.resend')}
             </button>
           </form>
         )}

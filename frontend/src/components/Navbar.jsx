@@ -1,29 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import logo from "../assets/logo.png";
-
-const navLinks = [
-  { id: 1, label: 'Hotels',   href: '/hotels' },
-  { id: 2, label: 'Voyages',     href: '#',
-    submenu: [
-      { icon: 'fas fa-globe', title: 'Voyages Organisés', desc: 'Circuits tout compris',  href: '/VoyagesOrganise/VoyagesOrganise' },
-      { icon: 'fas fa-star',  title: 'Voyages Sur Mesure', desc: '100% personnalisé',     href: '/CustomTripAbroad' },
-    ],
-  },
-  { id: 3, label: 'Transport',   href: '/transport' },
-  { id: 4, label: 'Billetterie', href: '/flights' },
-  { id: 5, label: 'Omra',        href: '/Omra/Omra' },
-  { id: 6, label: 'Circuit',     href: '/circuits/circuit' },
-  { id: 7, label: 'Contact',     href: '/Contact' },
-  
-];
-const changeLanguage = (lang) => {
-  const select = document.querySelector(".goog-te-combo");
-  if (select) {
-    select.value = lang;
-    select.dispatchEvent(new Event("change"));
-  }
-};
 
 // ── Loyalty level helper ────────────────────────────────────────
 const getLoyaltyLevel = (totalReservations) => {
@@ -35,11 +13,27 @@ const getLoyaltyLevel = (totalReservations) => {
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation('navbar');
+
+  const navLinks = [
+    { id: 1, label: t('hotels'), href: '/hotels' },
+    { id: 2, label: t('voyages'), href: '#',
+      submenu: [
+        { icon: 'fas fa-globe', title: t('voyages_organises'), desc: t('voyages_organises_desc'), href: '/VoyagesOrganise/VoyagesOrganise' },
+        { icon: 'fas fa-star', title: t('voyages_sur_mesure'), desc: t('voyages_sur_mesure_desc'), href: '/CustomTripAbroad' },
+      ],
+    },
+    { id: 3, label: t('transport'), href: '/transport' },
+    { id: 4, label: t('billetterie'), href: '/flights' },
+    { id: 5, label: t('omra'), href: '/Omra/Omra' },
+    { id: 6, label: t('circuit'), href: '/circuits/circuit' },
+    { id: 7, label: t('contact'), href: '/Contact' },
+  ];
 
   const [isScrolled,        setIsScrolled]        = useState(false);
   const [isMobileMenuOpen,  setIsMobileMenuOpen]  = useState(false);
   const [activeDropdown,    setActiveDropdown]    = useState(null);
-  const [activeLang,        setActiveLang]        = useState('FR');
+  const [activeLang,        setActiveLang]        = useState((i18n.language || 'fr').slice(0, 2).toUpperCase());
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
 
   // ── Auth state ─────────────────────────────────────────────────
@@ -58,6 +52,12 @@ const Navbar = () => {
     window.addEventListener('focus',   sync);
     return () => { window.removeEventListener('storage', sync); window.removeEventListener('focus', sync); };
   }, []);
+
+  useEffect(() => {
+    setActiveLang((i18n.language || 'fr').slice(0, 2).toUpperCase());
+    document.documentElement.dir = i18n.language?.startsWith('ar') ? 'rtl' : 'ltr';
+    document.documentElement.lang = (i18n.language || 'fr').slice(0, 2);
+  }, [i18n.language]);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('token');
@@ -146,19 +146,19 @@ const Navbar = () => {
               </a>
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)', fontSize: '12px', fontWeight: 500 }}>
                 <i className="fas fa-clock" style={{ fontSize: '12px', color: 'var(--secondary)' }} />
-                Lun - Sam: 09h - 18h
+                {t('hours')}
               </span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 
               {/* Language Switch */}
-              <div role="group" aria-label="Sélection de langue" style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: 'var(--radius-sm)', padding: '3px' }}>
+              <div role="group" aria-label={t('lang_aria')} style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: 'var(--radius-sm)', padding: '3px' }}>
                 {['FR', 'EN', 'AR'].map(lang => (
                   <button key={lang} type="button" onClick={() => {
-  setActiveLang(lang);
-  changeLanguage(lang.toLowerCase());
-}} aria-pressed={activeLang === lang}
+                    setActiveLang(lang);
+                    i18n.changeLanguage(lang.toLowerCase());
+                  }} aria-pressed={activeLang === lang}
                     style={{ padding: '5px 13px', fontSize: '12px', fontWeight: 600, color: activeLang === lang ? 'var(--white)' : 'rgba(255,255,255,0.6)', borderRadius: '4px', background: activeLang === lang ? 'var(--secondary)' : 'transparent', transition: 'all var(--duration) var(--ease)', border: 'none', cursor: 'pointer' }}>
                     {lang}
                   </button>
@@ -178,7 +178,7 @@ const Navbar = () => {
                       {initials || <i className="fas fa-user" style={{ fontSize: 11 }} />}
                     </div>
                     <span style={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {firstName || 'Mon compte'}
+                      {firstName || t('mon_compte')}
                     </span>
                     <i className="fas fa-chevron-down" style={{ fontSize: '10px', opacity: 0.7, transition: 'transform .2s', transform: isAccountMenuOpen ? 'rotate(180deg)' : 'rotate(0)' }} />
                   </button>
@@ -190,7 +190,7 @@ const Navbar = () => {
                     <span style={{ width: 28, height: 28, background: 'linear-gradient(135deg, var(--secondary), var(--gold))', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>
                       <i className="fas fa-user" />
                     </span>
-                    Mon compte
+                    {t('mon_compte')}
                     <i className="fas fa-chevron-down" style={{ fontSize: '10px', opacity: 0.7, transition: 'transform .2s', transform: isAccountMenuOpen ? 'rotate(180deg)' : 'rotate(0)' }} />
                   </button>
                 )}
@@ -233,8 +233,8 @@ const Navbar = () => {
                             <i className="fas fa-user-circle" />
                           </div>
                           <div>
-                            <span style={{ display: 'block', fontWeight: 600, color: '#334155' }}>Mon profil</span>
-                            <small style={{ fontSize: 11, color: '#94a3b8' }}>Réservations & paramètres</small>
+                            <span style={{ display: 'block', fontWeight: 600, color: '#334155' }}>{t('mon_profil')}</span>
+                            <small style={{ fontSize: 11, color: '#94a3b8' }}>{t('profil_desc')}</small>
                           </div>
                         </button>
                       </li>
@@ -249,8 +249,8 @@ const Navbar = () => {
                             <i className="fas fa-suitcase" />
                           </div>
                           <div>
-                            <span style={{ display: 'block', fontWeight: 600, color: '#334155' }}>Mes réservations</span>
-                            <small style={{ fontSize: 11, color: '#94a3b8' }}>Historique & suivi</small>
+                            <span style={{ display: 'block', fontWeight: 600, color: '#334155' }}>{t('mes_reservations')}</span>
+                            <small style={{ fontSize: 11, color: '#94a3b8' }}>{t('reservations_desc')}</small>
                           </div>
                         </button>
                       </li>
@@ -265,8 +265,8 @@ const Navbar = () => {
                             <i className="fas fa-heart" />
                           </div>
                           <div>
-                            <span style={{ display: 'block', fontWeight: 600, color: '#334155' }}>Mes favoris</span>
-                            <small style={{ fontSize: 11, color: '#94a3b8' }}>Omra, voyages, hôtels</small>
+                            <span style={{ display: 'block', fontWeight: 600, color: '#334155' }}>{t('mes_favoris')}</span>
+                            <small style={{ fontSize: 11, color: '#94a3b8' }}>{t('favoris_desc')}</small>
                           </div>
                         </button>
                       </li>
@@ -281,8 +281,8 @@ const Navbar = () => {
                             <i className="fas fa-crown" />
                           </div>
                           <div>
-                            <span style={{ display: 'block', fontWeight: 600, color: '#334155' }}>Programme fidélité</span>
-                            <small style={{ fontSize: 11, color: '#94a3b8' }}>Réductions & avantages</small>
+                            <span style={{ display: 'block', fontWeight: 600, color: '#334155' }}>{t('fidelite')}</span>
+                            <small style={{ fontSize: 11, color: '#94a3b8' }}>{t('fidelite_desc')}</small>
                           </div>
                         </button>
                       </li>
@@ -296,7 +296,7 @@ const Navbar = () => {
                           <div style={{ width: 34, height: 34, background: '#fff1f5', border: '1.5px solid #fca5a5', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e92f64', fontSize: 13, flexShrink: 0 }}>
                             <i className="fas fa-sign-out-alt" />
                           </div>
-                          Se déconnecter
+                          {t('se_deconnecter')}
                         </button>
                       </li>
                     </>
@@ -312,8 +312,8 @@ const Navbar = () => {
                             <i className="fas fa-user-plus" />
                           </div>
                           <div>
-                            <span style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: 2 }}>Créer un compte</span>
-                            <small style={{ fontSize: 12, color: '#94a3b8' }}>Nouveau client</small>
+                            <span style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: 2 }}>{t('creer_compte')}</span>
+                            <small style={{ fontSize: 12, color: '#94a3b8' }}>{t('nouveau_client')}</small>
                           </div>
                         </button>
                       </li>
@@ -327,8 +327,8 @@ const Navbar = () => {
                             <i className="fas fa-sign-in-alt" />
                           </div>
                           <div>
-                            <span style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: 2 }}>Se connecter</span>
-                            <small style={{ fontSize: 12, color: '#94a3b8' }}>Déjà client</small>
+                            <span style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: 2 }}>{t('se_connecter')}</span>
+                            <small style={{ fontSize: 12, color: '#94a3b8' }}>{t('deja_client')}</small>
                           </div>
                         </button>
                       </li>
@@ -350,12 +350,12 @@ const Navbar = () => {
               <img src={logo} alt="TicTac Travel Logo" style={{ height: 58, width: 'auto', objectFit: 'contain' }} />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                 <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--white)', letterSpacing: '-0.02em', lineHeight: 1.05 }}>TICTAC VOYAGES</div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--gold)', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 1 }}>Agence de Voyage</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--gold)', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 1 }}>{t('tagline')}</span>
               </div>
             </button>
 
             {/* Desktop Nav */}
-            <nav className="nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 10 }} aria-label="Navigation principale">
+            <nav className="nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 10 }} aria-label={t('nav_aria')}>
               {navLinks.map(link => (
                 <div key={link.id} style={{ position: 'relative' }} className="nav-dropdown-wrapper">
                   <a href={link.href} className="nav-link-custom"
@@ -393,7 +393,7 @@ const Navbar = () => {
 
             {/* CTA */}
             <div className="header-cta" style={{ flexShrink: 0 }}>
-              <a href="#" className="btn btn-glass"><i className="fas fa-headset" /> Assistance</a>
+              <a href="#" className="btn btn-glass"><i className="fas fa-headset" /> {t('assistance')}</a>
             </div>
 
             {/* Hamburger */}
@@ -452,10 +452,10 @@ const Navbar = () => {
                 </div>
               </div>
               {[
-                { icon: 'fas fa-user-circle', label: 'Mon profil',        path: '/mon-compte' },
-                { icon: 'fas fa-suitcase',    label: 'Mes réservations',  path: '/mon-compte?tab=reservations' },
-                { icon: 'fas fa-heart',       label: 'Mes favoris',       path: '/mon-compte?tab=favoris' },
-                { icon: 'fas fa-crown',       label: 'Fidélité',          path: '/mon-compte?tab=fidelite' },
+                { icon: 'fas fa-user-circle', label: t('mon_profil'),        path: '/mon-compte' },
+                { icon: 'fas fa-suitcase',    label: t('mes_reservations'),  path: '/mon-compte?tab=reservations' },
+                { icon: 'fas fa-heart',       label: t('mes_favoris'),       path: '/mon-compte?tab=favoris' },
+                { icon: 'fas fa-crown',       label: t('fidelite'),          path: '/mon-compte?tab=fidelite' },
               ].map(item => (
                 <button key={item.path} type="button" onClick={() => goTo(item.path)}
                   style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.85)', fontSize: 15, fontWeight: 500, background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
@@ -466,18 +466,18 @@ const Navbar = () => {
               <button type="button" onClick={handleLogout}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0', color: '#fca5a5', fontSize: 15, fontWeight: 600, background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', marginTop: 4 }}>
                 <i className="fas fa-sign-out-alt" style={{ width: 18 }} />
-                Se déconnecter
+                {t('se_deconnecter')}
               </button>
             </>
           ) : (
             <>
               <button type="button" onClick={() => goTo('/CreateAccount')}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.85)', fontSize: 15, fontWeight: 500, background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
-                <i className="fas fa-user-plus" style={{ color: 'var(--secondary)', width: 18 }} /> Créer un compte
+                <i className="fas fa-user-plus" style={{ color: 'var(--secondary)', width: 18 }} /> {t('creer_compte')}
               </button>
               <button type="button" onClick={() => goTo('/SignIn')}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0', color: 'rgba(255,255,255,0.85)', fontSize: 15, fontWeight: 500, background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
-                <i className="fas fa-sign-in-alt" style={{ color: 'var(--gold)', width: 18 }} /> Se connecter
+                <i className="fas fa-sign-in-alt" style={{ color: 'var(--gold)', width: 18 }} /> {t('se_connecter')}
               </button>
             </>
           )}

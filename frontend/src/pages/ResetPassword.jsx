@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // This base URL keeps the password reset flow aligned with the frontend environment.
 const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth`;
 
 // This page submits the new password after the email and reset code are validated.
 const ResetPassword = () => {
+  const { t }                     = useTranslation('auth');
   const [searchParams]              = useSearchParams();
   const navigate                    = useNavigate();
   const email                       = searchParams.get('email') || '';
@@ -33,8 +35,8 @@ const ResetPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
-    if (password.length < 8) { setMessage('Minimum 8 caractères requis'); return; }
-    if (password !== confirm)  { setMessage('Les mots de passe ne correspondent pas'); return; }
+    if (password.length < 8) { setMessage(t('reset.password_min')); return; }
+    if (password !== confirm)  { setMessage(t('validation.password_mismatch')); return; }
 
     setLoading(true);
     try {
@@ -49,10 +51,10 @@ const ResetPassword = () => {
         setMessage(json.message);
         setTimeout(() => navigate('/SignIn'), 3000);
       } else {
-        setMessage(json.message || 'Erreur lors de la réinitialisation');
+        setMessage(json.message || t('reset.server_error'));
       }
     } catch {
-      setMessage('Erreur réseau. Vérifiez votre connexion.');
+      setMessage(t('reset.network_error'));
     }
     setLoading(false);
   };
@@ -79,11 +81,11 @@ const ResetPassword = () => {
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 56, marginBottom: 16 }}>✅</div>
             <h2 style={{ fontSize: 22, fontWeight: 800, color: '#065f46', marginBottom: 8 }}>
-              Mot de passe réinitialisé !
+              {t('reset.success_title')}
             </h2>
             <p style={{ fontSize: 13, color: '#64748b', marginBottom: 24, lineHeight: 1.6 }}>
-              Votre mot de passe a été modifié avec succès.<br/>
-              Vous allez être redirigé vers la page de connexion...
+              {t('reset.success_desc')}<br/>
+              {t('reset.redirect')}
             </p>
             <div style={{ width: 40, height: 4, background: 'linear-gradient(135deg,#0F4C5C,#1ECAD3)', borderRadius: 999, margin: '0 auto', animation: 'grow 3s linear' }}/>
           </div>
@@ -94,10 +96,10 @@ const ResetPassword = () => {
                 <span style={{ fontSize: 26 }}>🔑</span>
               </div>
               <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F4C5C', margin: '0 0 6px' }}>
-                Nouveau mot de passe
+                {t('reset.title')}
               </h2>
               <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
-                Choisissez un mot de passe sécurisé (min. 8 caractères).
+                {t('reset.subtitle')}
               </p>
             </div>
 
@@ -112,7 +114,7 @@ const ResetPassword = () => {
               {/* Password */}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                  Nouveau mot de passe
+                  {t('reset.title')}
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
@@ -144,7 +146,7 @@ const ResetPassword = () => {
               {/* Confirm */}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                  Confirmer le mot de passe
+                  {t('confirm_password')}
                 </label>
                 <input
                   type={showPw ? 'text' : 'password'}
@@ -157,13 +159,13 @@ const ResetPassword = () => {
                   required
                 />
                 {confirm && confirm !== password && (
-                  <p style={{ fontSize: 11, color: '#e92f64', marginTop: 4 }}>⚠️ Les mots de passe ne correspondent pas</p>
+                  <p style={{ fontSize: 11, color: '#e92f64', marginTop: 4 }}>⚠️ {t('validation.password_mismatch')}</p>
                 )}
               </div>
 
               <button type="submit" disabled={loading || password !== confirm || password.length < 8}
                 style={{ padding: '14px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#0F4C5C,#1ECAD3)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', opacity: (loading || password !== confirm || password.length < 8) ? 0.6 : 1 }}>
-                {loading ? '⏳ Enregistrement...' : '✅ Réinitialiser mon mot de passe'}
+                {loading ? t('reset.saving') : t('reset.submit')}
               </button>
             </form>
           </>

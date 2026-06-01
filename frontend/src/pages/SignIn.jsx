@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import '../styles/signin.css';
@@ -8,6 +9,7 @@ const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('auth');
 
   // formData    – controlled values for email, password, and the "remember me" checkbox
   const [formData, setFormData] = useState({
@@ -53,14 +55,14 @@ const SignIn = () => {
     const newErrors = {};
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email requis';
+      newErrors.email = t('validation.email_required');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
      
-      newErrors.email = 'Email invalide';
+      newErrors.email = t('validation.email_invalid');
     }
 
     if (!formData.password) {
-      newErrors.password = 'Mot de passe requis';
+      newErrors.password = t('validation.password_required');
     }
 
     return newErrors;
@@ -95,11 +97,11 @@ const SignIn = () => {
         persistSession(json);
       } else {
         
-        setServerError(json.message || 'Email ou mot de passe incorrect');
+        setServerError(json.message || t('signin.invalid_credentials'));
       }
     } catch {
       
-      setServerError('Impossible de contacter le serveur. Verifiez votre connexion.');
+      setServerError(t('signin.network_error'));
     } finally {
       setIsLoading(false);
     }
@@ -124,28 +126,28 @@ const SignIn = () => {
               {/* Logo button navigates to the hotel catalogue */}
               <button type="button" className="auth-logo" onClick={() => navigate('/hotels')}>
                 <span className="auth-logo-name">TICTAC VOYAGES</span>
-                <span className="auth-logo-sub">Agence de Voyage</span>
+                <span className="auth-logo-sub">{t('brand_subtitle')}</span>
               </button>
               <div className="auth-panel-headline">
-                <h1>Bon retour<br /><em>parmi nous</em></h1>
-                <p>Connectez-vous pour acceder a vos reservations, vos offres personnalisees et votre espace membre.</p>
+                <h1>{t('signin.headline')}<br /><em>{t('signin.headline_em')}</em></h1>
+                <p>{t('signin.subtitle')}</p>
               </div>
 
               {/* Social proof stats — static data, purely presentational */}
               <div className="signin-stats">
                 <div className="signin-stat">
                   <span className="signin-stat-number">10K+</span>
-                  <span className="signin-stat-label">Clients satisfaits</span>
+                  <span className="signin-stat-label">{t('signin.stats_clients')}</span>
                 </div>
                 <div className="signin-stat-divider" />
                 <div className="signin-stat">
                   <span className="signin-stat-number">50+</span>
-                  <span className="signin-stat-label">Destinations</span>
+                  <span className="signin-stat-label">{t('signin.stats_destinations')}</span>
                 </div>
                 <div className="signin-stat-divider" />
                 <div className="signin-stat">
                   <span className="signin-stat-number">15</span>
-                  <span className="signin-stat-label">Ans d'experience</span>
+                  <span className="signin-stat-label">{t('signin.stats_years')}</span>
                 </div>
               </div>
 
@@ -163,13 +165,13 @@ const SignIn = () => {
                 <div className="signin-welcome-icon">
                   <i className="fas fa-user-circle" />
                 </div>
-                <h2>Se connecter</h2>
+                <h2>{t('signin.title')}</h2>
                 <p>
-                  Pas encore de compte ?{' '}
+                  {t('signin.no_account')}{' '}
                   {/* Link to the registration page — rendered as a button to avoid
                       a full page reload and to keep routing inside React Router. */}
                   <button type="button" className="auth-link-btn" onClick={() => navigate('/CreateAccount')}>
-                    Creer un compte <i className="fas fa-arrow-right" />
+                    {t('signin.create_account')} <i className="fas fa-arrow-right" />
                   </button>
                 </p>
               </div>
@@ -190,7 +192,7 @@ const SignIn = () => {
                     CSS classes are conditionally applied to change the border
                     colour on focus and show the error indicator. ── */}
                 <div className={`auth-field ${focused === 'email' ? 'auth-field--focused' : ''} ${errors.email ? 'auth-field--error' : ''}`}>
-                  <label htmlFor="email">Adresse e-mail</label>
+                  <label htmlFor="email">{t('email')}</label>
                   <div className="auth-input-wrap">
                     <i className="fas fa-envelope auth-input-icon" />
                     <input
@@ -201,7 +203,7 @@ const SignIn = () => {
                       onChange={handleChange}
                       onFocus={() => setFocused('email')}
                       onBlur={() => setFocused('')}
-                      placeholder="votre@email.com"
+                      placeholder={t('email_placeholder')}
                       autoComplete="email"
                     />
                   </div>
@@ -213,10 +215,10 @@ const SignIn = () => {
                     Contains a "forgot password" link and a visibility toggle. ── */}
                 <div className={`auth-field ${focused === 'password' ? 'auth-field--focused' : ''} ${errors.password ? 'auth-field--error' : ''}`}>
                   <div className="auth-field-header">
-                    <label htmlFor="password">Mot de passe</label>
+                    <label htmlFor="password">{t('password')}</label>
                     {/* Opens the forgot-password flow without submitting the form */}
                     <button type="button" className="auth-link-btn auth-forgot" onClick={() => navigate('/ForgotPassword')}>
-                      Mot de passe oublie ?
+                      {t('signin.forgot_password')}
                     </button>
                   </div>
                   <div className="auth-input-wrap">
@@ -229,7 +231,7 @@ const SignIn = () => {
                       onChange={handleChange}
                       onFocus={() => setFocused('password')}
                       onBlur={() => setFocused('')}
-                      placeholder="Votre mot de passe"
+                      placeholder={t('password_placeholder')}
                       autoComplete="current-password"
                     />
                     {/* Password visibility toggle — aria-label provided for screen readers */}
@@ -237,7 +239,7 @@ const SignIn = () => {
                       type="button"
                       className="auth-toggle-pw"
                       onClick={() => setShowPassword((prev) => !prev)}
-                      aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                      aria-label={showPassword ? t('hide_password') : t('show_password')}
                     >
                       <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
                     </button>
@@ -252,7 +254,7 @@ const SignIn = () => {
                   <label className="auth-checkbox-label">
                     <input type="checkbox" name="rememberMe" checked={formData.rememberMe} onChange={handleChange} />
                     <span className="auth-checkmark" />
-                    <span>Se souvenir de moi</span>
+                    <span>{t('signin.remember_me')}</span>
                   </label>
                 </div>
 
@@ -260,9 +262,9 @@ const SignIn = () => {
                     to prevent accidental double-submission. */}
                 <button type="submit" className={`auth-btn auth-btn-primary ${isLoading ? 'auth-btn--loading' : ''}`} disabled={isLoading}>
                   {isLoading ? (
-                    <><span className="auth-spinner" /> Connexion en cours...</>
+                    <><span className="auth-spinner" /> {t('signin.loading')}</>
                   ) : (
-                    <><i className="fas fa-sign-in-alt" /> Se connecter</>
+                    <><i className="fas fa-sign-in-alt" /> {t('signin.submit')}</>
                   )}
                 </button>
               </form>
@@ -272,7 +274,7 @@ const SignIn = () => {
               {/* Visual separator between email login and OAuth options */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '16px 0' }}>
                 <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
-                <span style={{ fontSize: 12, color: '#9ca3af', whiteSpace: 'nowrap' }}>ou continuer avec</span>
+                <span style={{ fontSize: 12, color: '#9ca3af', whiteSpace: 'nowrap' }}>{t('continue_with')}</span>
                 <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
               </div>
 
@@ -300,7 +302,7 @@ const SignIn = () => {
                   <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                   <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                 </svg>
-                Continuer avec Google
+                {t('continue_google')}
               </button>
             </div>
           </div>

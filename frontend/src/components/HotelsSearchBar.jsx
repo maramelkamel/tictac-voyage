@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const DEFAULT_SEARCH = {
   city: '',
@@ -27,6 +28,7 @@ const HotelsSearchBar = ({
   cityOptions = DEFAULT_CITIES,
   style = {},
 }) => {
+  const { t } = useTranslation('hotels');
   const [search, setSearch] = useState({ ...DEFAULT_SEARCH, ...initialValues });
 
   useEffect(() => {
@@ -122,7 +124,7 @@ const HotelsSearchBar = ({
         }}
       >
         <i className="fas fa-search" style={{ color: '#e8306a' }} />
-        Rechercher votre hotel
+        {t('searchTitle')}
       </p>
 
       <div
@@ -137,7 +139,7 @@ const HotelsSearchBar = ({
         <div>
           <label style={fieldLabelStyle}>
             <i className="fas fa-map-marker-alt" style={{ color: '#e8306a', marginRight: 6 }} />
-            Destination
+            {t('fields.destination')}
           </label>
           <div style={{ position: 'relative' }}>
             <select
@@ -147,7 +149,7 @@ const HotelsSearchBar = ({
               onFocus={focusStyle}
               onBlur={blurStyle}
             >
-              <option value="">Toutes les destinations</option>
+              <option value="">{t('allDestinations')}</option>
               {destinations.map((city) => (
                 <option key={city} value={city}>{city}</option>
               ))}
@@ -159,7 +161,7 @@ const HotelsSearchBar = ({
         <div>
           <label style={fieldLabelStyle}>
             <i className="fas fa-calendar-alt" style={{ color: '#e8306a', marginRight: 6 }} />
-            Arrivee
+            {t('fields.checkIn')}
           </label>
           <input
             type="date"
@@ -174,7 +176,7 @@ const HotelsSearchBar = ({
         <div>
           <label style={fieldLabelStyle}>
             <i className="fas fa-calendar-check" style={{ color: '#e8306a', marginRight: 6 }} />
-            Depart
+            {t('fields.checkOut')}
           </label>
           <input
             type="date"
@@ -189,7 +191,7 @@ const HotelsSearchBar = ({
         <div>
           <label style={fieldLabelStyle}>
             <i className="fas fa-wallet" style={{ color: '#e8306a', marginRight: 6 }} />
-            Budget max
+            {t('filters.maxBudget')}
           </label>
           <div style={{ position: 'relative' }}>
             <select
@@ -199,12 +201,12 @@ const HotelsSearchBar = ({
               onFocus={focusStyle}
               onBlur={blurStyle}
             >
-              <option value="">Tous les budgets</option>
-              <option value="150">Jusqu'a 150 TND</option>
-              <option value="250">Jusqu'a 250 TND</option>
-              <option value="400">Jusqu'a 400 TND</option>
-              <option value="600">Jusqu'a 600 TND</option>
-              <option value="1000">Jusqu'a 1000 TND</option>
+              <option value="">{t('allBudgets')}</option>
+              <option value="150">{t('budgetUntil', { amount: 150 })}</option>
+              <option value="250">{t('budgetUntil', { amount: 250 })}</option>
+              <option value="400">{t('budgetUntil', { amount: 400 })}</option>
+              <option value="600">{t('budgetUntil', { amount: 600 })}</option>
+              <option value="1000">{t('budgetUntil', { amount: 1000 })}</option>
             </select>
             {chevron}
           </div>
@@ -213,7 +215,7 @@ const HotelsSearchBar = ({
         <div>
           <label style={fieldLabelStyle}>
             <i className="fas fa-users" style={{ color: '#e8306a', marginRight: 6 }} />
-            Personnes
+            {t('home.peopleLabel')}
           </label>
           <input
             type="number"
@@ -256,7 +258,7 @@ const HotelsSearchBar = ({
             event.currentTarget.style.boxShadow = '0 18px 30px rgba(232,48,106,0.25)';
           }}
         >
-          <i className="fas fa-search" /> Rechercher
+          <i className="fas fa-search" /> {t('searchButton')}
         </button>
       </div>
 
