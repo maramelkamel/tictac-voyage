@@ -11,8 +11,6 @@ export default function Editprofile({ client, setClient, token, notify }) {
     last_name:          client.lastName         || client.last_name         || '',
     phone:              client.phone            || '',
     city:               client.city             || '',
-    marital_status:     client.marital_status   || '',
-    number_of_children: client.number_of_children ?? '',
   });
 
   const handleSave = async () => {
