@@ -65,7 +65,6 @@ const create = async (req, res) => {
 };
 
 /* ── PATCH /api/custom-trips/:id/status ── */
-// ── BUG FIX: was missing sendReservationStatusEmail call entirely ──
 const updateStatus = async (req, res) => {
   try {
     const { status, admin_notes } = req.body;
@@ -76,7 +75,7 @@ const updateStatus = async (req, res) => {
     const r = await model.updateStatus(req.params.id, status, admin_notes);
     if (!r) return res.status(404).json({ success: false, message: 'Demande introuvable' });
 
-    // 🔔 Send email for meaningful status changes
+    //  Send email for meaningful status changes
     if (['confirmed', 'cancelled', 'completed'].includes(status) && r.email) {
       const nights = r.departure_date && r.return_date
         ? Math.ceil(Math.abs(new Date(r.return_date) - new Date(r.departure_date)) / 86400000)

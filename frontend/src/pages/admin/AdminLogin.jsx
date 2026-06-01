@@ -2,24 +2,31 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// Hard-coded admin auth endpoint.
 const API = 'http://localhost:5000/api/admin-auth/login';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const [form,        setForm]        = useState({ email: '', password: '' });
-  const [showPw,      setShowPw]      = useState(false);
-  const [loading,     setLoading]     = useState(false);
-  const [error,       setError]       = useState('');
-  const [focused,     setFocused]     = useState('');
 
+  const [form,    setForm]    = useState({ email: '', password: '' });
+  const [showPw,  setShowPw]  = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState('');
+  const [focused, setFocused] = useState('');
+
+  // Keep form state in sync and clear any existing error when the user types
   const handleChange = (e) => {
     setForm(p => ({ ...p, [e.target.name]: e.target.value }));
     setError('');
   };
 
+  // Handles form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // no empty fields.
     if (!form.email || !form.password) { setError('Email et mot de passe requis'); return; }
+
     setLoading(true);
     try {
       const res  = await fetch(API, {
@@ -28,7 +35,10 @@ const AdminLogin = () => {
         body:    JSON.stringify(form),
       });
       const json = await res.json();
+
       if (json.success) {
+        // Store the admin JWT and profile in localStorage so the admin layout
+        // can read them on subsequent page loads without re-authenticating.
         localStorage.setItem('adminToken', json.token);
         localStorage.setItem('admin',      JSON.stringify(json.admin));
         navigate('/admin');
@@ -38,6 +48,7 @@ const AdminLogin = () => {
     } catch {
       setError('Impossible de contacter le serveur.');
     } finally {
+      // Always re-enable the button regardless of outcome.
       setLoading(false);
     }
   };
@@ -45,14 +56,14 @@ const AdminLogin = () => {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
 
-      {/* ── Left decorative panel ── */}
+    
       <div style={{ flex: 1, background: 'linear-gradient(135deg, #0F4C5C 0%, #1a6b80 60%, #1ECAD3 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 48, position: 'relative', overflow: 'hidden' }}>
-        {/* Déco circles */}
+        {/* Decorative blurred circles — visual depth only */}
         <div style={{ position: 'absolute', top: -80, right: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,.06)' }}/>
         <div style={{ position: 'absolute', bottom: -60, left: -60, width: 240, height: 240, borderRadius: '50%', background: 'rgba(255,255,255,.04)' }}/>
 
         <div style={{ position: 'relative', textAlign: 'center', maxWidth: 380 }}>
-          {/* Logo */}
+          {/* App logo / wordmark */}
           <div style={{ width: 72, height: 72, borderRadius: 20, background: 'rgba(255,255,255,.15)', border: '2px solid rgba(255,255,255,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 28px', backdropFilter: 'blur(10px)' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5" style={{ width: 36, height: 36 }}>
               <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
@@ -65,6 +76,7 @@ const AdminLogin = () => {
             Espace administration sécurisé.<br/>Gérez votre agence depuis un seul tableau de bord.
           </p>
 
+          {/* Feature highlights — static content, rendered from an array to keep JSX concise */}
           {[
             { icon: '🔒', text: 'Accès sécurisé par token JWT' },
             { icon: '📊', text: 'Gestion complète de tous les modules' },
@@ -78,11 +90,11 @@ const AdminLogin = () => {
         </div>
       </div>
 
-      {/* ── Right login form ── */}
+      {/* ── Right login form panel ── */}
       <div style={{ width: 460, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48 }}>
         <div style={{ width: '100%', maxWidth: 360 }}>
 
-          {/* Header */}
+          {/* Form header */}
           <div style={{ marginBottom: 36 }}>
             <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg,#0F4C5C,#1ECAD3)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" style={{ width: 24, height: 24 }}>
@@ -94,7 +106,7 @@ const AdminLogin = () => {
             <p style={{ fontSize: 14, color: '#64748b' }}>Accédez au tableau de bord d'administration.</p>
           </div>
 
-          {/* Error */}
+          {/* Error banner — only rendered when the `error` state is non-empty */}
           {error && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 10, marginBottom: 20, fontSize: 13, color: '#991b1b', fontWeight: 500 }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16, flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
@@ -104,12 +116,13 @@ const AdminLogin = () => {
 
           <form onSubmit={handleSubmit}>
 
-            {/* Email */}
+            
             <div style={{ marginBottom: 18 }}>
               <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '.06em', display: 'block', marginBottom: 7 }}>
                 Adresse email
               </label>
               <div style={{ position: 'relative' }}>
+                {/* Decorative envelope icon — pointer-events disabled so clicks pass through to the input */}
                 <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, pointerEvents: 'none' }}>
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
                 </svg>
@@ -120,7 +133,7 @@ const AdminLogin = () => {
               </div>
             </div>
 
-            {/* Password */}
+           
             <div style={{ marginBottom: 28 }}>
               <label style={{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '.06em', display: 'block', marginBottom: 7 }}>
                 Mot de passe
@@ -133,21 +146,27 @@ const AdminLogin = () => {
                   onFocus={() => setFocused('password')} onBlur={() => setFocused('')}
                   placeholder="••••••••" autoComplete="current-password"
                   style={{ width: '100%', padding: '12px 44px 12px 42px', borderRadius: 10, border: `1.5px solid ${focused==='password'?'#0F4C5C':'#e2e8f0'}`, fontSize: 14, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', color: '#0f172a', transition: 'border-color .2s' }}/>
+
+                {/* Eye / eye-slash toggle — flips the `showPw` boolean */}
                 <button type="button" onClick={() => setShowPw(p => !p)}
                   style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#94a3b8' }}>
                   {showPw
-                    ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                    : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    ? /* eye-slash icon — currently showing password, click to hide */
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : /* eye icon — password is hidden, click to reveal */
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                   }
                 </button>
               </div>
             </div>
 
-            {/* Submit */}
+            {/* ── Submit button ──
+                 */}
             <button type="submit" disabled={loading}
               style={{ width: '100%', padding: '14px', background: loading ? '#94a3b8' : 'linear-gradient(135deg,#0F4C5C,#1a6b80)', color: '#fff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'all .2s' }}>
               {loading ? (
                 <>
+                  {/* CSS-animated spinner (keyframe defined at the bottom of the component) */}
                   <div style={{ width: 18, height: 18, border: '2.5px solid rgba(255,255,255,.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin .7s linear infinite' }}/>
                   Connexion...
                 </>
@@ -161,6 +180,7 @@ const AdminLogin = () => {
 
           </form>
 
+          {/* Footer — links back to the public site */}
           <p style={{ marginTop: 24, fontSize: 12, color: '#94a3b8', textAlign: 'center', lineHeight: 1.6 }}>
             Cet espace est réservé aux administrateurs.<br/>
             <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', color: '#0F4C5C', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
@@ -170,6 +190,7 @@ const AdminLogin = () => {
         </div>
       </div>
 
+      
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
