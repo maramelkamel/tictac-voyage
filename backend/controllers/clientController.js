@@ -87,13 +87,17 @@ const update = async (req, res) => {
            updated_at          = NOW()
        WHERE id = $7
        RETURNING id, first_name, last_name, email, phone, city, marital_status, number_of_children, created_at, updated_at`,
-      [first_name, last_name, phone, city || null, marital_status || null, number_of_children ?? 0, id]
+      [first_name, last_name, phone, city || null, marital_status || null, number_of_children === '' ? 0 : number_of_children, id]
     );
     if (!rows[0]) return res.status(404).json({ success: false, message: 'Client introuvable' });
     res.json({ success: true, data: rows[0], message: 'Profil mis à jour' });
   } catch (err) {
-    console.error('clientController.update:', err);
-    res.status(500).json({ success: false, message: 'Erreur serveur' });
+    console.error("ERREUR UPDATE :", err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
   }
 };
 

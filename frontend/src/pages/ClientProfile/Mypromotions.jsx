@@ -13,7 +13,10 @@ const formatCategory = (category) => ({
 }[category] || category || 'Promotion');
 
 export default function Mypromotions({ promotions, notify }) {
-  const handleCopy = async (code) => {
+//copier code e 
+
+
+    const handleCopy = async (code) => {
     if (!code) return;
     try {
       await navigator.clipboard.writeText(code);
