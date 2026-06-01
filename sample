@@ -319,3 +319,57 @@ ALTER TABLE public.clients
 
 set PUPPETEER_SKIP_DOWNLOAD=true && npm install passport passport-google-oauth20 express-session
 HH
+
+
+
+maram
+
+ALTER TABLE contact_messages
+RENAME COLUMN admin_notes TO reply;
+
+
+
+-- Reservations table
+CREATE TABLE reservations (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Payments table
+CREATE TABLE payments (
+    id SERIAL PRIMARY KEY,
+    reservation_id INT UNIQUE NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    method VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_payment_reservation
+        FOREIGN KEY (reservation_id)
+        REFERENCES reservations(id)
+        ON DELETE CASCADE
+);
+ALTER TABLE reservations
+ADD CONSTRAINT fk_reservation_client
+FOREIGN KEY (user_id)
+REFERENCES clients(id)
+ON DELETE CASCADE;
+
+
+
+
+
+-- Rename the table
+ALTER TABLE custom_trips
+RENAME TO custom_requests;
+
+-- Remove marital_status column
+ALTER TABLE clients
+DROP COLUMN marital_status;
+
+-- Remove number_of_children column
+ALTER TABLE clients
+DROP COLUMN number_of_children;
