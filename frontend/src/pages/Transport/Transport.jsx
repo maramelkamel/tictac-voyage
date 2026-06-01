@@ -5,12 +5,15 @@ import '../../styles/Transport.css';
 import { usePromotions } from '../../hooks/usePromotions';
 import PromotionsSection from '../admin/promotions/PromotionsSection';
 import LocationInput from './LocationInput'; 
+import { useTranslation } from 'react-i18next';
 
 const API_URL = 'http://localhost:5000/api/requests';
 
 // Aucune clé API requise — autocomplete via OpenStreetMap (Nominatim)
 
 const Transport = () => {
+  const { t } = useTranslation('booking');
+  const tr = (key, options) => t(`transport.${key}`, options);
   const clientData  = (() => { try { return JSON.parse(localStorage.getItem('client') || '{}'); } catch { return {}; } })();
   const clientEmail = clientData?.email || '';
   const clientName  = [
@@ -59,19 +62,19 @@ const Transport = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.fullName.trim())          newErrors.fullName = 'Le nom complet est requis';
-    if (!formData.email.trim())             newErrors.email = "L'email est requis";
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "L'email n'est pas valide";
-    if (!formData.phone.trim())             newErrors.phone = 'Le numéro de téléphone est requis';
-    else if (!/^[\d\s+()-]{8,}$/.test(formData.phone)) newErrors.phone = "Le numéro n'est pas valide";
-    if (!formData.departureLocation.trim()) newErrors.departureLocation = 'Le lieu de départ est requis';
-    if (activeTab === 'transfert' && !formData.arrivalLocation.trim()) newErrors.arrivalLocation = "Le lieu d'arrivée est requis";
-    if (!formData.departureDate)            newErrors.departureDate = 'La date est requise';
-    if (!formData.departureTime)            newErrors.departureTime = "L'heure est requise";
-    if (!vehicleType)                       newErrors.vehicleType = 'Le type de véhicule est requis';
+    if (!formData.fullName.trim())          newErrors.fullName = tr('errors.full_name_required', { defaultValue: 'Le nom complet est requis' });
+    if (!formData.email.trim())             newErrors.email = tr('errors.email_required', { defaultValue: "L'email est requis" });
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = tr('errors.email_invalid', { defaultValue: "L'email n'est pas valide" });
+    if (!formData.phone.trim())             newErrors.phone = tr('errors.phone_required', { defaultValue: 'Le numéro de téléphone est requis' });
+    else if (!/^[\d\s+()-]{8,}$/.test(formData.phone)) newErrors.phone = tr('errors.phone_invalid', { defaultValue: "Le numéro n'est pas valide" });
+    if (!formData.departureLocation.trim()) newErrors.departureLocation = tr('errors.departure_required', { defaultValue: 'Le lieu de départ est requis' });
+    if (activeTab === 'transfert' && !formData.arrivalLocation.trim()) newErrors.arrivalLocation = tr('errors.arrival_required', { defaultValue: "Le lieu d'arrivée est requis" });
+    if (!formData.departureDate)            newErrors.departureDate = tr('errors.date_required', { defaultValue: 'La date est requise' });
+    if (!formData.departureTime)            newErrors.departureTime = tr('errors.time_required', { defaultValue: "L'heure est requise" });
+    if (!vehicleType)                       newErrors.vehicleType = tr('errors.vehicle_required', { defaultValue: 'Le type de véhicule est requis' });
     if (tripType === 'aller-retour' && activeTab === 'transfert') {
-      if (!formData.returnDate) newErrors.returnDate = 'La date de retour est requise';
-      if (!formData.returnTime) newErrors.returnTime = "L'heure de retour est requise";
+      if (!formData.returnDate) newErrors.returnDate = tr('errors.return_date_required', { defaultValue: 'La date de retour est requise' });
+      if (!formData.returnTime) newErrors.returnTime = tr('errors.return_time_required', { defaultValue: "L'heure de retour est requise" });
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -150,11 +153,11 @@ const Transport = () => {
         setTimeout(() => setSubmitSuccess(false), 6000);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        setSubmitError(json.message || 'Une erreur est survenue. Veuillez réessayer.');
+        setSubmitError(json.message || tr('errors.submit_failed', { defaultValue: 'Une erreur est survenue. Veuillez réessayer.' }));
       }
     } catch (err) {
       console.error('Erreur API:', err);
-      setSubmitError('Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.');
+      setSubmitError(tr('errors.server_unreachable', { defaultValue: 'Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.' }));
     } finally {
       setIsSubmitting(false);
     }
@@ -162,15 +165,15 @@ const Transport = () => {
 
   const vehicles = [
     {
-      id: 'voiture', label: 'Voiture', capacity: '1-4', description: 'Confort et élégance',
+      id: 'voiture', label: tr('vehicles.car', { defaultValue: 'Voiture' }), capacity: '1-4', description: tr('vehicles.car_desc', { defaultValue: 'Confort et élégance' }),
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 17h14M5 17a2 2 0 01-2-2V9a2 2 0 012-2h1l2-3h8l2 3h1a2 2 0 012 2v6a2 2 0 01-2 2M5 17a2 2 0 00-2 2v1h4v-1a2 2 0 00-2-2zm14 0a2 2 0 00-2 2v1h4v-1a2 2 0 00-2-2z" /><circle cx="7.5" cy="14" r="1.5" /><circle cx="16.5" cy="14" r="1.5" /></svg>,
     },
     {
-      id: 'minibus', label: 'Minibus', capacity: '5-15', description: 'Idéal pour groupes',
+      id: 'minibus', label: tr('vehicles.minibus', { defaultValue: 'Minibus' }), capacity: '5-15', description: tr('vehicles.minibus_desc', { defaultValue: 'Idéal pour groupes' }),
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="6" width="20" height="11" rx="2" /><path d="M6 6V4a1 1 0 011-1h10a1 1 0 011 1v2M2 11h20M7 11v6M12 11v6M17 11v6" /><circle cx="6" cy="19" r="1.5" /><circle cx="18" cy="19" r="1.5" /></svg>,
     },
     {
-      id: 'bus', label: 'Bus', capacity: '16-50+', description: 'Grands groupes',
+      id: 'bus', label: tr('vehicles.bus', { defaultValue: 'Bus' }), capacity: '16-50+', description: tr('vehicles.bus_desc', { defaultValue: 'Grands groupes' }),
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="16" rx="2" /><path d="M3 9h18M3 14h18M8 9v5M13 9v5M18 9v5" /><circle cx="7" cy="21" r="1.5" /><circle cx="17" cy="21" r="1.5" /><path d="M3 19h4M17 19h4" /></svg>,
     },
   ];
@@ -197,22 +200,21 @@ const Transport = () => {
           <div className="transport-hero-overlay" />
           <img
             src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1920&q=80"
-            alt="Transport professionnel"
+            alt={tr('hero_image_alt', { defaultValue: 'Transport professionnel' })}
             className="transport-hero-image"
           />
           <div className="transport-hero-content">
             <div className="transport-hero-badge">
-              <span className="transport-hero-badge-dot" />Service Premium
+              <span className="transport-hero-badge-dot" />{tr('hero_badge', { defaultValue: 'Service Premium' })}
             </div>
             <h1 className="transport-hero-title">
-              Solutions de <span>Transport</span>
+              {tr('hero_title', { defaultValue: 'Solutions de' })} <span>{tr('hero_title_accent', { defaultValue: 'Transport' })}</span>
             </h1>
             <p className="transport-hero-subtitle">
-              Transferts privés et mise à disposition de véhicules avec chauffeur.
-              Voyagez en toute sérénité avec un service sur-mesure.
+              {tr('hero_subtitle', { defaultValue: 'Transferts privés et mise à disposition de véhicules avec chauffeur. Voyagez en toute sérénité avec un service sur-mesure.' })}
             </p>
             <div className="transport-hero-features">
-              {['Chauffeurs professionnels', 'Véhicules haut de gamme', 'Disponible 24h/7j'].map(f => (
+              {[tr('feature_drivers', { defaultValue: 'Chauffeurs professionnels' }), tr('feature_vehicles', { defaultValue: 'Véhicules haut de gamme' }), tr('feature_available', { defaultValue: 'Disponible 24h/7j' })].map(f => (
                 <div className="transport-hero-feature" key={f}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" />
@@ -257,8 +259,8 @@ const Transport = () => {
                   </svg>
                 </div>
                 <div>
-                  <h3>Demande envoyée avec succès !</h3>
-                  <p>Notre équipe vous contactera dans les plus brefs délais pour confirmer votre réservation.</p>
+                  <h3>{tr('success_title', { defaultValue: 'Demande envoyée avec succès !' })}</h3>
+                  <p>{tr('success_desc', { defaultValue: 'Notre équipe vous contactera dans les plus brefs délais pour confirmer votre réservation.' })}</p>
                 </div>
                 <button className="transport-success-close" onClick={() => setSubmitSuccess(false)}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -293,8 +295,8 @@ const Transport = () => {
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                   <div>
-                    <span className="transport-tab-title">Transfert</span>
-                    <span className="transport-tab-desc">Point A vers Point B</span>
+                    <span className="transport-tab-title">{tr('tabs.transfer', { defaultValue: 'Transfert' })}</span>
+                    <span className="transport-tab-desc">{tr('tabs.transfer_desc', { defaultValue: 'Point A vers Point B' })}</span>
                   </div>
                 </button>
                 <button
@@ -305,8 +307,8 @@ const Transport = () => {
                     <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
                   </svg>
                   <div>
-                    <span className="transport-tab-title">Mise à disposition</span>
-                    <span className="transport-tab-desc">Véhicule avec chauffeur</span>
+                    <span className="transport-tab-title">{tr('tabs.disposal', { defaultValue: 'Mise à disposition' })}</span>
+                    <span className="transport-tab-desc">{tr('tabs.disposal_desc', { defaultValue: 'Véhicule avec chauffeur' })}</span>
                   </div>
                 </button>
               </div>
@@ -321,10 +323,14 @@ const Transport = () => {
                   <div className="transport-section-number">1</div>
                   <div>
                     <h2 className="transport-section-title">
-                      {activeTab === 'transfert' ? 'Type de trajet' : 'Durée de mise à disposition'}
+                      {activeTab === 'transfert'
+                        ? tr('sections.trip_type_title', { defaultValue: 'Type de trajet' })
+                        : tr('sections.duration_title', { defaultValue: 'Durée de mise à disposition' })}
                     </h2>
                     <p className="transport-section-desc">
-                      {activeTab === 'transfert' ? 'Sélectionnez votre type de trajet' : 'Choisissez la durée souhaitée'}
+                      {activeTab === 'transfert'
+                        ? tr('sections.trip_type_desc', { defaultValue: 'Sélectionnez votre type de trajet' })
+                        : tr('sections.duration_desc', { defaultValue: 'Choisissez la durée souhaitée' })}
                     </p>
                   </div>
                 </div>
@@ -508,8 +514,8 @@ const Transport = () => {
                 <div className="transport-section-header">
                   <div className="transport-section-number">3</div>
                   <div>
-                    <h2 className="transport-section-title">Véhicule & Passagers</h2>
-                    <p className="transport-section-desc">Choisissez votre véhicule et le nombre de passagers</p>
+                    <h2 className="transport-section-title">{tr('sections.vehicle_title', { defaultValue: 'Véhicule & Passagers' })}</h2>
+                    <p className="transport-section-desc">{tr('sections.vehicle_desc', { defaultValue: 'Choisissez votre véhicule et le nombre de passagers' })}</p>
                   </div>
                 </div>
 
@@ -547,7 +553,7 @@ const Transport = () => {
                         <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" />
                         <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
                       </svg>
-                      Nombre de passagers
+                      {tr('fields.passengers', { defaultValue: 'Nombre de passagers' })}
                     </label>
                     <div className="transport-counter">
                       <button type="button" className="transport-counter-btn"
@@ -566,7 +572,7 @@ const Transport = () => {
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect x="4" y="7" width="16" height="13" rx="2" /><path d="M8 7V5a4 4 0 018 0v2" />
                       </svg>
-                      Nombre de bagages
+                      {tr('fields.luggage', { defaultValue: 'Nombre de bagages' })}
                     </label>
                     <div className="transport-counter">
                       <button type="button" className="transport-counter-btn"
@@ -585,11 +591,11 @@ const Transport = () => {
                 <div className="transport-options-row">
                   <label className="transport-checkbox-label">
                     <input type="checkbox" name="childSeat" checked={formData.childSeat} onChange={handleChange} />
-                    <span className="transport-checkbox-custom" /><span>Siège enfant / bébé</span>
+                    <span className="transport-checkbox-custom" /><span>{tr('fields.child_seat', { defaultValue: 'Siège enfant / bébé' })}</span>
                   </label>
                   <label className="transport-checkbox-label">
                     <input type="checkbox" name="accessibility" checked={formData.accessibility} onChange={handleChange} />
-                    <span className="transport-checkbox-custom" /><span>Accessibilité PMR</span>
+                    <span className="transport-checkbox-custom" /><span>{tr('fields.accessibility', { defaultValue: 'Accessibilité PMR' })}</span>
                   </label>
                 </div>
               </div>
@@ -599,8 +605,8 @@ const Transport = () => {
                 <div className="transport-section-header">
                   <div className="transport-section-number">4</div>
                   <div>
-                    <h2 className="transport-section-title">Vos coordonnées</h2>
-                    <p className="transport-section-desc">Informations pour vous contacter et confirmer la réservation</p>
+                    <h2 className="transport-section-title">{tr('sections.contact_title', { defaultValue: 'Vos coordonnées' })}</h2>
+                    <p className="transport-section-desc">{tr('sections.contact_desc', { defaultValue: 'Informations pour vous contacter et confirmer la réservation' })}</p>
                   </div>
                 </div>
 
@@ -609,11 +615,11 @@ const Transport = () => {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
                     </svg>
-                    Nom complet
+                    {tr('fields.full_name', { defaultValue: 'Nom complet' })}
                   </label>
                   <input type="text" id="fullName" name="fullName"
                     className={`transport-input ${errors.fullName ? 'error' : ''}`}
-                    placeholder="Votre nom et prénom"
+                    placeholder={tr('placeholders.full_name', { defaultValue: 'Votre nom et prénom' })}
                     value={formData.fullName} onChange={handleChange} />
                   {errors.fullName && <span className="transport-field-error">{errors.fullName}</span>}
                 </div>
@@ -627,7 +633,7 @@ const Transport = () => {
                       Email
                       {clientEmail && (
                         <span style={{ marginLeft: 8, fontSize: 10, background: '#e0fbfc', color: '#0e7490', padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>
-                          <i className="fas fa-lock" style={{ marginRight: 3 }} />Lié au compte
+                          <i className="fas fa-lock" style={{ marginRight: 3 }} />{tr('locked_email_badge', { defaultValue: 'Lié au compte' })}
                         </span>
                       )}
                     </label>
@@ -642,7 +648,7 @@ const Transport = () => {
                     {clientEmail && (
                       <p style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
                         <i className="fas fa-info-circle" style={{ marginRight: 4 }} />
-                        Email lié à votre compte — non modifiable.
+                        {tr('locked_email_info', { defaultValue: 'Email lié à votre compte — non modifiable.' })}
                       </p>
                     )}
                   </div>
@@ -652,7 +658,7 @@ const Transport = () => {
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
                       </svg>
-                      Téléphone
+                      {tr('fields.phone', { defaultValue: 'Téléphone' })}
                     </label>
                     <input type="tel" id="phone" name="phone"
                       className={`transport-input ${errors.phone ? 'error' : ''}`}
@@ -668,15 +674,15 @@ const Transport = () => {
                 <div className="transport-section-header">
                   <div className="transport-section-number">5</div>
                   <div>
-                    <h2 className="transport-section-title">Remarques & demandes</h2>
-                    <p className="transport-section-desc">Informations complémentaires ou demandes spéciales</p>
+                    <h2 className="transport-section-title">{tr('sections.notes_title', { defaultValue: 'Remarques & demandes' })}</h2>
+                    <p className="transport-section-desc">{tr('sections.notes_desc', { defaultValue: 'Informations complémentaires ou demandes spéciales' })}</p>
                   </div>
                 </div>
                 <div className="transport-field-group">
                   <textarea name="freeText" className="transport-textarea" rows="5"
-                    placeholder="Précisez vos besoins particuliers : arrêts intermédiaires, accueil avec panneau nominatif, équipements spéciaux, etc."
+                    placeholder={tr('placeholders.notes', { defaultValue: 'Précisez vos besoins particuliers : arrêts intermédiaires, accueil avec panneau nominatif, équipements spéciaux, etc.' })}
                     value={formData.freeText} onChange={handleChange} maxLength={1000} />
-                  <span className="transport-char-count">{formData.freeText.length} / 1000 caractères</span>
+                  <span className="transport-char-count">{tr('char_count', { count: formData.freeText.length, defaultValue: `${formData.freeText.length} / 1000 caractères` })}</span>
                 </div>
               </div>
 
@@ -686,7 +692,7 @@ const Transport = () => {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
                   </svg>
-                  <p>Après envoi, notre équipe analysera votre demande et vous enverra un devis personnalisé sous 24h.</p>
+                  <p>{tr('submit_info', { defaultValue: 'Après envoi, notre équipe analysera votre demande et vous enverra un devis personnalisé sous 24h.' })}</p>
                 </div>
                 <button
                   type="submit"
@@ -694,13 +700,13 @@ const Transport = () => {
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <><span className="transport-spinner" />Envoi en cours...</>
+                    <><span className="transport-spinner" />{tr('submitting', { defaultValue: 'Envoi en cours...' })}</>
                   ) : (
                     <>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
                       </svg>
-                      Envoyer ma demande
+                      {tr('submit_btn', { defaultValue: 'Envoyer ma demande' })}
                     </>
                   )}
                 </button>

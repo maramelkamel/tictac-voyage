@@ -10,6 +10,7 @@ import { usePromotions } from '../../hooks/usePromotions';
 import { useFavorites } from '../../hooks/useFavorites';
 import { buildFavoriteItemData, getFavoriteKey } from '../../utils/favorites';
 import PromotionsSection from '../admin/promotions/PromotionsSection';
+import { useTranslation } from 'react-i18next';
 
 const API        = 'http://localhost:5000/api/circuits?public=true';
 const COVERS_API = 'http://localhost:5000/api/circuits/circuit-covers';
@@ -82,6 +83,7 @@ const normalize = (circuit) => ({
 });
 
 export default function Circuits() {
+  const { t } = useTranslation('circuits');
   const navigate = useNavigate();
 
   const [activeTab,   setActiveTab]   = useState('nord');
@@ -186,17 +188,17 @@ export default function Circuits() {
         <div className="ci-hero__content">
           <span className="ci-hero__tag">
             <IconMap />
-            {getHero().tag || 'Circuits touristiques - Tunisie'}
+            {getHero().tag || t('page.hero_tag', { defaultValue: 'Circuits touristiques - Tunisie' })}
           </span>
           <h1 className="ci-hero__title">
-            {getHero().title || 'Explorez la Tunisie'}
+            {getHero().title || t('page.hero_title', { defaultValue: 'Explorez la Tunisie' })}
             <br />
             <span className="ci-hero__title--accent">
-              {getHero().title_accent || 'du Nord au Sud'}
+              {getHero().title_accent || t('page.hero_accent', { defaultValue: 'du Nord au Sud' })}
             </span>
           </h1>
           <p className="ci-hero__sub">
-            {getHero().sub || 'Des circuits soigneusement conçus pour vous faire découvrir les trésors du pays, entre mer, désert, culture et authenticité.'}
+            {getHero().sub || t('page.hero_sub', { defaultValue: 'Des circuits soigneusement conçus pour vous faire découvrir les trésors du pays, entre mer, désert, culture et authenticité.' })}
           </p>
           <div className="ci-searchbar-shell">
             <CircuitSearchBar initialValues={search} onSearch={setSearch} />
@@ -231,8 +233,8 @@ export default function Circuits() {
                 <h2>{getCover('nord').card_title}</h2>
                 <p>{getCover('nord').card_description}</p>
                 <div className="ci-split__card-stats">
-                  <span><strong>{allCircuits.filter(c => c.region === 'nord').length}</strong> circuits</span>
-                  <span>dès <strong>{nordMin < 9999 ? `${nordMin} DT` : '—'}</strong></span>
+                  <span><strong>{allCircuits.filter(c => c.region === 'nord').length}</strong> {t('page.circuits_label', { defaultValue: 'circuits' })}</span>
+                  <span>{t('page.from_price', { defaultValue: 'dès' })} <strong>{nordMin < 9999 ? `${nordMin} DT` : '—'}</strong></span>
                 </div>
               </div>
               {activeTab === 'nord' && <div className="ci-split__card-active-bar" />}
@@ -264,8 +266,8 @@ export default function Circuits() {
                 <h2>{getCover('sud').card_title}</h2>
                 <p>{getCover('sud').card_description}</p>
                 <div className="ci-split__card-stats">
-                  <span><strong>{allCircuits.filter(c => c.region === 'sud').length}</strong> circuits</span>
-                  <span>dès <strong>{sudMin < 9999 ? `${sudMin} DT` : '—'}</strong></span>
+                  <span><strong>{allCircuits.filter(c => c.region === 'sud').length}</strong> {t('page.circuits_label', { defaultValue: 'circuits' })}</span>
+                  <span>{t('page.from_price', { defaultValue: 'dès' })} <strong>{sudMin < 9999 ? `${sudMin} DT` : '—'}</strong></span>
                 </div>
               </div>
               {activeTab === 'sud' && <div className="ci-split__card-active-bar" />}
@@ -282,8 +284,8 @@ export default function Circuits() {
         <section className="ci-promos-section">
           <div className="ci-container">
             <div className="ci-promos-header">
-              <span className="ci-promos-badge">🎁 Offres spéciales</span>
-              <h3 className="ci-promos-title">Promotions en cours</h3>
+              <span className="ci-promos-badge">{t('page.special_offers', { defaultValue: '🎁 Offres spéciales' })}</span>
+              <h3 className="ci-promos-title">{t('page.promotions_title', { defaultValue: 'Promotions en cours' })}</h3>
             </div>
             <PromotionsSection promos={promos} showCards={false} />
           </div>
@@ -298,7 +300,7 @@ export default function Circuits() {
           <div className="ci-section__head">
             <div className="ci-section__head-left">
               <span className={`ci-section__badge ci-section__badge--${activeTab}`}>
-                {activeTab === 'nord' ? '🏛 Circuit Nord' : '🏜 Circuit Sud'}
+                {activeTab === 'nord' ? t('region_nord') : t('region_sud')}
               </span>
               <h2 className="ci-section__title">{getCover(activeTab).hero_title}</h2>
               <p className="ci-section__sub">{getCover(activeTab).hero_sub}</p>
@@ -314,11 +316,11 @@ export default function Circuits() {
           {loading ? (
             <div style={{ textAlign:'center', padding:'80px 0' }}>
               <div style={{ width:44, height:44, border:'3px solid #e2e8f0', borderTopColor:'#0F4C5C', borderRadius:'50%', animation:'spin .7s linear infinite', margin:'0 auto 16px' }} />
-              <p style={{ color:'#94a3b8' }}>Chargement des circuits...</p>
+              <p style={{ color:'#94a3b8' }}>{t('page.loading', { defaultValue: 'Chargement des circuits...' })}</p>
             </div>
           ) : circuits.length === 0 ? (
             <div style={{ textAlign:'center', padding:'60px 20px' }}>
-              <p style={{ fontSize:16, color:'#64748b' }}>Aucun circuit ne correspond à votre recherche.</p>
+              <p style={{ fontSize:16, color:'#64748b' }}>{t('page.no_results', { defaultValue: 'Aucun circuit ne correspond à votre recherche.' })}</p>
             </div>
           ) : (
             <div className="ci-grid">
@@ -343,17 +345,17 @@ export default function Circuits() {
       <section className="ci-why">
         <div className="ci-container">
           <div className="ci-why__head">
-            <span className="ci-why__badge">Notre engagement</span>
-            <h2>Pourquoi choisir nos circuits ?</h2>
+            <span className="ci-why__badge">{t('page.commitment_badge', { defaultValue: 'Notre engagement' })}</span>
+            <h2>{t('page.why_title', { defaultValue: 'Pourquoi choisir nos circuits ?' })}</h2>
           </div>
           <div className="ci-why__grid">
             {[
-              { icon:'🧭', title:'Guides experts',        desc:'Accompagnateurs locaux passionnés, connaissant chaque recoin de la Tunisie.' },
-              { icon:'🏨', title:'Hébergements choisis',  desc:"Riads authentiques, maisons d'hôtes et bivouacs soigneusement sélectionnés." },
-              { icon:'🚐', title:'Transport confortable', desc:'Véhicules climatisés et chauffeurs expérimentés pour tous vos déplacements.' },
-              { icon:'🍽', title:'Cuisine authentique',   desc:'Repas préparés par des locaux pour découvrir la vraie gastronomie tunisienne.' },
-              { icon:'📸', title:'Moments inoubliables',  desc:'Des itinéraires conçus pour créer des souvenirs que vous chérirez toute votre vie.' },
-              { icon:'🔒', title:'Sécurité garantie',     desc:'Voyages assurés, accompagnement professionnel et assistance 24h/24.' },
+              { icon:'🧭', title:t('page.why_guide_title', { defaultValue: 'Guides experts' }), desc:t('page.why_guide_desc', { defaultValue: 'Accompagnateurs locaux passionnés, connaissant chaque recoin de la Tunisie.' }) },
+              { icon:'🏨', title:t('page.why_stays_title', { defaultValue: 'Hébergements choisis' }), desc:t('page.why_stays_desc', { defaultValue: "Riads authentiques, maisons d'hôtes et bivouacs soigneusement sélectionnés." }) },
+              { icon:'🚐', title:t('page.why_transport_title', { defaultValue: 'Transport confortable' }), desc:t('page.why_transport_desc', { defaultValue: 'Véhicules climatisés et chauffeurs expérimentés pour tous vos déplacements.' }) },
+              { icon:'🍽', title:t('page.why_food_title', { defaultValue: 'Cuisine authentique' }), desc:t('page.why_food_desc', { defaultValue: 'Repas préparés par des locaux pour découvrir la vraie gastronomie tunisienne.' }) },
+              { icon:'📸', title:t('page.why_memories_title', { defaultValue: 'Moments inoubliables' }), desc:t('page.why_memories_desc', { defaultValue: 'Des itinéraires conçus pour créer des souvenirs que vous chérirez toute votre vie.' }) },
+              { icon:'🔒', title:t('page.why_safety_title', { defaultValue: 'Sécurité garantie' }), desc:t('page.why_safety_desc', { defaultValue: 'Voyages assurés, accompagnement professionnel et assistance 24h/24.' }) },
             ].map((item, i) => (
               <div key={i} className="ci-why__card">
                 <div className="ci-why__icon">{item.icon}</div>
@@ -372,15 +374,15 @@ export default function Circuits() {
         <div className="ci-cta__bg" />
         <div className="ci-container">
           <div className="ci-cta__content">
-            <span className="ci-cta__tag">Circuit sur mesure</span>
-            <h2>Vous avez un itinéraire en tête ?</h2>
-            <p>Notre équipe conçoit des circuits 100% personnalisés selon vos envies, votre budget et votre rythme.</p>
+            <span className="ci-cta__tag">{t('page.custom_tag', { defaultValue: 'Circuit sur mesure' })}</span>
+            <h2>{t('page.custom_title', { defaultValue: 'Vous avez un itinéraire en tête ?' })}</h2>
+            <p>{t('page.custom_desc', { defaultValue: 'Notre équipe conçoit des circuits 100% personnalisés selon vos envies, votre budget et votre rythme.' })}</p>
             <div className="ci-cta__btns">
               <button className="ci-cta__btn ci-cta__btn--primary" onClick={() => navigate('/CustomTripAbroad')}>
-                Créer mon circuit sur mesure <IconArrow />
+                {t('page.custom_button', { defaultValue: 'Créer mon circuit sur mesure' })} <IconArrow />
               </button>
               <button className="ci-cta__btn ci-cta__btn--outline" onClick={() => navigate('/Contact')}>
-                Nous contacter
+                {t('page.contact_button', { defaultValue: 'Nous contacter' })}
               </button>
             </div>
           </div>

@@ -15,6 +15,7 @@ import { usePromotions }       from '../../hooks/usePromotions';
 import { useFavorites }        from '../../hooks/useFavorites';
 import { buildFavoriteItemData, getFavoriteKey } from '../../utils/favorites';
 import PromotionsSection       from '../admin/promotions/PromotionsSection';
+import { useTranslation }      from 'react-i18next';
 
 // ── API endpoints ────────────────────────────────────────────────────
 // ?public=true instructs the backend to return only active packages
@@ -36,6 +37,7 @@ const DEFAULT_COVERS = {
 };
 
 const Omra = () => {
+  const { t } = useTranslation('omra');
   const navigate = useNavigate();
 
   // ── Local state ────────────────────────────────────────────────────
@@ -83,7 +85,7 @@ const Omra = () => {
         setLoading(false);
       })
       .catch(() => {
-        setError('Impossible de charger les forfaits.');
+        setError(t('error'));
         setLoading(false);
       });
 
@@ -99,7 +101,7 @@ const Omra = () => {
         }
       })
       .catch(() => { /* silently keep DEFAULT_COVERS */ });
-  }, []);
+  }, [t]);
 
   // ── Helpers ────────────────────────────────────────────────────────
   // Safe accessor so template code never needs to guard against
@@ -205,19 +207,19 @@ const Omra = () => {
           {/* Small badge above the headline — editable in the admin CMS */}
           <div className="omra-hero__tag">
             <i className="fas fa-kaaba" style={{ color: '#e8306a' }} />
-            {getHero().tag || 'Pelerinage et Spiritualite'}
+            {getHero().tag || t('hero_tag')}
           </div>
 
           {/* Two-line headline: plain text + accent (coloured) line */}
           <h1 className="omra-hero__title">
-            {getHero().title || 'Votre Voyage'}<br />
-            <span>{getHero().title_accent || 'Spirituel Ideal'}</span>
+            {getHero().title || t('hero_title')}<br />
+            <span>{getHero().title_accent || t('hero_title_accent', { defaultValue: 'Spirituel Ideal' })}</span>
           </h1>
 
           {/* Supporting description paragraph */}
           <p className="omra-hero__subtitle">
             {getHero().sub ||
-              'Accomplissez votre Omra en toute serenite avec nos forfaits tout compris.'}
+              t('hero_subtitle')}
           </p>
 
           {/* Inline search bar for departure-date / budget filtering */}
@@ -270,13 +272,13 @@ const Omra = () => {
           <div className="omra-section__header">
             <span className="omra-section__tag">
               <i className="fas fa-kaaba" style={{ marginRight: 8 }} />
-              Nos Forfaits Omra
+              {t('packages_badge')}
             </span>
             <h2 className="omra-section__title">
-              Choisissez votre<br />voyage spirituel
+              {t('packages_title')}
             </h2>
             <p className="omra-section__desc">
-              Des forfaits adaptes a tous les budgets et besoins, pour vivre votre Omra dans les meilleures conditions.
+              {t('packages_desc')}
             </p>
           </div>
 
@@ -302,7 +304,7 @@ const Omra = () => {
                 borderRadius: '50%', animation: 'spin .7s linear infinite',
                 margin: '0 auto 16px',
               }} />
-              <p style={{ color: '#94a3b8', fontSize: 14 }}>Chargement des forfaits...</p>
+              <p style={{ color: '#94a3b8', fontSize: 14 }}>{t('loading')}</p>
             </div>
           )}
 
@@ -319,7 +321,7 @@ const Omra = () => {
             <div className="omra-cards-grid">
               {filtered.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px 0', gridColumn: '1/-1', color: '#94a3b8' }}>
-                  <p>Aucun forfait disponible pour ce filtre.</p>
+                  <p>{t('no_packages')}</p>
                 </div>
               ) : (
                 filtered.map((pkg) => (
@@ -346,19 +348,18 @@ const Omra = () => {
         <div className="container">
           <div className="omra-why__grid">
             <div>
-              <span className="omra-why__tag">Pourquoi nous choisir</span>
+              <span className="omra-why__tag">{t('why_badge')}</span>
               <h2 className="omra-why__title">
-                Votre pelerinage,<br />notre priorite absolue
+                {t('why_title')}
               </h2>
               <p className="omra-why__desc">
-                Depuis 15 ans, TICTAC VOYAGES accompagne les pelerins tunisiens dans leur voyage
-                spirituel avec serieux, expertise et devotion.
+                {t('why_desc')}
               </p>
               {/* Feature list — icon + title + description */}
               {[
-                { icon: 'fas fa-shield-alt', title: 'Agence agreee',       desc: 'Autorisee par le Ministere du Tourisme et les autorites saoudiennes.' },
-                { icon: 'fas fa-headset',    title: 'Accompagnement 24/7', desc: 'Un guide dedie vous accompagne tout au long de votre sejour.' },
-                { icon: 'fas fa-heart',      title: 'Soin du detail',      desc: 'Chaque forfait est concu pour une experience spirituelle optimale.' },
+                { icon: 'fas fa-shield-alt', title: t('why_certified'), desc: t('why_certified_desc') },
+                { icon: 'fas fa-headset', title: t('why_support'), desc: t('why_support_desc') },
+                { icon: 'fas fa-heart', title: t('why_care'), desc: t('why_care_desc') },
               ].map((item, i) => (
                 <div key={i} className="omra-why__feature">
                   <div className="omra-why__feature-icon">
@@ -380,7 +381,7 @@ const Omra = () => {
                 <div className="omra-why__float-icon"><i className="fas fa-star" /></div>
                 <div>
                   <div className="omra-why__float-value">5 000+</div>
-                  <div className="omra-why__float-label">Pelerins satisfaits</div>
+                  <div className="omra-why__float-label">{t('pilgrims_count')}</div>
                 </div>
               </div>
             </div>
@@ -395,16 +396,16 @@ const Omra = () => {
         <div className="omra-cta__pattern" />
         <div className="container omra-cta__inner">
           <i className="fas fa-kaaba omra-cta__icon" />
-          <h2 className="omra-cta__title">Pret pour votre voyage spirituel ?</h2>
+          <h2 className="omra-cta__title">{t('cta_title')}</h2>
           <p className="omra-cta__desc">
-            Contactez notre equipe specialisee des aujourd hui pour construire votre Omra sur mesure.
+            {t('cta_desc')}
           </p>
           <div className="omra-cta__actions">
             <a href="tel:+21636149885" className="omra-cta__btn-primary">
-              <i className="fas fa-phone" /> Appeler maintenant
+              <i className="fas fa-phone" /> {t('cta_call')}
             </a>
             <a href="#footer" className="omra-cta__btn-secondary">
-              <i className="fas fa-envelope" /> Nous ecrire
+              <i className="fas fa-envelope" /> {t('cta_write')}
             </a>
           </div>
         </div>

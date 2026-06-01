@@ -10,6 +10,7 @@ import PromotionsSection from '../admin/promotions/PromotionsSection';
 import { useFavorites } from '../../hooks/useFavorites';
 import { buildFavoriteItemData, getFavoriteKey } from '../../utils/favorites';
 import { getHotelById, getHotelPageCover, getHotelsCatalog } from '../../services/api';
+import { useTranslation } from 'react-i18next';
 import '../../styles/omrastyle.css';
 
 const DEFAULT_CITIES = [
@@ -38,6 +39,7 @@ const HOTEL_SORT_OPTIONS = [
 ];
 
 const HotelsPage = () => {
+  const { t } = useTranslation('hotels');
   const navigate = useNavigate();
   const resultsRef = useRef(null);
 
@@ -68,12 +70,12 @@ const HotelsPage = () => {
         if (!next.photo_1) next.photo_1 = next.bg_image || DEFAULT_HERO.photo_1;
         setCover(next);
       } catch (e) {
-        setError(e.message || 'Impossible de charger les hotels.');
+        setError(e.message || t('errors.loadFailed', { defaultValue: 'Impossible de charger les hotels.' }));
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [t]);
 
   const heroPhotos = useMemo(() => {
     const photos = [cover.photo_1, cover.photo_2, cover.photo_3, cover.photo_4]
@@ -252,7 +254,7 @@ const HotelsPage = () => {
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 30 }}>
             <button style={pinkBtn} onClick={() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' })}>
-              <i className="fas fa-bed" /> Voir les hotels
+              <i className="fas fa-bed" /> {t('page.viewHotels', { defaultValue: 'Voir les hotels' })}
             </button>
           </div>
           <div className="omra-hero__search-wrapper" style={{ maxWidth: 1180 }}>
@@ -265,10 +267,10 @@ const HotelsPage = () => {
         <div className="container">
           <div className="omra-stats__grid">
             {[
-              { icon: 'fas fa-hotel', value: hotels.length, label: 'Hotels en base' },
-              { icon: 'fas fa-map-marker-alt', value: cityOptions.length, label: 'Destinations' },
-              { icon: 'fas fa-user-check', value: totalReservations, label: 'Reservations enregistrees' },
-              { icon: 'fas fa-star', value: `${averageRating} / 5`, label: 'Note moyenne' },
+              { icon: 'fas fa-hotel', value: hotels.length, label: t('page.statsHotels', { defaultValue: 'Hotels en base' }) },
+              { icon: 'fas fa-map-marker-alt', value: cityOptions.length, label: t('page.statsDestinations', { defaultValue: 'Destinations' }) },
+              { icon: 'fas fa-user-check', value: totalReservations, label: t('page.statsReservations', { defaultValue: 'Reservations enregistrees' }) },
+              { icon: 'fas fa-star', value: `${averageRating} / 5`, label: t('page.statsRating', { defaultValue: 'Note moyenne' }) },
             ].map((item) => (
               <div key={item.label} className="omra-stats__item">
                 <div className="omra-stats__icon" style={{ color: '#fda4bf' }}>
@@ -287,7 +289,7 @@ const HotelsPage = () => {
       {promos.length > 0 && (
         <section style={{ padding: '18px 0 0' }}>
           <div className="container">
-            <PromotionsSection promos={promos} titre="Promotions hotels" />
+            <PromotionsSection promos={promos} titre={t('page.promotionsTitle', { defaultValue: 'Promotions hotels' })} />
           </div>
         </section>
       )}
@@ -296,11 +298,11 @@ const HotelsPage = () => {
         <div className="container">
           <div className="omra-section__header">
             <span className="omra-section__tag" style={{ color: '#be185d', background: 'rgba(232,48,106,0.08)' }}>
-              Catalogue hotels
+              {t('page.catalogTag', { defaultValue: 'Catalogue hotels' })}
             </span>
-            <h2 className="omra-section__title">Tous nos hotels disponibles</h2>
+            <h2 className="omra-section__title">{t('page.catalogTitle', { defaultValue: 'Tous nos hotels disponibles' })}</h2>
             <p className="omra-section__desc">
-              Disponibilite, tarifs et informations alimentes en temps reel depuis votre base de donnees.
+              {t('page.catalogDesc', { defaultValue: 'Disponibilite, tarifs et informations alimentes en temps reel depuis votre base de donnees.' })}
             </p>
           </div>
 
@@ -327,7 +329,7 @@ const HotelsPage = () => {
                   flexShrink: 0,
                 }}
               >
-                Destination
+                {t('fields.destination')}
               </span>
               {['all', ...cityOptions].map((city) => (
                 <button
@@ -341,7 +343,7 @@ const HotelsPage = () => {
                     setVisibleCount(6);
                   }}
                 >
-                  {city === 'all' ? 'Toutes' : city}
+                  {city === 'all' ? t('allCategories') : city}
                 </button>
               ))}
             </div>
@@ -359,7 +361,7 @@ const HotelsPage = () => {
                   }}
                 >
                   <i className="fas fa-heart" style={{ marginRight: 5 }} />
-                  {featuredOnly ? 'Tous les hotels' : 'Hotels vedettes'}
+                  {featuredOnly ? t('page.allHotels', { defaultValue: 'Tous les hotels' }) : t('page.featuredHotels', { defaultValue: 'Hotels vedettes' })}
                 </button>
 
                 <span
@@ -372,7 +374,7 @@ const HotelsPage = () => {
                     borderRadius: 999,
                   }}
                 >
-                  {filteredHotels.length} resultat{filteredHotels.length !== 1 ? 's' : ''}
+                  {t('page.resultCount', { count: filteredHotels.length, defaultValue: `${filteredHotels.length} resultat${filteredHotels.length !== 1 ? 's' : ''}` })}
                 </span>
               </div>
 
@@ -393,7 +395,7 @@ const HotelsPage = () => {
                   margin: '0 auto 16px',
                 }}
               />
-              <p style={{ color: '#94a3b8', fontSize: 14 }}>Chargement des hotels...</p>
+              <p style={{ color: '#94a3b8', fontSize: 14 }}>{t('loading')}</p>
             </div>
           )}
 
@@ -422,7 +424,7 @@ const HotelsPage = () => {
                 <div style={{ textAlign: 'center', padding: '80px 20px' }}>
                   <div style={{ fontSize: '3rem', marginBottom: 16 }}>🔎</div>
                   <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#475569', marginBottom: 8 }}>
-                    Aucun hotel ne correspond a vos criteres.
+                    {t('errors.noMatches')}
                   </p>
                   <button
                     className="omra-filter-btn"
@@ -435,7 +437,7 @@ const HotelsPage = () => {
                       setVisibleCount(6);
                     }}
                   >
-                    Reinitialiser les filtres
+                    {t('page.resetFilters', { defaultValue: 'Reinitialiser les filtres' })}
                   </button>
                 </div>
               )}
@@ -443,7 +445,10 @@ const HotelsPage = () => {
               {visibleCount < filteredHotels.length && (
                 <div style={{ textAlign: 'center', marginTop: 40 }}>
                   <button style={pinkBtn} onClick={() => setVisibleCount((count) => count + 6)}>
-                    Voir plus ({filteredHotels.length - visibleCount} restant{filteredHotels.length - visibleCount > 1 ? 's' : ''})
+                    {t('page.showMore', {
+                      count: filteredHotels.length - visibleCount,
+                      defaultValue: `Voir plus (${filteredHotels.length - visibleCount} restant${filteredHotels.length - visibleCount > 1 ? 's' : ''})`,
+                    })}
                   </button>
                 </div>
               )}
@@ -475,17 +480,17 @@ const HotelsPage = () => {
             <div style={{ position: 'relative', zIndex: 1 }}>
               <span style={{ fontSize: 40, display: 'block', marginBottom: 16 }}>🏨</span>
               <h3 style={{ fontSize: 28, fontWeight: 900, color: '#fff', marginBottom: 12 }}>
-                Vous ne trouvez pas le bon hotel ?
+                {t('page.customTitle', { defaultValue: 'Vous ne trouvez pas le bon hotel ?' })}
               </h3>
               <p style={{ color: 'rgba(255,255,255,0.78)', fontSize: 15, maxWidth: 560, margin: '0 auto 28px', lineHeight: 1.7 }}>
-                Notre equipe peut vous preparer une proposition adaptee a vos dates, votre budget et votre ville.
+                {t('page.customDesc', { defaultValue: 'Notre equipe peut vous preparer une proposition adaptee a vos dates, votre budget et votre ville.' })}
               </p>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button style={pinkBtn} onClick={() => navigate('/Contact')}>
-                  <i className="fas fa-headset" /> Contacter un conseiller
+                  <i className="fas fa-headset" /> {t('page.contactAdvisor', { defaultValue: 'Contacter un conseiller' })}
                 </button>
                 <button style={ghostBtn} onClick={() => navigate('/CustomTripAbroad')}>
-                  <i className="fas fa-magic" /> Demande sur mesure
+                  <i className="fas fa-magic" /> {t('page.customRequest', { defaultValue: 'Demande sur mesure' })}
                 </button>
               </div>
             </div>

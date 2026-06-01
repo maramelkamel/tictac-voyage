@@ -13,6 +13,7 @@ import AdvancedFilters       from '../../components/AdvancedFilters';
 import { useFavorites }      from '../../hooks/useFavorites';
 import { buildFavoriteItemData, getFavoriteKey } from '../../utils/favorites';
 import { FILTERS }           from '../../data/VoyagesOrganiseData';
+import { useTranslation }    from 'react-i18next';
 
 const API = 'http://localhost:5000/api/voyages-organises?public=true';
 const COVERS_API = 'http://localhost:5000/api/voyages-organises/voyage-covers';
@@ -47,6 +48,7 @@ const normalize = (v) => ({
 });
 
 const VoyagesOrganise = () => {
+  const { t } = useTranslation('voyages');
   const navigate = useNavigate();
 
   
@@ -83,7 +85,7 @@ const [cover, setCover] = useState(null);
         const j = await r.json();
         setVoyages((j.data || []).map(normalize));
       } catch {
-        setError('Impossible de charger les voyages. Veuillez réessayer.');
+        setError(t('page.load_error', { defaultValue: 'Impossible de charger les voyages. Veuillez réessayer.' }));
       } finally {
         setLoading(false);
       }
@@ -97,7 +99,7 @@ const [cover, setCover] = useState(null);
   }; 
     fetchVoyages();
     fetchCover();
-  }, []);
+  }, [t]);
 
   const clearFilters = () => {
     setContinent(''); setSaison(''); setBudget('');
@@ -208,14 +210,14 @@ const [cover, setCover] = useState(null);
   <div className="omra-hero__overlay" />
   <div className="omra-hero__content">
     <span className="omra-hero__tag">
-      {cover?.tag || '✈️ Agence de voyages organisés'}
+      {cover?.tag || t('page.hero_tag', { defaultValue: '✈️ Agence de voyages organisés' })}
     </span>
     <h1 className="omra-hero__title">
-      {cover?.title || 'Découvrez le monde,'}<br />
-      <span>{cover?.title_accent || 'sans contraintes'}</span>
+      {cover?.title || t('page.hero_title', { defaultValue: 'Découvrez le monde,' })}<br />
+      <span>{cover?.title_accent || t('page.hero_accent', { defaultValue: 'sans contraintes' })}</span>
     </h1>
     <p className="omra-hero__subtitle">
-      {cover?.sub || "Des séjours clé en main conçus par nos experts pour vous offrir l'expérience parfaite."}
+      {cover?.sub || t('page.hero_sub', { defaultValue: "Des séjours clé en main conçus par nos experts pour vous offrir l'expérience parfaite." })}
     </p>
     <div className="omra-hero__search-wrapper">
       <VoyageSearchBar
@@ -238,21 +240,21 @@ const [cover, setCover] = useState(null);
       <section className="omra-section omra-section--gray">
         <div className="container">
           <div className="omra-section__header">
-            <span className="omra-section__tag">Nos voyages</span>
-            <h2 className="omra-section__title">Explorez nos séjours organisés</h2>
-            <p className="omra-section__desc">Chaque voyage est soigneusement préparé pour vous garantir confort, découverte et sérénité.</p>
+            <span className="omra-section__tag">{t('page.section_tag', { defaultValue: 'Nos voyages' })}</span>
+            <h2 className="omra-section__title">{t('page.section_title', { defaultValue: 'Explorez nos séjours organisés' })}</h2>
+            <p className="omra-section__desc">{t('page.section_desc', { defaultValue: 'Chaque voyage est soigneusement préparé pour vous garantir confort, découverte et sérénité.' })}</p>
           </div>
 
           {/* Badges de recherche active : ils permettent de retirer rapidement un critère. */}
           {activeSearchCount > 0 && (
             <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:16, alignItems:'center' }}>
-              <span style={{ fontSize:12, color:'#64748b', fontWeight:600 }}>Recherche active :</span>
+              <span style={{ fontSize:12, color:'#64748b', fontWeight:600 }}>{t('page.active_search', { defaultValue: 'Recherche active :' })}</span>
               {search.destination && <Chip label={`📍 ${search.destination}`} onClear={() => setSearch(s=>({...s,destination:''}))}/>}
               {search.dateDepart  && <Chip label={`📅 À partir du ${new Date(search.dateDepart).toLocaleDateString('fr-FR')}`} onClear={() => setSearch(s=>({...s,dateDepart:''}))}/>}
               {search.personnes   && <Chip label={`👥 ${search.personnes} pers.`} onClear={() => setSearch(s=>({...s,personnes:''}))}/>}
               {search.duree       && <Chip label={`⏱ ${search.duree} jours`} onClear={() => setSearch(s=>({...s,duree:''}))}/>}
               <button onClick={clearSearch} style={{ fontSize:11, color:'#e92f64', background:'none', border:'none', cursor:'pointer', fontWeight:700, padding:'2px 6px' }}>
-                Effacer tout ✕
+                {t('page.clear_all', { defaultValue: 'Effacer tout ✕' })}
               </button>
             </div>
           )}
@@ -267,7 +269,7 @@ const [cover, setCover] = useState(null);
                 </button>
               ))}
             </div>
-            <p className="omra-filters-count"><strong>{displayed.length}</strong> voyages disponibles</p>
+            <p className="omra-filters-count"><strong>{displayed.length}</strong> {t('page.available_count', { count: displayed.length, defaultValue: 'voyages disponibles' })}</p>
           </div>
 
           {/* Filtres secondaires et tri sans refaire d'appel backend. */}
@@ -279,7 +281,7 @@ const [cover, setCover] = useState(null);
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width:18, height:18 }}>
                   <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>
                 </svg>
-                Filtres avancés
+                {t('page.advanced_filters', { defaultValue: 'Filtres avancés' })}
                 {activeFilterCount > 0 && <span className="vsm-filter-badge">{activeFilterCount}</span>}
               </button>
               <SortFilter sortBy={sortBy} setSortBy={setSortBy} />
@@ -299,7 +301,7 @@ const [cover, setCover] = useState(null);
           {loading && (
             <div style={{ textAlign:'center', padding:'80px 20px' }}>
               <div style={{ width:44, height:44, border:'3px solid #e2e8f0', borderTopColor:'#0F4C5C', borderRadius:'50%', animation:'spin .7s linear infinite', margin:'0 auto 16px' }}/>
-              <p style={{ color:'#94a3b8', fontSize:14 }}>Chargement des voyages...</p>
+              <p style={{ color:'#94a3b8', fontSize:14 }}>{t('page.loading', { defaultValue: 'Chargement des voyages...' })}</p>
             </div>
           )}
 
@@ -330,7 +332,10 @@ const [cover, setCover] = useState(null);
                   <button className="omra-filter-btn"
                     style={{ padding:'12px 24px', background:'var(--primary-color)', color:'white', border:'none' }}
                     onClick={() => setVisibleCount(p => p + 6)}>
-                    Voir plus de voyages ({displayed.length - visibleCount} restants)
+                    {t('page.show_more', {
+                      count: displayed.length - visibleCount,
+                      defaultValue: `Voir plus de voyages (${displayed.length - visibleCount} restants)`,
+                    })}
                   </button>
                 </div>
               )}
@@ -339,16 +344,16 @@ const [cover, setCover] = useState(null);
                 <div style={{ textAlign:'center', padding:'80px 20px', color:'var(--gray-400)' }}>
                   <div style={{ fontSize:'3rem', marginBottom:16 }}>🔍</div>
                   <p style={{ fontSize:'1.1rem', fontWeight:600, color:'var(--gray-600)', marginBottom:8 }}>
-                    Aucun voyage ne correspond à vos critères.
+                    {t('page.no_results', { defaultValue: 'Aucun voyage ne correspond à vos critères.' })}
                   </p>
                   {(activeSearchCount > 0 || activeFilterCount > 0) && (
                     <p style={{ fontSize:13, color:'#94a3b8', marginBottom:16 }}>
-                      Essayez de modifier ou supprimer certains filtres.
+                      {t('page.no_results_hint', { defaultValue: 'Essayez de modifier ou supprimer certains filtres.' })}
                     </p>
                   )}
                   <button className="omra-filter-btn" style={{ marginTop:8 }}
                     onClick={() => { clearFilters(); clearSearch(); setFilter('Tous'); }}>
-                    Réinitialiser tous les filtres
+                    {t('page.reset_all', { defaultValue: 'Réinitialiser tous les filtres' })}
                   </button>
                 </div>
               )}
