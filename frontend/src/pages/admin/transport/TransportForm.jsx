@@ -9,6 +9,13 @@ const TYPES = [
   { id: 'bus',     label: 'Bus',     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{width:28,height:28}}><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M8 9v5M13 9v5M18 9v5"/><circle cx="7" cy="21" r="1.5"/><circle cx="17" cy="21" r="1.5"/></svg> },
 ];
 
+const cleanIntegerInput = (value) => value.replace(/\D/g, '');
+const cleanDecimalInput = (value) => value.replace(',', '.').replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+const toNumberOrNull = (value) => {
+  const normalized = String(value ?? '').replace(',', '.');
+  return normalized === '' ? null : Number(normalized);
+};
+
 const TransportForm = ({ initialData, onSubmit, onCancel }) => {
   const [form, setForm]         = useState(EMPTY);
   const [errors, setErrors]     = useState({});
@@ -20,11 +27,14 @@ const TransportForm = ({ initialData, onSubmit, onCancel }) => {
   }, [initialData]);
 
   const set = (f, v) => { setForm(p => ({ ...p, [f]: v })); if (errors[f]) setErrors(p => ({ ...p, [f]: '' })); };
+  const setInteger = (f, v) => set(f, cleanIntegerInput(v));
+  const setDecimal = (f, v) => set(f, cleanDecimalInput(v));
 
   const validate = () => {
     const e = {};
     if (!form.transport_name.trim())  e.transport_name = 'Le nom est requis';
     if (!form.capacity_max || Number(form.capacity_max) < 1) e.capacity_max = 'Capacité max requise';
+    if (!form.capacity_min || Number(form.capacity_min) < 1) e.capacity_min = 'Capacite min requise';
     if (Number(form.capacity_min) > Number(form.capacity_max)) e.capacity_min = 'Min > Max';
     setErrors(e);
     return !Object.keys(e).length;
@@ -33,7 +43,7 @@ const TransportForm = ({ initialData, onSubmit, onCancel }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    onSubmit({ ...form, capacity_min: Number(form.capacity_min)||1, capacity_max: Number(form.capacity_max), price_per_km: form.price_per_km !== '' ? Number(form.price_per_km) : null, price_halfday: form.price_halfday !== '' ? Number(form.price_halfday) : null, price_fullday: form.price_fullday !== '' ? Number(form.price_fullday) : null });
+    onSubmit({ ...form, capacity_min: Number(form.capacity_min), capacity_max: Number(form.capacity_max), price_per_km: toNumberOrNull(form.price_per_km), price_halfday: toNumberOrNull(form.price_halfday), price_fullday: toNumberOrNull(form.price_fullday) });
   };
 
   return (
@@ -81,12 +91,12 @@ const TransportForm = ({ initialData, onSubmit, onCancel }) => {
       <div className="al-row-2">
         <div className="al-field">
           <label className="al-label">Capacité min</label>
-          <input type="number" min="1" max="60" className={`al-input ${errors.capacity_min ? 'al-input--error' : ''}`} value={form.capacity_min} onChange={e => set('capacity_min', e.target.value)}/>
+          <input type="text" inputMode="numeric" className={`al-input ${errors.capacity_min ? 'al-input--error' : ''}`} value={form.capacity_min} onChange={e => setInteger('capacity_min', e.target.value)} placeholder="1"/>
           {errors.capacity_min && <span className="al-error">{errors.capacity_min}</span>}
         </div>
         <div className="al-field">
           <label className="al-label">Capacité max <span className="al-required">*</span></label>
-          <input type="number" min="1" max="60" className={`al-input ${errors.capacity_max ? 'al-input--error' : ''}`} value={form.capacity_max} onChange={e => set('capacity_max', e.target.value)}/>
+          <input type="text" inputMode="numeric" className={`al-input ${errors.capacity_max ? 'al-input--error' : ''}`} value={form.capacity_max} onChange={e => setInteger('capacity_max', e.target.value)} placeholder="4"/>
           {errors.capacity_max && <span className="al-error">{errors.capacity_max}</span>}
         </div>
       </div>
@@ -102,7 +112,7 @@ const TransportForm = ({ initialData, onSubmit, onCancel }) => {
           <div key={f} className="al-field">
             <label className="al-label">{l}</label>
             <div style={{ position: 'relative' }}>
-              <input type="number" step="0.01" min="0" className="al-input" style={{ paddingRight: 28 }} value={form[f]} onChange={e => set(f, e.target.value)} placeholder={p}/>
+              <input type="text" inputMode="decimal" className="al-input" style={{ paddingRight: 28 }} value={form[f]} onChange={e => setDecimal(f, e.target.value)} placeholder={p}/>
               <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, fontWeight: 600, color: 'var(--g400)', pointerEvents: 'none' }}>€</span>
             </div>
           </div>
