@@ -25,6 +25,7 @@ const adminAuthRoutes          = require('./routes/adminAuthRoutes');
 const mediaRoutes              = require('./routes/mediaRoutes');
 const passport    = require('./config/passport');
 const adminStatsRoutes = require('./routes/adminStatsRoutes');
+const { createDataSafetyRouter, syncConfirmedReservations } = require('./datasafety');
 
 // ── App ───────────────────────────────────────────────────────
 const app = express();
@@ -72,6 +73,7 @@ app.use('/api/flights', require('./routes/flightRoutes'));
 app.use('/api/hotels', require('./routes/hotelRoutes'));
 app.use(passport.initialize()); 
 app.use('/api/admin/stats', adminStatsRoutes);
+app.use('/api/datasafety', createDataSafetyRouter());
  
 
 
@@ -89,6 +91,16 @@ app.use((req, res) => {
 
 // ── Démarrage serveur ─────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
+const DATA_SAFETY_SYNC_INTERVAL_MS = Number(process.env.DATA_SAFETY_SYNC_INTERVAL_MS || 30000);
+
+const runDataSafetySync = async () => {
+  try {
+    const summary = await syncConfirmedReservations();
+    console.log('[datasafety] Sync complete:', summary);
+  } catch (err) {
+    console.error('[datasafety] Sync failed:', err.message);
+  }
+};
 
 app.listen(PORT, async () => {
   console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
@@ -109,6 +121,9 @@ app.listen(PORT, async () => {
   } catch (err) {
     console.error('[startup] Erreur hotel bootstrap:', err.message);
   }
+
+  await runDataSafetySync();
+  setInterval(runDataSafetySync, DATA_SAFETY_SYNC_INTERVAL_MS);
 });
 
 module.exports = app;
