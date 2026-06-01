@@ -2,16 +2,15 @@ import React, { useState } from 'react';
 import PromotionCard from './PromotionCard';
 import PromotionBanner from './PromotionBanner';
 import '../../../styles/PromotionCard.css';
-
+//les promo affiché dans page client 
 export default function PromotionsSection({
   promos,
   titre = 'Offres spéciales en cours',
-  // showCards kept for backwards-compat but no longer controls visibility
-  // eslint-disable-next-line no-unused-vars
+  
   showCards,
 }) {
   const [open, setOpen] = useState(false);
-
+//promo vide donc pas aff snn clic btn affiche details
   if (!promos || promos.length === 0) return null;
 
   const banners = promos.filter((p) => p.display_mode === 'banner');
@@ -53,7 +52,7 @@ export default function PromotionsSection({
         </div>
       </button>
 
-      {/* ── EXPANDED CONTENT ────────────────────────────────── */}
+    
       {open && (
         <div className="promos-drawer">
           <div className="promos-drawer__rule" />

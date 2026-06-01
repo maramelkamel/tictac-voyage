@@ -23,7 +23,7 @@ import ContactAdmin     from './pages/admin/contact/ContactAdmin';
 import OmraPackages      from './pages/admin/Omra/OmraPackages';
 import OmraReservations  from './pages/admin/Omra/OmraReservations';
 import ClientsAdmin from './pages/admin/clients/ClientsAdmin';
-import ClientProfile from './pages/ClientProfile';
+import ClientProfile from './pages/ClientProfile/ClientProfile';
 import VoyagePackages    from './pages/admin/voyages/VoyagePackages';
 import VoyageReservations from './pages/admin/voyages/VoyageReservations';
 import CircuitDetails    from './pages/circuits/CircuitDetails';
