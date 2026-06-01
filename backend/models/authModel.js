@@ -75,9 +75,4 @@ const upsertGoogleClient = async ({ google_id, email, first_name, last_name, ava
   return rows[0];
 };
 
-
-
-    
-
-
 module.exports = { createClient, findByEmail, findById, upsertGoogleClient };

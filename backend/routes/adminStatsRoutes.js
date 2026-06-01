@@ -3,7 +3,7 @@ const express = require('express');
 const router  = express.Router();
 const pool    = require('../config/db');
 
-// Requête sécurisée : retourne un défaut si la table n'existe pas
+//  retourne un défaut si la table n'existe pas
 const safe = async (query, params = []) => {
   try {
     const { rows } = await pool.query(query, params);
@@ -21,7 +21,7 @@ const safeOne = async (query, params = []) => {
 
 router.get('/', async (req, res) => {
   try {
-    // ── Détection dynamique des tables présentes ──
+    //  Détection dynamique des tables présentes 
     const { rows: tables } = await pool.query(`
       SELECT table_name FROM information_schema.tables
       WHERE table_schema = 'public'
@@ -75,7 +75,7 @@ router.get('/', async (req, res) => {
       `);
     }
 
-    // ── 3. Offres par catalogue ──
+    //  Offres par catalogue
     const offers = {
       hotels:     has('hotels')             ? (await safeOne(`SELECT COUNT(*) AS n FROM public.hotels`)).n             : 0,
       voyages:    has('voyages_organises')  ? (await safeOne(`SELECT COUNT(*) AS n FROM public.voyages_organises`)).n  : 0,
@@ -84,7 +84,7 @@ router.get('/', async (req, res) => {
       transports: has('transports')         ? (await safeOne(`SELECT COUNT(*) AS n FROM public.transports`)).n         : 0,
     };
 
-    // ── 4. Messages contact ──
+    //  Messages contact
     const contactTable = has('contact_messages') ? 'contact_messages'
       : has('contacts') ? 'contacts' : null;
 
@@ -96,7 +96,7 @@ router.get('/', async (req, res) => {
       FROM public.${contactTable}
     `) : { total: 0, unread: 0, this_week: 0 };
 
-    // ── 5. Dernières réservations (5) ──
+    //  Dernières réservations 
     const recentParts = [
       has('transport_requests')   && `SELECT 'Transport' AS source, id::text, CONCAT(first_name,' ',last_name) AS client_name, status, created_at, 0::numeric AS total_price FROM public.transport_requests`,
       has('voyage_reservations')  && `SELECT 'Voyage',  id::text, client_name, status, created_at, COALESCE(total_price,0) FROM public.voyage_reservations`,
@@ -110,7 +110,7 @@ router.get('/', async (req, res) => {
       ? await safe(`SELECT * FROM (${recentParts.join(' UNION ALL ')}) r ORDER BY created_at DESC LIMIT 5`)
       : [];
 
-    // ── 6. Réservations par module ──
+    // Réservations par module 
     const moduleParts = [
       has('transport_requests')   && `SELECT 'Transport' AS source FROM public.transport_requests`,
       has('voyage_reservations')  && `SELECT 'Voyage'             FROM public.voyage_reservations`,
@@ -124,7 +124,7 @@ router.get('/', async (req, res) => {
       ? await safe(`SELECT source, COUNT(*) AS count FROM (${moduleParts.join(' UNION ALL ')}) t GROUP BY source ORDER BY count DESC`)
       : [];
 
-    // ── 7. Revenus par mois (6 mois) ──
+    // Revenus par mois (6 mois) 
     const revParts = [
       has('voyage_reservations')  && `SELECT created_at, COALESCE(total_price,0) AS amount FROM public.voyage_reservations  WHERE status IN ('confirmed','completed')`,
       has('circuit_reservations') && `SELECT created_at, COALESCE(total_price,0)           FROM public.circuit_reservations WHERE status IN ('confirmed','completed')`,
@@ -146,7 +146,7 @@ router.get('/', async (req, res) => {
         ON DATE_TRUNC('month', rev_data.created_at) = month
       GROUP BY month ORDER BY month
     `) : [];
-
+//reponse json final
     res.json({
       success: true,
       data: { clients, reservations, revenue, offers, contacts, recentReservations, reservationsByModule, revenueByMonth },
