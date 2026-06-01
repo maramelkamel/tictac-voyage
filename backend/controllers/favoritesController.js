@@ -28,7 +28,7 @@ module.exports = { getAll, toggle };
 // ─────────────────────────────────────────────────────────────────
 // backend/routes/favoritesRoutes.js
 // ─────────────────────────────────────────────────────────────────
-// (Copy the content below into a separate file: backend/routes/favoritesRoutes.js)
+
 /*
 const express    = require('express');
 const router     = express.Router();
