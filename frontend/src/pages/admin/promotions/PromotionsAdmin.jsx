@@ -30,21 +30,21 @@ const empty = {
 const API = 'http://localhost:5000/api/promotions';
 
 export default function PromotionsAdmin() {
-  const [promos,   setPromos]   = useState([]);
-  const [form,     setForm]     = useState(empty);
+  const [promos,   setPromos]   = useState([]); //liste promos
+  const [form,     setForm]     = useState(empty);//val form saisie
   const [editId,   setEditId]   = useState(null);
   const [error,    setError]    = useState('');
   const [loading,  setLoading]  = useState(true);
   const [toast,    setToast]    = useState(null);
-  const [blasting, setBlasting] = useState(null); // stores the id currently being blasted
+  const [blasting, setBlasting] = useState(null); // id promo email en cours d envoi
 
-  // ── Toast ─────────────────────────────────────────────────────
+
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 4000);
   };
 
-  // ── Fetch ─────────────────────────────────────────────────────
+  //get api/promotions
   const fetchAll = () => {
     setLoading(true);
     fetch(API)
@@ -56,12 +56,11 @@ export default function PromotionsAdmin() {
 
   useEffect(() => { fetchAll(); }, []);
 
-  // ── Form handlers ─────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   };
-
+//create ou edite
   const handleSubmit = async () => {
     setError('');
     if (!form.titre)           return setError('Le titre est obligatoire.');
@@ -86,7 +85,7 @@ export default function PromotionsAdmin() {
       setError('Erreur réseau. Vérifiez votre connexion.');
     }
   };
-
+//préremplie de promo choisie
   const handleEdit = (p) => {
     setEditId(p.id);
     setForm({
@@ -108,7 +107,7 @@ export default function PromotionsAdmin() {
       showToast('Erreur lors de la suppression.', 'error');
     }
   };
-
+//active ou nn
   const handleToggle = async (id) => {
     try {
       await fetch(`${API}/${id}/toggle`, { method: 'PATCH' });
@@ -118,8 +117,8 @@ export default function PromotionsAdmin() {
     }
   };
 
-  // ── Send blast ────────────────────────────────────────────────
-  const handleSendBlast = async (id, titre) => {
+  // envoi mail a tous les clients
+    const handleSendBlast = async (id, titre) => {
     if (!window.confirm(
       `📧 Envoyer la promotion "${titre}" par email à TOUS les clients ?\n\nCette action est irréversible.`
     )) return;
@@ -154,9 +153,7 @@ export default function PromotionsAdmin() {
     >
       <div style={{ padding: '24px 32px 48px' }}>
 
-        {/* ══════════════════════════════════════════════════════
-            FORMULAIRE CRÉATION / ÉDITION
-        ══════════════════════════════════════════════════════ */}
+       
         <div className="al-card" style={{ marginBottom: 32 }}>
           <div className="al-modal__header" style={{ borderRadius: 0 }}>
             <div className="al-modal__title-wrap">
@@ -336,9 +333,7 @@ export default function PromotionsAdmin() {
           </div>
         </div>
 
-        {/* ══════════════════════════════════════════════════════
-            TABLEAU DES PROMOTIONS
-        ══════════════════════════════════════════════════════ */}
+        {/* TABLEAU DES PROMOTIONS */}
         <div className="al-card">
           <div className="al-toolbar">
             <h3 style={{ fontWeight:700, fontSize:15, color:'#0f172a', flex:1 }}>

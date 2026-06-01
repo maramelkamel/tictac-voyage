@@ -1,6 +1,6 @@
 import React from 'react';
 import '../../../styles/PromotionCard.css';
-
+//forme card promo
 const BADGE = {
   omra:                         { cls: 'badge-orange', label: 'Omra' },
   hotels:                       { cls: 'badge-blue',   label: 'Hôtels' },
@@ -20,7 +20,7 @@ export default function PromotionCard({ promo }) {
     titre, description, categorie,
     type_reduction, valeur_reduction,
     date_debut, date_fin, image_url,
-    /* code_promo intentionally NOT destructured — never shown on frontend */
+   
   } = promo;
 
   const b   = BADGE[categorie] || { cls: 'badge-pink', label: categorie };

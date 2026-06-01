@@ -1,5 +1,5 @@
 import React from 'react';
-
+//affiche promo en card
 const COLORS = {
   omra:                         { bg:'#fff7ed', border:'#fdba74', accent:'#c2410c', icon:'🕋' },
   hotels:                       { bg:'#eff6ff', border:'#93c5fd', accent:'#1d4ed8', icon:'🏨' },
@@ -19,7 +19,7 @@ export default function PromotionBanner({ promo }) {
     titre, description, categorie,
     type_reduction, valeur_reduction,
     date_debut, date_fin,
-    /* code_promo intentionally NOT destructured — never shown on frontend */
+
   } = promo;
 
   const c   = COLORS[categorie] || COLORS.omra;

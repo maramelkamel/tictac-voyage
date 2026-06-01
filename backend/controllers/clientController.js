@@ -74,7 +74,7 @@ const getOne = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { first_name, last_name, phone, city } = req.body;
+    const { first_name, last_name, phone, city, marital_status, number_of_children } = req.body;
 
     const { rows } = await pool.query(
       `UPDATE public.clients
@@ -82,16 +82,22 @@ const update = async (req, res) => {
            last_name           = $2,
            phone               = $3,
            city                = $4,
+           marital_status      = $5,
+           number_of_children  = $6,
            updated_at          = NOW()
-       WHERE id = $5
-       RETURNING id, first_name, last_name, email, phone, city, created_at, updated_at`,
-      [first_name, last_name, phone, city || null, id]
+       WHERE id = $7
+       RETURNING id, first_name, last_name, email, phone, city, marital_status, number_of_children, created_at, updated_at`,
+      [first_name, last_name, phone, city || null, marital_status || null, number_of_children === '' ? 0 : number_of_children, id]
     );
     if (!rows[0]) return res.status(404).json({ success: false, message: 'Client introuvable' });
     res.json({ success: true, data: rows[0], message: 'Profil mis à jour' });
   } catch (err) {
-    console.error('clientController.update:', err);
-    res.status(500).json({ success: false, message: 'Erreur serveur' });
+    console.error("ERREUR UPDATE :", err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
   }
 };
 
