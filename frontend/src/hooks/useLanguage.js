@@ -2,8 +2,13 @@
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n/config';
 
-const applyGoogleTranslate = (lang) => {
+const normalizeLanguage = (lang = 'fr') => {
   const code = String(lang || 'fr').slice(0, 2).toLowerCase();
+  return ['fr', 'en', 'ar'].includes(code) ? code : 'fr';
+};
+
+const applyGoogleTranslate = (lang) => {
+  const code = normalizeLanguage(lang);
   const cookieValue = `/fr/${code}`;
 
   document.cookie = `googtrans=${cookieValue}; path=/`;
@@ -28,14 +33,15 @@ export const useLanguage = () => {
   const { t } = useTranslation();
 
   const switchLanguage = (lang) => {
-    const code = String(lang || 'fr').slice(0, 2).toLowerCase();
-    i18n.changeLanguage(code);
+    const code = normalizeLanguage(lang);
     document.documentElement.dir  = code === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = code;
     localStorage.setItem('lang', code);
-    localStorage.setItem('i18nextLng', code);
-    applyGoogleTranslate(code);
+    localStorage.setItem('i18nextLng', 'fr');
+    i18n.changeLanguage('fr').then(() => {
+      applyGoogleTranslate(code);
+    });
   };
 
-  return { t, switchLanguage, currentLang: i18n.language };
+  return { t, switchLanguage, currentLang: localStorage.getItem('lang') || 'fr' };
 };

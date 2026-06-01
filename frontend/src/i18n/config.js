@@ -49,6 +49,7 @@ i18n
       en: { common: enCommon, navbar: enNavbar, footer: enFooter, contact: enContact, circuits: enCircuits, booking: enBooking, omra: enOmra, voyages: enVoyages, destinations: enDestinations, hotels: enHotels, auth: enAuth },
       ar: { common: arCommon, navbar: arNavbar, footer: arFooter, contact: arContact, circuits: arCircuits, booking: arBooking, omra: arOmra, voyages: arVoyages, destinations: arDestinations, hotels: arHotels, auth: arAuth },
     },
+    lng: 'fr',
     fallbackLng: 'fr',
     defaultNS: 'common',
     ns: ['common', 'navbar', 'footer', 'contact', 'circuits', 'booking', 'omra', 'voyages', 'destinations', 'hotels', 'auth'],

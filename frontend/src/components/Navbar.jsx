@@ -53,7 +53,7 @@ const Navbar = () => {
   const [isMobileMenuOpen,  setIsMobileMenuOpen]  = useState(false);
   const [activeDropdown,    setActiveDropdown]    = useState(null);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
-  const activeLang = normalizeLanguage(i18n.language).toUpperCase();
+  const [activeLang, setActiveLang] = useState(() => normalizeLanguage(localStorage.getItem('lang') || 'fr').toUpperCase());
 
   // ── Auth state ─────────────────────────────────────────────────
   const [client, setClient] = useState(() => {
@@ -74,12 +74,14 @@ const Navbar = () => {
 
   const handleLanguageChange = useCallback((lang) => {
     const code = normalizeLanguage(lang);
-    i18n.changeLanguage(code);
+    setActiveLang(code.toUpperCase());
     document.documentElement.dir = code === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = code;
     localStorage.setItem('lang', code);
-    localStorage.setItem('i18nextLng', code);
-    applyGoogleTranslate(code);
+    localStorage.setItem('i18nextLng', 'fr');
+    i18n.changeLanguage('fr').then(() => {
+      applyGoogleTranslate(code);
+    });
   }, [i18n]);
 
   const handleLogout = useCallback(() => {
@@ -175,9 +177,9 @@ const Navbar = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 
               {/* Language Switch */}
-              <div role="group" aria-label={t('lang_aria')} style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: 'var(--radius-sm)', padding: '3px' }}>
+              <div className="notranslate" translate="no" role="group" aria-label={t('lang_aria')} style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: 'var(--radius-sm)', padding: '3px' }}>
                 {['FR', 'EN', 'AR'].map(lang => (
-                  <button key={lang} type="button" onClick={() => handleLanguageChange(lang)} aria-pressed={activeLang === lang}
+                  <button key={lang} className="notranslate" translate="no" type="button" onClick={() => handleLanguageChange(lang)} aria-pressed={activeLang === lang}
                     style={{ padding: '5px 13px', fontSize: '12px', fontWeight: 600, color: activeLang === lang ? 'var(--white)' : 'rgba(255,255,255,0.6)', borderRadius: '4px', background: activeLang === lang ? 'var(--secondary)' : 'transparent', transition: 'all var(--duration) var(--ease)', border: 'none', cursor: 'pointer' }}>
                     {lang}
                   </button>
