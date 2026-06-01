@@ -37,14 +37,14 @@ export default function Mymessages({ messages, initials, navigate }) {
                 <p className="cp-msg-bubble__text">{msg.message}</p>
               </div>
             </div>
-            {msg.admin_notes && (
+            {msg.reply && (
               <div className="cp-msg-bubble-row cp-msg-bubble-row--right">
                 <div className="cp-msg-avatar cp-msg-avatar--support">
                   <i className="fas fa-headset"/>
                 </div>
                 <div className="cp-msg-bubble cp-msg-bubble--support">
                   <p className="cp-msg-bubble__from cp-msg-bubble__from--support">Réponse de Tictac Voyages</p>
-                  <p className="cp-msg-bubble__text">{msg.admin_notes}</p>
+                  <p className="cp-msg-bubble__text">{msg.reply}</p>
                 </div>
               </div>
             )}

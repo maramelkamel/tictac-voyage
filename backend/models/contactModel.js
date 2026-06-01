@@ -52,13 +52,13 @@ const createMessage = async ({ nom, email, telephone, sujet, message }) => {
 };
 
 // ── Changer le statut (admin) ─────────────────────────────────────
-const updateStatus = async (id, status, admin_notes) => {
+const updateStatus = async (id, status, reply) => {
   const { rows } = await db.query(
     `UPDATE contact_messages
-     SET status = $1, admin_notes = COALESCE($2, admin_notes), updated_at = NOW()
+     SET status = $1, reply = COALESCE($2, reply), updated_at = NOW()
      WHERE id = $3
      RETURNING *`,
-    [status, admin_notes || null, id]
+    [status, reply || null, id]
   );
   return rows[0] || null;
 };

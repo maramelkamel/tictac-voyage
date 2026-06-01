@@ -309,7 +309,7 @@ const sendAgencyReservationEmail = async ({
  * Sent to a client when an admin replies to their contact form message
  */
 const sendContactReplyEmail = async ({
-  email, firstName, subject, originalMessage, adminReply,
+  email, firstName, subject, originalMessage, reply,
 }) => {
   const html = baseTemplate(`
     <h2 style="color:#0F4C5C;font-size:22px;margin:0 0 6px;">Reponse a votre message</h2>
@@ -324,7 +324,7 @@ const sendContactReplyEmail = async ({
     <!-- Admin reply (green card with left accent border) -->
     <div style="background:#d1fae5;border-radius:10px;padding:16px 20px;margin-bottom:24px;border-left:4px solid #10b981;">
       <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;">Reponse de TicTac Voyage</p>
-      <p style="margin:0;font-size:14px;color:#065f46;line-height:1.7;">${adminReply}</p>
+      <p style="margin:0;font-size:14px;color:#065f46;line-height:1.7;">${reply}</p>
     </div>
 
     <!-- Invite the client to reach out again if needed -->

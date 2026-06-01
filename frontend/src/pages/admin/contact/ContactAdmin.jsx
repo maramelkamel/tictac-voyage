@@ -65,7 +65,7 @@ export default function ContactAdmin() {
   /* ── quand on ouvre un message → marquer lu ── */
   const openMessage = async (msg) => {
     setSelected(msg);
-    setNoteEdit(msg.admin_notes || '');
+    setNoteEdit(msg.reply || '');
     if (msg.status === 'nouveau') {
       await fetch(`${API}/${msg.id}/status`, {
         method: 'PATCH',
@@ -83,7 +83,7 @@ export default function ContactAdmin() {
       const res = await fetch(`${API}/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, admin_notes: noteEdit }),
+        body: JSON.stringify({ status, reply: noteEdit }),
       });
       const data = await res.json();
       if (data.success) {
@@ -103,9 +103,9 @@ export default function ContactAdmin() {
       await fetch(`${API}/${selected.id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: selected.status, admin_notes: noteEdit }),
+        body: JSON.stringify({ status: selected.status, reply: noteEdit }),
       });
-      showToast('Notes sauvegardées', 'success');
+      showToast('Reponse sauvegardee', 'success');
       fetchAll();
     } catch { showToast('Erreur', 'error'); }
     finally   { setSaving(false); }
@@ -418,15 +418,15 @@ export default function ContactAdmin() {
                 </div>
               </div>
 
-              {/* Notes admin */}
+              {/* Reply admin */}
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--g400)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
-                  Notes internes
+                  Reponse au client
                 </div>
                 <textarea
                   className="al-textarea"
                   rows={3}
-                  placeholder="Ajouter une note interne…"
+                  placeholder="Ecrire une reponse au client..."
                   value={noteEdit}
                   onChange={e => setNoteEdit(e.target.value)}
                   style={{ fontSize: 13 }}
@@ -437,7 +437,7 @@ export default function ContactAdmin() {
                   onClick={saveNotes}
                   disabled={saving}
                 >
-                  {saving ? 'Sauvegarde…' : 'Sauvegarder les notes'}
+                  {saving ? 'Sauvegarde...' : 'Envoyer la reponse'}
                 </button>
               </div>
 

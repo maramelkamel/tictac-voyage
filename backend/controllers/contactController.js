@@ -56,9 +56,9 @@ const create = async (req, res) => {
 const updateStatus = async (req, res) => {
   try {
     const { id }                  = req.params;
-    const { status, admin_notes } = req.body;
+    const { status, reply } = req.body;
 
-    // 1. Fetch current message to detect if admin_notes changed
+    // 1. Fetch current message to detect if reply changed
     const prev = await contactModel.getMessageById(id);
     if (!prev)
       return res.status(404).json({ success: false, message: 'Message introuvable' });
@@ -67,14 +67,14 @@ const updateStatus = async (req, res) => {
     const msg = await contactModel.updateStatus(
       id,
       status      || prev.status,
-      admin_notes !== undefined ? admin_notes : prev.admin_notes
+      reply !== undefined ? reply : prev.reply
     );
 
-    // 3. 🔔 Send reply email only when admin_notes is newly added or changed
+    // 3. 🔔 Send reply email only when reply is newly added or changed
     const replyAdded =
-      admin_notes &&
-      admin_notes.trim() !== '' &&
-      admin_notes.trim() !== (prev.admin_notes || '').trim();
+      reply &&
+      reply.trim() !== '' &&
+      reply.trim() !== (prev.reply || '').trim();
 
     if (replyAdded && msg.email) {
       sendContactReplyEmail({
@@ -82,7 +82,7 @@ const updateStatus = async (req, res) => {
         firstName:       msg.nom.split(' ')[0],
         subject:         msg.sujet || 'votre demande',
         originalMessage: msg.message,
-        adminReply:      admin_notes,
+        reply,
       }).catch(err =>
         console.error('❌ Contact reply email failed:', err.message)
       );
