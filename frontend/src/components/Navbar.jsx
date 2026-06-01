@@ -3,12 +3,31 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import logo from "../assets/logo.png";
 
-// ── Loyalty level helper ────────────────────────────────────────
-const getLoyaltyLevel = (totalReservations) => {
-  if (totalReservations === 0) return { level: 0, label: 'Nouveau client',  color: '#64748b', icon: '🌱' };
-  if (totalReservations <= 1)  return { level: 1, label: 'Niveau 1 ⭐',     color: '#0e7490', icon: '⭐' };
-  if (totalReservations <= 3)  return { level: 2, label: 'Niveau 2 ⭐⭐',   color: '#c2410c', icon: '⭐⭐' };
-  return                              { level: 3, label: 'Niveau 3 ⭐⭐⭐', color: '#7c3aed', icon: '⭐⭐⭐' };
+const normalizeLanguage = (lang = 'fr') => {
+  const code = String(lang || 'fr').slice(0, 2).toLowerCase();
+  return ['fr', 'en', 'ar'].includes(code) ? code : 'fr';
+};
+
+const applyGoogleTranslate = (lang) => {
+  const code = normalizeLanguage(lang);
+  const cookieValue = `/fr/${code}`;
+
+  document.cookie = `googtrans=${cookieValue}; path=/`;
+
+  const changeCombo = (attempt = 0) => {
+    const combo = document.querySelector('.goog-te-combo');
+    if (combo) {
+      combo.value = code;
+      combo.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+
+    if (attempt < 20) {
+      setTimeout(() => changeCombo(attempt + 1), 250);
+    }
+  };
+
+  changeCombo();
 };
 
 const Navbar = () => {
@@ -33,8 +52,8 @@ const Navbar = () => {
   const [isScrolled,        setIsScrolled]        = useState(false);
   const [isMobileMenuOpen,  setIsMobileMenuOpen]  = useState(false);
   const [activeDropdown,    setActiveDropdown]    = useState(null);
-  const [activeLang,        setActiveLang]        = useState((i18n.language || 'fr').slice(0, 2).toUpperCase());
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const activeLang = normalizeLanguage(i18n.language).toUpperCase();
 
   // ── Auth state ─────────────────────────────────────────────────
   const [client, setClient] = useState(() => {
@@ -53,11 +72,15 @@ const Navbar = () => {
     return () => { window.removeEventListener('storage', sync); window.removeEventListener('focus', sync); };
   }, []);
 
-  useEffect(() => {
-    setActiveLang((i18n.language || 'fr').slice(0, 2).toUpperCase());
-    document.documentElement.dir = i18n.language?.startsWith('ar') ? 'rtl' : 'ltr';
-    document.documentElement.lang = (i18n.language || 'fr').slice(0, 2);
-  }, [i18n.language]);
+  const handleLanguageChange = useCallback((lang) => {
+    const code = normalizeLanguage(lang);
+    i18n.changeLanguage(code);
+    document.documentElement.dir = code === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = code;
+    localStorage.setItem('lang', code);
+    localStorage.setItem('i18nextLng', code);
+    applyGoogleTranslate(code);
+  }, [i18n]);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('token');
@@ -118,7 +141,6 @@ const Navbar = () => {
     : '';
 
   const firstName = client?.firstName || client?.first_name || '';
-  const loyalty   = getLoyaltyLevel(0); // Will be updated when profile loads
 
   return (
     <>
@@ -155,10 +177,7 @@ const Navbar = () => {
               {/* Language Switch */}
               <div role="group" aria-label={t('lang_aria')} style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: 'var(--radius-sm)', padding: '3px' }}>
                 {['FR', 'EN', 'AR'].map(lang => (
-                  <button key={lang} type="button" onClick={() => {
-                    setActiveLang(lang);
-                    i18n.changeLanguage(lang.toLowerCase());
-                  }} aria-pressed={activeLang === lang}
+                  <button key={lang} type="button" onClick={() => handleLanguageChange(lang)} aria-pressed={activeLang === lang}
                     style={{ padding: '5px 13px', fontSize: '12px', fontWeight: 600, color: activeLang === lang ? 'var(--white)' : 'rgba(255,255,255,0.6)', borderRadius: '4px', background: activeLang === lang ? 'var(--secondary)' : 'transparent', transition: 'all var(--duration) var(--ease)', border: 'none', cursor: 'pointer' }}>
                     {lang}
                   </button>
