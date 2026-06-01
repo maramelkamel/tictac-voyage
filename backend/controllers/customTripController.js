@@ -9,7 +9,7 @@ const getAll = async (req, res) => {
     const data = await model.getAll();
     res.json({ success: true, data });
   } catch (err) {
-    console.error('getAll custom_trips:', err.message);
+    console.error('getAll custom_requests:', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
@@ -21,7 +21,7 @@ const getById = async (req, res) => {
     if (!trip) return res.status(404).json({ success: false, message: 'Demande introuvable' });
     res.json({ success: true, data: trip });
   } catch (err) {
-    console.error('getById custom_trips:', err.message);
+    console.error('getById custom_requests:', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
@@ -59,7 +59,7 @@ const create = async (req, res) => {
     }
     res.status(201).json({ success: true, data: trip, message: 'Demande créée avec succès' });
   } catch (err) {
-    console.error('create custom_trips:', err.message);
+    console.error('create custom_requests:', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
@@ -101,7 +101,7 @@ const updateStatus = async (req, res) => {
 
     res.json({ success: true, data: r, message: 'Statut mis à jour' });
   } catch (err) {
-    console.error('updateStatus custom_trips:', err.message);
+    console.error('updateStatus custom_requests:', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
@@ -114,7 +114,7 @@ const updateQuote = async (req, res) => {
     const { quoted_price, admin_message } = req.body;
 
     const { rows } = await pool.query(
-      `UPDATE public.custom_trips
+      `UPDATE public.custom_requests
        SET quoted_price  = $1,
            admin_message = $2,
            updated_at    = NOW()
@@ -125,7 +125,7 @@ const updateQuote = async (req, res) => {
     if (!rows[0]) return res.status(404).json({ success: false, message: 'Demande introuvable' });
     res.json({ success: true, data: rows[0], message: 'Offre envoyée avec succès' });
   } catch (err) {
-    console.error('updateQuote custom_trips:', err.message);
+    console.error('updateQuote custom_requests:', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
@@ -137,7 +137,7 @@ const remove = async (req, res) => {
     if (!deleted) return res.status(404).json({ success: false, message: 'Demande introuvable' });
     res.json({ success: true, message: 'Demande supprimée' });
   } catch (err) {
-    console.error('remove custom_trips:', err.message);
+    console.error('remove custom_requests:', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };

@@ -11,13 +11,6 @@ const API_CUSTOM  = 'http://localhost:5000/api/custom-trips';
 
 const fDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '—';
 
-const MARITAL = {
-  celibataire: 'Célibataire',
-  marie:       'Marié(e)',
-  divorce:     'Divorcé(e)',
-  veuf:        'Veuf/Veuve',
-};
-
 // ── Loyalty level (same logic as ClientProfile) ───────────────────
 const getLoyaltyLevel = (total) => {
   if (total === 0) return { label: 'Nouveau client', color: '#64748b', bg: '#f1f5f9', icon: '🌱' };
@@ -69,8 +62,6 @@ const ClientDetail = ({ client, reservationCount, onClose, onDelete, isMain }) =
         <p style={{ fontSize:10, fontWeight:700, color:'var(--g400)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:4 }}>Informations</p>
         <InfoRow icon="📞" label="Téléphone"    value={client.phone || null}/>
         <InfoRow icon="🏙️" label="Ville"         value={client.city  || null}/>
-        <InfoRow icon="💍" label="Situation"     value={MARITAL[client.marital_status] || null}/>
-        <InfoRow icon="👶" label="Enfants"       value={client.number_of_children > 0 ? `${client.number_of_children}` : null}/>
         <InfoRow icon="📅" label="Inscrit le"    value={fDate(client.created_at)}/>
       </div>
 

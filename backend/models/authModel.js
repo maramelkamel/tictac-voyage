@@ -3,17 +3,14 @@ const pool = require('../config/db');
 const bcrypt = require('bcryptjs');
 
 // This model helper creates a local email/password client record.
-const createClient = async ({ firstName, lastName, email, phone, password, maritalStatus, numberOfChildren, city }) => {
+const createClient = async ({ firstName, lastName, email, phone, password, city }) => {
   const password_hash = await bcrypt.hash(password, 12);
   const result = await pool.query(
     `INSERT INTO clients
-      (first_name, last_name, email, phone, password_hash, marital_status, number_of_children, city)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      (first_name, last_name, email, phone, password_hash, city)
+     VALUES ($1,$2,$3,$4,$5,$6)
      RETURNING id, first_name, last_name, email, phone, city, created_at`,
-    [firstName, lastName, email, phone, password_hash,
-     maritalStatus || null,
-     numberOfChildren !== '' ? parseInt(numberOfChildren) : null,
-     city || null]
+    [firstName, lastName, email, phone, password_hash, city || null]
   );
   return result.rows[0];
 };
@@ -30,7 +27,7 @@ const findByEmail = async (email) => {
 // This model helper finds a client by id with safe profile fields.
 const findById = async (id) => {
   const result = await pool.query(
-    `SELECT id, first_name, last_name, email, phone, marital_status, number_of_children, city, created_at
+    `SELECT id, first_name, last_name, email, phone, city, created_at
      FROM clients WHERE id = $1`,
     [id]
   );

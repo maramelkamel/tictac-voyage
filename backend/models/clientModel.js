@@ -5,7 +5,6 @@ const bcrypt = require('bcryptjs');
 
 const SAFE_FIELDS = `
   id, first_name, last_name, email, phone, city,
-  marital_status, number_of_children,
   created_at, updated_at
 `;
 
@@ -38,16 +37,14 @@ const createClient = async ({
   phone,
   password,
   city,
-  marital_status,
-  number_of_children,
 }) => {
   const password_hash = await bcrypt.hash(password, 12);
   const { rows } = await pool.query(
     `
     INSERT INTO public.clients
-      (first_name, last_name, email, phone, password_hash, city, marital_status, number_of_children)
+      (first_name, last_name, email, phone, password_hash, city)
     VALUES
-      ($1,$2,LOWER($3),$4,$5,$6,$7,$8)
+      ($1,$2,LOWER($3),$4,$5,$6)
     RETURNING ${SAFE_FIELDS}
   `,
     [
@@ -57,8 +54,6 @@ const createClient = async ({
       phone,
       password_hash,
       city || null,
-      marital_status || null,
-      number_of_children ?? 0,
     ]
   );
   return rows[0];

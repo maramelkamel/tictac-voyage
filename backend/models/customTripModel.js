@@ -3,7 +3,7 @@ const db = require('../config/db');
 
 /* GET all — supports optional email filter for client profile */
 const getAll = async ({ email } = {}) => {
-  let q = `SELECT * FROM custom_trips WHERE 1=1`;
+  let q = `SELECT * FROM custom_requests WHERE 1=1`;
   const vals = [];
 
   if (email) {
@@ -19,7 +19,7 @@ const getAll = async ({ email } = {}) => {
 /* GET one by id */
 const getById = async (id) => {
   const { rows } = await db.query(
-    `SELECT * FROM custom_trips WHERE id = $1`, [id]
+    `SELECT * FROM custom_requests WHERE id = $1`, [id]
   );
   return rows[0] || null;
 };
@@ -35,7 +35,7 @@ const create = async (data) => {
   } = data;
 
   const { rows } = await db.query(
-    `INSERT INTO custom_trips (
+    `INSERT INTO custom_requests (
       full_name, email, phone,
       destination, departure_date, return_date, number_of_persons, max_budget,
       include_hotel, hotel_category, room_type, pension,
@@ -61,7 +61,7 @@ const create = async (data) => {
 /* UPDATE status */
 const updateStatus = async (id, status, admin_notes) => {
   const { rows } = await db.query(
-    `UPDATE custom_trips SET status=$1, admin_notes=COALESCE($2, admin_notes)
+    `UPDATE custom_requests SET status=$1, admin_notes=COALESCE($2, admin_notes)
      WHERE id=$3 RETURNING *`,
     [status, admin_notes || null, id]
   );
@@ -71,7 +71,7 @@ const updateStatus = async (id, status, admin_notes) => {
 /* DELETE */
 const remove = async (id) => {
   const { rowCount } = await db.query(
-    `DELETE FROM custom_trips WHERE id=$1`, [id]
+    `DELETE FROM custom_requests WHERE id=$1`, [id]
   );
   return rowCount > 0;
 };

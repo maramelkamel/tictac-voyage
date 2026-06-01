@@ -499,8 +499,6 @@ const ClientProfile = () => {
       last_name:          c.lastName         || c.last_name         || '',
       phone:              c.phone            || '',
       city:               c.city             || '',
-      marital_status:     c.marital_status   || '',
-      number_of_children: c.number_of_children ?? '',
     });
     fetchAll(c.email);
   }, []);
@@ -684,7 +682,6 @@ const ClientProfile = () => {
                           { key:'last_name',          label:'Nom',              type:'text'   },
                           { key:'phone',              label:'Téléphone',        type:'tel'    },
                           { key:'city',               label:'Ville',            type:'text'   },
-                          { key:'number_of_children', label:"Nombre d'enfants", type:'number' },
                         ].map(f => (
                           <div key={f.key}>
                             <label className="cp-edit-label">{f.label}</label>
@@ -696,20 +693,6 @@ const ClientProfile = () => {
                             />
                           </div>
                         ))}
-                        <div>
-                          <label className="cp-edit-label">Situation matrimoniale</label>
-                          <select
-                            value={editForm.marital_status || ''}
-                            onChange={e => setEditForm(p => ({ ...p, marital_status: e.target.value }))}
-                            className="cp-select"
-                          >
-                            <option value="">—</option>
-                            <option value="celibataire">Célibataire</option>
-                            <option value="marie">Marié(e)</option>
-                            <option value="divorce">Divorcé(e)</option>
-                            <option value="veuf">Veuf / Veuve</option>
-                          </select>
-                        </div>
                         <div className="cp-edit-actions">
                           <button onClick={() => setEditMode(false)} className="cp-btn-cancel">Annuler</button>
                           <button onClick={handleSaveProfile} disabled={saving} className="cp-btn-save">
@@ -725,8 +708,6 @@ const ClientProfile = () => {
                           { label:'Email',            value:client.email },
                           { label:'Téléphone',        value:client.phone||'—' },
                           { label:'Ville',            value:client.city||'—' },
-                          { label:'Situation',        value:client.marital_status||'—' },
-                          { label:"Nombre d'enfants", value:client.number_of_children??'—' },
                           { label:'Membre depuis',    value:fDate(client.created_at) },
                         ].map(item => (
                           <div key={item.label}>

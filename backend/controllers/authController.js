@@ -26,9 +26,6 @@ exports.register = async (req, res) => {
     const phone = req.body.phone || '';
     const password = req.body.password || '';
     const city = req.body.city || null;
-    const marital_status = req.body.marital_status || req.body.maritalStatus || null;
-    const rawChildren = req.body.number_of_children ?? req.body.numberOfChildren ?? 0;
-    const number_of_children = rawChildren === '' ? 0 : Number(rawChildren) || 0;
 
     if (!first_name || !last_name || !email || !phone || !password) {
       return res.status(400).json({ success: false, message: 'Tous les champs sont obligatoires' });
@@ -41,10 +38,10 @@ exports.register = async (req, res) => {
 
     const hash = await bcrypt.hash(password, 12);
     const result = await pool.query(
-      `INSERT INTO clients (first_name, last_name, email, phone, password_hash, city, marital_status, number_of_children)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-       RETURNING id, first_name, last_name, email, phone, city, marital_status, number_of_children, created_at`,
-      [first_name, last_name, email.toLowerCase(), phone, hash, city, marital_status, number_of_children]
+      `INSERT INTO clients (first_name, last_name, email, phone, password_hash, city)
+       VALUES ($1,$2,$3,$4,$5,$6)
+       RETURNING id, first_name, last_name, email, phone, city, created_at`,
+      [first_name, last_name, email.toLowerCase(), phone, hash, city]
     );
     const client = result.rows[0];
 
@@ -91,8 +88,7 @@ exports.login = async (req, res) => {
 exports.getMe = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, first_name, last_name, email, phone, city,
-              marital_status, number_of_children, created_at
+      `SELECT id, first_name, last_name, email, phone, city, created_at
        FROM clients WHERE id=$1`,
       [req.clientId]
     );

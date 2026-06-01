@@ -18,8 +18,6 @@ const CreateAccount = () => {
     phone: '',
     password: '',
     confirmPassword: '',
-    maritalStatus: '',
-    numberOfChildren: '',
     city: '',
     agreeTerms: false,
   });
@@ -82,8 +80,6 @@ const CreateAccount = () => {
           email:              formData.email,
           phone:              formData.phone,
           password:           formData.password,
-          marital_status:     formData.maritalStatus || null,
-          number_of_children: formData.numberOfChildren === '' ? 0 : Number(formData.numberOfChildren),
           city:               formData.city.trim() || null,
         }),
       });
@@ -253,40 +249,13 @@ const CreateAccount = () => {
                   {errors.phone && <span className="auth-error">{errors.phone}</span>}
                 </div>
 
-                {/* Situation matrimoniale */}
-                <div className={`auth-field ${focused === 'maritalStatus' ? 'auth-field--focused' : ''}`}>
-                  <label htmlFor="maritalStatus">Situation matrimoniale <span className="auth-optional-tag">Optionnel</span></label>
+                {/* Ville */}
+                <div className={`auth-field ${focused === 'city' ? 'auth-field--focused' : ''}`}>
+                  <label htmlFor="city">Ville de résidence <span className="auth-optional-tag">Optionnel</span></label>
                   <div className="auth-input-wrap">
-                    <i className="fas fa-heart auth-input-icon" />
-                    <select id="maritalStatus" name="maritalStatus" value={formData.maritalStatus} onChange={handleChange}
-                      onFocus={() => setFocused('maritalStatus')} onBlur={() => setFocused('')} className="auth-select">
-                      <option value="">Sélectionnez...</option>
-                      <option value="celibataire">Célibataire</option>
-                      <option value="marie">Marié(e)</option>
-                      <option value="divorce">Divorcé(e)</option>
-                      <option value="veuf">Veuf / Veuve</option>
-                    </select>
-                    <i className="fas fa-chevron-down auth-select-arrow" />
-                  </div>
-                </div>
-
-                {/* Nombre d'enfants / Ville */}
-                <div className="auth-row">
-                  <div className={`auth-field ${focused === 'numberOfChildren' ? 'auth-field--focused' : ''}`}>
-                    <label htmlFor="numberOfChildren">Nombre d'enfants <span className="auth-optional-tag">Optionnel</span></label>
-                    <div className="auth-input-wrap">
-                      <i className="fas fa-child auth-input-icon" />
-                      <input id="numberOfChildren" type="number" name="numberOfChildren" value={formData.numberOfChildren} onChange={handleChange}
-                        onFocus={() => setFocused('numberOfChildren')} onBlur={() => setFocused('')} placeholder="0" min="0" max="20" />
-                    </div>
-                  </div>
-                  <div className={`auth-field ${focused === 'city' ? 'auth-field--focused' : ''}`}>
-                    <label htmlFor="city">Ville de résidence <span className="auth-optional-tag">Optionnel</span></label>
-                    <div className="auth-input-wrap">
-                      <i className="fas fa-map-marker-alt auth-input-icon" />
-                      <input id="city" type="text" name="city" value={formData.city} onChange={handleChange}
-                        onFocus={() => setFocused('city')} onBlur={() => setFocused('')} placeholder="Ex: Tunis, Sousse..." autoComplete="address-level2" />
-                    </div>
+                    <i className="fas fa-map-marker-alt auth-input-icon" />
+                    <input id="city" type="text" name="city" value={formData.city} onChange={handleChange}
+                      onFocus={() => setFocused('city')} onBlur={() => setFocused('')} placeholder="Ex: Tunis, Sousse..." autoComplete="address-level2" />
                   </div>
                 </div>
 

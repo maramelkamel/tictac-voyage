@@ -39,14 +39,14 @@ END;
 $$;
 ALTER FUNCTION public.update_contact_updated_at() OWNER TO postgres;
 
-CREATE FUNCTION public.update_custom_trips_updated_at() RETURNS trigger
+CREATE FUNCTION public.update_custom_requests_updated_at() RETURNS trigger
     LANGUAGE plpgsql AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
 $$;
-ALTER FUNCTION public.update_custom_trips_updated_at() OWNER TO postgres;
+ALTER FUNCTION public.update_custom_requests_updated_at() OWNER TO postgres;
 
 SET default_tablespace = '';
 SET default_table_access_method = heap;
@@ -69,9 +69,9 @@ CREATE TABLE public.contact_messages (
 );
 ALTER TABLE public.contact_messages OWNER TO postgres;
 
--- ─── TABLE: custom_trips ─────────────────────────────────────────────────────
+-- ─── TABLE: custom_requests ─────────────────────────────────────────────────────
 
-CREATE TABLE public.custom_trips (
+CREATE TABLE public.custom_requests (
     id SERIAL PRIMARY KEY,
     destination character varying(255) NOT NULL,
     departure_date date NOT NULL,
@@ -96,9 +96,9 @@ CREATE TABLE public.custom_trips (
     full_name character varying(255),
     email character varying(255),
     phone character varying(50),
-    CONSTRAINT custom_trips_status_check CHECK ((status = ANY (ARRAY['pending','confirmed','cancelled','completed'])))
+    CONSTRAINT custom_requests_status_check CHECK ((status = ANY (ARRAY['pending','confirmed','cancelled','completed'])))
 );
-ALTER TABLE public.custom_trips OWNER TO postgres;
+ALTER TABLE public.custom_requests OWNER TO postgres;
 
 -- ─── TABLE: transport_requests ───────────────────────────────────────────────
 
@@ -163,8 +163,8 @@ ALTER TABLE public.transports OWNER TO postgres;
 CREATE INDEX idx_contact_created_at ON public.contact_messages USING btree (created_at DESC);
 CREATE INDEX idx_contact_status ON public.contact_messages USING btree (status);
 CREATE INDEX idx_contact_sujet ON public.contact_messages USING btree (sujet);
-CREATE INDEX idx_custom_trips_created ON public.custom_trips USING btree (created_at DESC);
-CREATE INDEX idx_custom_trips_status ON public.custom_trips USING btree (status);
+CREATE INDEX idx_custom_requests_created ON public.custom_requests USING btree (created_at DESC);
+CREATE INDEX idx_custom_requests_status ON public.custom_requests USING btree (status);
 CREATE INDEX idx_requests_created_at ON public.transport_requests USING btree (created_at DESC);
 CREATE INDEX idx_requests_email ON public.transport_requests USING btree (email);
 CREATE INDEX idx_requests_status ON public.transport_requests USING btree (status);
@@ -173,7 +173,7 @@ CREATE INDEX idx_transports_type ON public.transports USING btree (transport_typ
 -- ─── TRIGGERS ────────────────────────────────────────────────────────────────
 
 CREATE TRIGGER trg_contact_updated_at BEFORE UPDATE ON public.contact_messages FOR EACH ROW EXECUTE FUNCTION public.update_contact_updated_at();
-CREATE TRIGGER trg_custom_trips_updated_at BEFORE UPDATE ON public.custom_trips FOR EACH ROW EXECUTE FUNCTION public.update_custom_trips_updated_at();
+CREATE TRIGGER trg_custom_requests_updated_at BEFORE UPDATE ON public.custom_requests FOR EACH ROW EXECUTE FUNCTION public.update_custom_requests_updated_at();
 CREATE TRIGGER trg_transport_requests_updated BEFORE UPDATE ON public.transport_requests FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER trg_transports_updated BEFORE UPDATE ON public.transports FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
@@ -190,9 +190,9 @@ INSERT INTO public.transports (id, transport_name, transport_type, description, 
 INSERT INTO public.contact_messages (id, nom, email, telephone, sujet, message, status, admin_notes, created_at, updated_at) VALUES
 (1, 'miniar', 'nmiri@gmail.com', '55555555', 'voyage', 'hellooooo', 'lu', NULL, '2026-03-09 00:12:46.126367+01', '2026-03-09 00:44:38.152343+01');
 
--- ─── DATA: custom_trips ──────────────────────────────────────────────────────
+-- ─── DATA: custom_requests ──────────────────────────────────────────────────────
 
-INSERT INTO public.custom_trips (id, destination, departure_date, return_date, number_of_persons, max_budget, include_hotel, hotel_category, room_type, pension, include_transport, transport_type, departure_city, luggage, include_guide, guide_language, guide_duration, status, admin_notes, created_at, updated_at, full_name, email, phone) VALUES
+INSERT INTO public.custom_requests (id, destination, departure_date, return_date, number_of_persons, max_budget, include_hotel, hotel_category, room_type, pension, include_transport, transport_type, departure_city, luggage, include_guide, guide_language, guide_duration, status, admin_notes, created_at, updated_at, full_name, email, phone) VALUES
 (1, 'paris', '2026-03-27', '2026-03-31', 1, NULL, true, '3', 'double', 'petit-dejeuner', true, 'avion', 'Lyon', 'extra', true, 'francais', 'tout-sejour', 'confirmed', NULL, '2026-03-07 23:34:15.068855+01', '2026-03-09 00:17:28.866053+01', NULL, NULL, NULL);
 
 -- ─── DATA: transport_requests ────────────────────────────────────────────────
@@ -207,7 +207,7 @@ INSERT INTO public.transport_requests (id, service_type, trip_type, duration_typ
 -- ─── RESET SEQUENCES ─────────────────────────────────────────────────────────
 
 SELECT setval('public.contact_messages_id_seq', (SELECT MAX(id) FROM public.contact_messages));
-SELECT setval('public.custom_trips_id_seq', (SELECT MAX(id) FROM public.custom_trips));
+SELECT setval('public.custom_requests_id_seq', (SELECT MAX(id) FROM public.custom_requests));
 SELECT setval('public.transport_requests_id_seq', (SELECT MAX(id) FROM public.transport_requests));
 SELECT setval('public.transports_id_seq', (SELECT MAX(id) FROM public.transports));
 
@@ -231,15 +231,9 @@ CREATE TABLE public.clients (
     email         VARCHAR(255)  UNIQUE NOT NULL,
     phone         VARCHAR(30)   NOT NULL,
     password_hash VARCHAR(255)  NOT NULL,
-    marital_status VARCHAR(20)  DEFAULT NULL,
-    number_of_children INTEGER  DEFAULT 0,
     city          VARCHAR(100)  DEFAULT NULL,
     created_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    updated_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    CONSTRAINT clients_marital_status_check CHECK (
-        marital_status IS NULL OR
-        marital_status = ANY(ARRAY['celibataire','marie','divorce','veuf'])
-    )
+    updated_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 
 CREATE INDEX idx_clients_email ON public.clients USING btree (email);
@@ -370,35 +364,35 @@ SELECT setval('public.omra_packages_id_seq', (SELECT MAX(id) FROM public.omra_pa
 -- Passwords are hashed with bcrypt (plain text: "Password123!")
 
 INSERT INTO public.clients
-    (first_name, last_name, email, phone, password_hash, marital_status, number_of_children, city)
+    (first_name, last_name, email, phone, password_hash, city)
 VALUES
 (
     'Miniar', 'Nmiri',
     'nmiri@gmail.com',
     '+216 50 788 988',
     '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- Password123!
-    'celibataire', 0, 'Tunis'
+    'Tunis'
 ),
 (
     'Maram', 'El Kamel',
     'maram.elkamel@gmail.com',
     '+216 55 123 456',
     '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- Password123!
-    'marie', 2, 'Sousse'
+    'Sousse'
 ),
 (
     'Ahmed', 'Ben Ali',
     'ahmed.benali@gmail.com',
     '+216 98 765 432',
     '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- Password123!
-    'marie', 3, 'Sfax'
+    'Sfax'
 ),
 (
     'Sarra', 'Mejri',
     'sarra.mejri@gmail.com',
     '+216 22 334 455',
     '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- Password123!
-    'celibataire', 0, 'Monastir'
+    'Monastir'
 );
 
 SELECT setval('public.clients_id_seq', (SELECT MAX(id) FROM public.clients));
@@ -969,17 +963,17 @@ VALUES (
 Maram
 
 -- ════════════════════════════════════════════════════════════════
---  TIC-TAC VOYAGE — Add quote fields to custom_trips
+--  TIC-TAC VOYAGE — Add quote fields to custom_requests
 --  Run in pgAdmin Query Tool on tictacvoyage database
 -- ════════════════════════════════════════════════════════════════
  
-ALTER TABLE public.custom_trips
+ALTER TABLE public.custom_requests
   ADD COLUMN IF NOT EXISTS quoted_price  NUMERIC(10,2) DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS admin_message TEXT          DEFAULT NULL;
  
 -- Verify
 SELECT column_name, data_type FROM information_schema.columns
-WHERE table_name = 'custom_trips'
+WHERE table_name = 'custom_requests'
   AND column_name IN ('quoted_price', 'admin_message');
  
 maram 

@@ -14,7 +14,7 @@ const tables = [
   "transport_requests",
   "transports",
   "promotions",
-  "custom_trips",
+  "custom_requests",
   "contact_messages",
   "omra_packages",
   "favorites",
