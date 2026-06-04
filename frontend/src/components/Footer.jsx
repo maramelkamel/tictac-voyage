@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 const inputStyle = {
@@ -45,12 +46,12 @@ const Footer = () => {
   };
 
   const services = [
-    { id: 1, label: t('services.hotels'),             href: '/' },
+    { id: 1, label: t('services.hotels'),             href: '/hotels' },
     { id: 2, label: t('services.transport'),          href: '/transport' },
     { id: 3, label: t('services.voyages_organises'),  href: '/VoyagesOrganise/VoyagesOrganise' },
     { id: 4, label: t('services.omra'),               href: '/Omra/Omra' },
-    { id: 5, label: t('services.sur_mesure'),         href: '/voyagenonorg/VoyageSurMesure' },
-    { id: 6, label: t('services.billetterie'),        href: '/billeterie/Billeterie' },
+    { id: 5, label: t('services.sur_mesure'),         href: '/CustomTripAbroad' },
+    { id: 6, label: t('services.billetterie'),        href: '/flights' },
     { id: 7, label: t('services.circuits'),           href: '/circuits/circuit' },
   ];
 
@@ -116,7 +117,7 @@ const Footer = () => {
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {services.map((s) => (
                 <li key={s.id}>
-                  <a href={s.href} className="footer-link"
+                  <Link to={s.href} className="footer-link"
                     style={{
                       fontSize: '14px', color: 'rgba(255,255,255,0.7)',
                       display: 'flex', alignItems: 'center', gap: '10px',
@@ -124,7 +125,7 @@ const Footer = () => {
                     }}>
                     <i className="fas fa-chevron-right" style={{ fontSize: '10px', color: 'var(--secondary)' }} />
                     {s.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
